@@ -10,7 +10,10 @@ License: Commercial
 Vendor: Dell Inc.
 Group: System Environment/Dell Inc. Applications
 URL: http://www.dell.com
-Requires: jre >= 1.8.0 cpsd-capability-registry-service cpsd-node-discovery-service
+Requires: rcm-fitness-common cpsd-capability-registry-service cpsd-credentials-service cpsd-endpoint-registration-service 
+Requires: cpsd-hal-mediation-services cpsd-hal-orchestrator-service cpsd-identity-service cpsd-system-definition-service
+Requires: cpsd-coprhd-adapter cpsd-api-gateway-service cpsd-hal-data-provider-vcenter cpsd-hdp-poweredge-compute cpsd-rackhd-adapter
+Requires: cpsd-node-discovery-service
 
 %define _use_internal_dependency_generator 0
 %define __find_requires %{nil}
