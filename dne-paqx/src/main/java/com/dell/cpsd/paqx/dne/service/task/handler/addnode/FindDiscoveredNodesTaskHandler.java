@@ -75,7 +75,7 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
 
             if (discoveredNodesResponse != null)
             {
-                final List<NodeInfo> nodeInfoList = discoveredNodesResponse.stream()
+                final List<NodeInfo> nodeInfoList = discoveredNodesResponse.stream().filter(node -> node.getNodeStatus().equals(com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus.DISCOVERED))
                         .map(n -> new NodeInfo(n.getConvergedUuid(), n.getNodeId(), NodeStatus.valueOf(n.getNodeStatus().toString())))
                         .collect(Collectors.toList());
 
