@@ -1,10 +1,11 @@
 UPSTREAM_JOBS_LIST = [
-    "vce-symphony/common-dependencies/${env.BRANCH_NAME}",
-    "vce-symphony/common-client-parent/${env.BRANCH_NAME}",
+    "dellemc-symphony/common-dependencies/${env.BRANCH_NAME}",
+    "dellemc-symphony/common-client-parent/${env.BRANCH_NAME}",
     "vce-symphony/hdp-capability-registry-client/${env.BRANCH_NAME}",
-    "vce-symphony/common-messaging-parent/${env.BRANCH_NAME}",
+    "dellemc-symphony/common-messaging-parent/${env.BRANCH_NAME}",
     "dellemc-symphony/engineering-standards-service-parent/${env.BRANCH_NAME}",
     "dellemc-symphony/compute-capabilities-api/${env.BRANCH_NAME}",
+    "dellemc-symphony/system-integration-sdk/${env.BRANCH_NAME}",
     "dellemc-symphony/virtualization-capabilities-api/${env.BRANCH_NAME}"
 ]
 UPSTREAM_JOBS = UPSTREAM_JOBS_LIST.join(',')

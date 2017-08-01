@@ -36,8 +36,8 @@ public class NodeInfo
         this.symphonyUuid = symphonyUuid;
 
         // TODO: need to decide how we actually get all this info...
-        // Specifically, need to get the MAC address from somwhere...for
-        // now will use the symphonyUuid.
+        // Specifically, need to get the MAC address from somewhere...
+        // for now will use the symphonyUuid.
         // What about the IP address and the serial number??
         this.identity = new Identity("SERVER", this.symphonyUuid, /* TODO change this */this.nodeId, /* TODO change this */this.nodeId,
                 null/* businessKeys */);
@@ -45,10 +45,11 @@ public class NodeInfo
         this.parentGroups = new ArrayList<>();
         this.parentGroups.add("SystemCompute");
         this.endpoints = new ArrayList<>();
-        this.endpoints.add("RACKHD");       // RACKHD-EP
-        this.endpoints.add("COMMON-IDRAC"); // COMMON-DELL-POWEREDGE-IDRAC-EP
-        this.endpoints.add("COMMON-ESXI");  // COMMON-DELL-POWEREDGE-ESXI-HOST-EP
-        this.endpoints.add("COMMON-SVM");   // COMMON-DELL-POWEREDGE-SVM-EP
+        this.endpoints.add("RACKHD");           // RACKHD-EP
+        // Omitting these endpoints for now...
+        //this.endpoints.add("COMMON-IDRAC");   // COMMON-DELL-POWEREDGE-IDRAC-EP
+        //this.endpoints.add("COMMON-ESXI");    // COMMON-DELL-POWEREDGE-ESXI-HOST-EP
+        //this.endpoints.add("COMMON-SVM");     // COMMON-DELL-POWEREDGE-SVM-EP
     }
 
     public String getSymphonyUuid()
