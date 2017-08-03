@@ -7,6 +7,8 @@ package com.dell.cpsd.paqx.dne.amqp.config;
 
 import java.util.Map;
 
+import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
+import com.dell.cpsd.paqx.dne.repository.H2DataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +60,8 @@ import com.google.common.base.Splitter;
     SDKConfiguration.class,
     SystemDefinitionMessenger.class, 
     AMQPClient.class,
+    PersistencePropertiesConfig.class,
+    PersistenceConfig.class
 })
 public class ServiceConfig
 {
@@ -68,7 +72,13 @@ public class ServiceConfig
             @Autowired DneProducer dneProducer,
             @Autowired String replyTo)
     {
-        return new AmqpNodeService(LOGGER, delegatingMessageConsumer, dneProducer, replyTo);
+        return new AmqpNodeService(LOGGER, delegatingMessageConsumer, dneProducer, replyTo, repository());
+    }
+
+    @Bean
+    DataServiceRepository repository()
+    {
+        return new H2DataRepository();
     }
     
     

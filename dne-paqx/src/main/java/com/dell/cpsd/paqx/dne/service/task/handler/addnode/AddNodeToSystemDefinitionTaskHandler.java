@@ -113,16 +113,32 @@ public class AddNodeToSystemDefinitionTaskHandler extends BaseTaskHandler implem
                 throw new IllegalStateException("No converged system found.");
             }
 
-            ConvergedSystem systemToUpdate = systemDetails.get(0);
+            ConvergedSystem systemToBeUpdated = systemDetails.get(0);
 
             Component newNode = new Component();
             newNode.setUuid(nodeInfo.getSymphonyUuid());
             newNode.setIdentity(nodeInfo.getIdentity());
             newNode.setDefinition(nodeInfo.getDefinition());
-            newNode.setParentGroupUuids(this.mapGroupNamesToUUIDs(nodeInfo.getParentGroups(), systemToUpdate.getGroups()));
+            newNode.setParentGroupUuids(this.mapGroupNamesToUUIDs(nodeInfo.getParentGroups(), systemToBeUpdated.getGroups()));
             newNode.setEndpoints(new ArrayList<>());
 
-            this.sdkAMQPClient.addComponent(systemToUpdate, newNode, nodeInfo.getEndpoints(), COMPONENT_SERVER_TEMPLATE);
+            this.sdkAMQPClient.addComponent(systemToBeUpdated, newNode, nodeInfo.getEndpoints(), COMPONENT_SERVER_TEMPLATE);
+
+            // Need to make sure the node was really added.
+            // The SDK has a habit of swallowing exceptions making it difficult to know
+            // if there was an error...
+            systemDetails = this.sdkAMQPClient.getComponents(componentsFilter);
+            ConvergedSystem systemThatWasUpdated = systemDetails.get(0);
+
+            Component newComponent = systemThatWasUpdated.getComponents().stream()
+                .filter(c -> c.getIdentity().getIdentifier().equals(newNode.getIdentity().getIdentifier()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (newComponent == null)
+            {
+                throw new IllegalStateException("Discovered node was not added to the system definition.");
+            }
 
             response.setWorkFlowTaskStatus(Status.SUCCEEDED);
             return true;

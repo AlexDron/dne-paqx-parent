@@ -11,21 +11,23 @@ import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.WorkflowService;
 import com.dell.cpsd.paqx.dne.service.WorkflowServiceImpl;
-import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
+import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
+import com.dell.cpsd.paqx.dne.service.model.NodeStatus;
+import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.workflow.preprocess.PreProcessService;
 import com.dell.cpsd.paqx.dne.service.workflow.preprocess.PreProcessTaskConfig;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
+import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -101,10 +103,17 @@ public class FindVClusterTaskHandlerTest
     @Test
     public void testExecuteTask_successful_case() throws ServiceTimeoutException, ServiceExecutionException
     {
-        VirtualizationCluster vCluster = new VirtualizationCluster("clusterTest1", 2);
-        List<VirtualizationCluster> vClusters = new ArrayList<>();
+        ClusterInfo vCluster = new ClusterInfo("clusterTest1", 2);
+        List<ClusterInfo> vClusters = new ArrayList<>();
         vClusters.add(vCluster);
+
+        List<String> clusterNames = new ArrayList<>();
+        clusterNames.add("clusterTest1");
+        ValidateVcenterClusterResponseMessage resMsg = new ValidateVcenterClusterResponseMessage();
+        resMsg.setClusters(clusterNames);
+
         when(this.nodeService.listClusters()).thenReturn(vClusters);
+        when(this.nodeService.validateClusters(vClusters)).thenReturn(resMsg);
 
         FindVClusterTaskHandler instance = new FindVClusterTaskHandler(this.nodeService);
         boolean expectedResult = true;
@@ -124,10 +133,20 @@ public class FindVClusterTaskHandlerTest
     @Test
     public void testExecuteTask_unsuccessful_case() throws ServiceTimeoutException, ServiceExecutionException
     {
-        VirtualizationCluster vCluster = new VirtualizationCluster("clusterTest1", 2);
-        List<VirtualizationCluster> vClusters = new ArrayList<>();
+        ClusterInfo vCluster = new ClusterInfo("clusterTest1", 2);
+        List<ClusterInfo> vClusters = new ArrayList<>();
         vClusters.add(vCluster);
-        when(this.nodeService.listClusters()).thenThrow(new ServiceExecutionException("Unit Test Exception!"));
+
+        List<String> failedClusterNames = new ArrayList<>();
+        failedClusterNames.add("REQUIRED:  No more than 1000 nodes per cluster -- Cluster test1 with 1000 nodes failed rule checking.\n");
+        failedClusterNames.add("REQUIRED:  No more than 1000 nodes per cluster -- Cluster test4 with 2000 nodes failed rule checking.\n");
+        ValidateVcenterClusterResponseMessage resMsg = new ValidateVcenterClusterResponseMessage();
+        resMsg.setClusters(Collections.emptyList());
+        resMsg.setFailedCluster(failedClusterNames);
+
+        when(this.nodeService.listClusters()).thenReturn(vClusters);
+        when(this.nodeService.validateClusters(vClusters)).thenReturn(resMsg);
+
 
         FindVClusterTaskHandler instance = new FindVClusterTaskHandler(this.nodeService);
         boolean expectedResult = false;

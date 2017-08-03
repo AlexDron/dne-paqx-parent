@@ -15,6 +15,7 @@
 
     <properties>
         <spring.oxm.version>4.3.3.RELEASE</spring.oxm.version>
+        <dbh2.version>1.4.195</dbh2.version>
     </properties>
 
     <licenses>
@@ -62,6 +63,14 @@
             <groupId>com.dell.converged.capabilities.compute</groupId>
             <artifactId>discovered-nodes-capabilities-client-java</artifactId>
             <version>1.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>storage-capabilities-api</artifactId>
+            <groupId>com.dell.cpsd.storage.capabilities.api</groupId>
+            <version>0.2-SNAPSHOT</version>
+            <type>zip</type>
+            <classifier>schemas</classifier>
         </dependency>
 
         <dependency>
@@ -158,9 +167,33 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>1.1.0.Final</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-orm -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
+        </dependency>
+
+
+        <!-- H2 DB -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${dbh2.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -194,13 +227,25 @@
                             <includes>**\/*.jsd</includes>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>unpack-json-schemas-storage-capabilities-api</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeGroupIds>com.dell.cpsd.storage.capabilities.api</includeGroupIds>
+                            <includeArtifactIds>storage-capabilities-api</includeArtifactIds>
+                            <includes>**\/*.jsd</includes>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.jsonschema2pojo</groupId>
                 <artifactId>jsonschema2pojo-maven-plugin</artifactId>
-                <version>0.4.27</version>
+                <version>0.4.34</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.dell.cpsd.common.messaging</groupId>
@@ -226,6 +271,39 @@
                             <includeAdditionalProperties>false</includeAdditionalProperties>
                             <customAnnotator>com.dell.cpsd.common.contract.enricher.plugins.jsonschema2pojo.MessageAnnotator</customAnnotator>
                             <customRuleFactory>com.dell.cpsd.common.contract.enricher.plugins.jsonschema2pojo.DefaultRuleFactory</customRuleFactory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-json-type-storage-capabilities-api</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>
+                                ${project.build.directory}/dependency/storage-capabilities-api/schema/json
+                            </sourceDirectory>
+                            <targetPackage>
+                                com.dell.cpsd.storage.capabilities.api
+                            </targetPackage>
+                            <outputDirectory>
+                                ${project.build.directory}/generated-sources/storage-capabilities-api
+                            </outputDirectory>
+                            <removeOldOutput>false</removeOldOutput>
+                            <useLongIntegers>true</useLongIntegers>
+                            <generateBuilders>true</generateBuilders>
+                            <includeConstructors>true</includeConstructors>
+                            <includeAdditionalProperties>false</includeAdditionalProperties>
+                            <serializable>false</serializable>
+                            <useCommonsLang3>true</useCommonsLang3>
+                            <includeJsr303Annotations>true</includeJsr303Annotations>
+                            <sourceSortOrder>FILES_FIRST</sourceSortOrder>
+                            <customAnnotator>
+                                com.dell.cpsd.common.contract.enricher.plugins.jsonschema2pojo.MessageAnnotator
+                            </customAnnotator>
+                            <customRuleFactory>
+                                com.dell.cpsd.common.contract.enricher.plugins.jsonschema2pojo.DefaultRuleFactory
+                            </customRuleFactory>
                         </configuration>
                     </execution>
                 </executions>

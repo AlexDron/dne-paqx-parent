@@ -12,8 +12,19 @@ import com.dell.converged.capabilities.compute.discovered.nodes.api.*;
 import com.dell.cpsd.common.rabbitmq.MessageAnnotationProcessor;
 import com.dell.cpsd.common.rabbitmq.message.DefaultMessageConverterFactory;
 import com.dell.cpsd.common.rabbitmq.retrypolicy.DefaultRetryPolicyFactory;
+import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
+import com.dell.cpsd.storage.capabilities.api.ListComponentResponseMessage;
+import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
+import com.dell.cpsd.storage.capabilities.api.ListStorageResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
+import org.springframework.amqp.core.*;
+import com.dell.cpsd.virtualization.capabilities.api.DiscoveryRequestInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DiscoveryResponseInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListComponentsRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListComponentsResponseMessage;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -24,15 +35,14 @@ import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.retry.support.RetryTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is the configuration for the RabbitMQ artifacts used by the service.
@@ -53,6 +63,22 @@ public class RabbitConfig
      */
     public static final String QUEUE_GENERAL_RESPONSE = "queue.dell.cpsd.dne-paqx.response";
 
+    // following envs are for ESS communication. For now, ESS is internal service so no capability registration.
+    // DNE gets exchanges, queue, routing key from properties file.
+    @Value("${ess.req.exchange.name}")
+    private String              essRequestExchange;
+
+    @Value("${ess.req.routing.prefix}")
+    private String              essReqRoutingKeyPrefix;
+
+    @Value("${ess.res.exchange.name}")
+    private String              essResponseExchange;
+
+    @Value("${ess.res.queue}")
+    private String              essResQueue;
+
+    @Value("${ess.res.routing.prefix}")
+    private String              essRespRoutingKeyPrefix;
     /*
      * The RabbitMQ connection factory
      */
@@ -77,7 +103,7 @@ public class RabbitConfig
      * This returns the RabbitMQ template.
      *
      * @return  The <code>RabbitTemplate</code>.
-     * 
+     *
      * @since   1.0
      */
     @Bean
@@ -186,6 +212,19 @@ public class RabbitConfig
         messageClasses.add(IdracNetworkSettingsResponse.class);
         messageClasses.add(IdracNetworkSettingsResponseMessage.class);
 
+        messageClasses.add(ValidateVcenterClusterResponseMessage.class);
+        messageClasses.add(ValidateVcenterClusterRequestMessage.class);
+
+        messageClasses.add(ListComponentRequestMessage.class);
+        messageClasses.add(ListComponentResponseMessage.class);
+        messageClasses.add(ListComponentsRequestMessage.class);
+        messageClasses.add(ListComponentsResponseMessage.class);
+
+        messageClasses.add(ListStorageRequestMessage.class);
+        messageClasses.add(ListStorageResponseMessage.class);
+        messageClasses.add(DiscoveryRequestInfoMessage.class);
+        messageClasses.add(DiscoveryResponseInfoMessage.class);
+
         MessageAnnotationProcessor messageAnnotationProcessor = new MessageAnnotationProcessor();
         messageAnnotationProcessor.process(classMappings::put, messageClasses);
         
@@ -210,4 +249,35 @@ public class RabbitConfig
     Queue nodeExpansionResponseQueue() {
         return new Queue(QUEUE_GENERAL_RESPONSE);
     }
+
+    @Bean
+    public String essRequestExchange()
+    {
+        return essRequestExchange;
+    }
+
+    @Bean
+    public String essReqRoutingKeyPrefix()
+    {
+        return essReqRoutingKeyPrefix;
+    }
+
+    @Bean
+    public TopicExchange essResponseExchange()
+    {
+        return new TopicExchange(essResponseExchange);
+    }
+
+    @Bean
+    public Queue essResponseQueue()
+    {
+        return new Queue(essResQueue);
+    }
+
+    @Bean
+    public Binding essBinding()
+    {
+        return BindingBuilder.bind(essResponseQueue()).to(essResponseExchange()).with(essRespRoutingKeyPrefix + ".#");
+    }
 }
+

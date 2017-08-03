@@ -10,17 +10,17 @@ import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.Status;
-import com.dell.cpsd.paqx.dne.service.model.VClusterTaskResponse;
-import com.dell.cpsd.paqx.dne.service.model.VirtualizationCluster;
+import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
+import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 public class FindVClusterTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler
 {
@@ -38,17 +38,23 @@ public class FindVClusterTaskHandler extends BaseTaskHandler implements IWorkflo
     public boolean executeTask(Job job)
     {
         LOGGER.info("Execute FindVCluster task");
-        VClusterTaskResponse response = initializeResponse(job);
+        TaskResponse response = initializeResponse(job);
         try
         {
-            List<VirtualizationCluster> clusters = nodeService.listClusters();
-            List<ClusterInfo> clusterInfo = clusters.stream().map(c -> new ClusterInfo(c.getName(), c.getNumberOfHosts()))
-                    .collect(Collectors.toList());
+            List<ClusterInfo> clusterInfo = nodeService.listClusters();
+            ValidateVcenterClusterResponseMessage responseMsg = nodeService.validateClusters(clusterInfo);
+            if ( responseMsg.getClusters().size() > 0 ) {
+                Map<String, String> result = new HashMap<>();
+                result.put("clusterName", responseMsg.getClusters().get(0));
+                response.setResults(result);
+                response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+                return true;
+            }
 
-            response.setResults(buildResponseResult(clusterInfo));
-
-            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
-            return true;
+            response.setWorkFlowTaskStatus(Status.FAILED);
+            responseMsg.getFailedCluster().stream().forEach( f->{
+                response.addError(f);
+            });
         }
         catch (Exception e)
         {
@@ -60,36 +66,11 @@ public class FindVClusterTaskHandler extends BaseTaskHandler implements IWorkflo
         return false;
     }
 
-    /*
-     * This method add all the node information to the response object
-     */
-    private Map<String, String> buildResponseResult(List<ClusterInfo> clusterInfo)
-    {
-        Map<String, String> result = new HashMap<>();
-
-        if (clusterInfo != null && clusterInfo.size() > 0)
-        {
-            // We are considering only the first element of the list
-            ClusterInfo cInfo = clusterInfo.get(0);
-
-            if (cInfo.getName() != null)
-            {
-                result.put("clusterName", cInfo.getName());
-            }
-
-            if (cInfo.getNumberOfHosts() != null)
-            {
-                result.put("numberOfhosts", cInfo.getNumberOfHosts().toString());
-            }
-        }
-
-        return result;
-    }
 
     @Override
-    public VClusterTaskResponse initializeResponse(Job job)
+    public TaskResponse initializeResponse(Job job)
     {
-        VClusterTaskResponse response = new VClusterTaskResponse();
+        TaskResponse response = new TaskResponse();
         response.setWorkFlowTaskName(job.getCurrentTask().getTaskName());
         response.setWorkFlowTaskStatus(Status.IN_PROGRESS);
         job.addTaskResponse(job.getStep(), response);

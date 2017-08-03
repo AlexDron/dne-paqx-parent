@@ -45,11 +45,11 @@ public class NodeInfo
         this.parentGroups = new ArrayList<>();
         this.parentGroups.add("SystemCompute");
         this.endpoints = new ArrayList<>();
-        this.endpoints.add("RACKHD");           // RACKHD-EP
+        this.endpoints.add("RACKHD-EP");
         // Omitting these endpoints for now...
-        //this.endpoints.add("COMMON-IDRAC");   // COMMON-DELL-POWEREDGE-IDRAC-EP
-        //this.endpoints.add("COMMON-ESXI");    // COMMON-DELL-POWEREDGE-ESXI-HOST-EP
-        //this.endpoints.add("COMMON-SVM");     // COMMON-DELL-POWEREDGE-SVM-EP
+        //this.endpoints.add("COMMON-DELL-POWEREDGE-IDRAC-EP");
+        //this.endpoints.add("COMMON-DELL-POWEREDGE-ESXI-HOST-EP");
+        //this.endpoints.add("COMMON-DELL-POWEREDGE-SVM-EP");
     }
 
     public String getSymphonyUuid()

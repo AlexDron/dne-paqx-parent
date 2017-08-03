@@ -32,10 +32,22 @@ public class ProductionConfig {
     @Bean
     @Qualifier("rabbitConnectionFactory")
     public ConnectionFactory productionCachingConnectionFactory() {
-        LOGGER.info("rabbit Connection properties:  sslenabled:{}, host:{}, port:{}, tlsVersion:{}",
-                propertiesConfig.isSslEnabled(),propertiesConfig.rabbitHostname(),
+
+        com.rabbitmq.client.ConnectionFactory connectionFactory = null;
+
+        LOGGER.info("Rabbit connection properties : sslEnabled: [{}], host: [{}], port: [{}], tlsVersion:[{}]",
+                propertiesConfig.isSslEnabled(), propertiesConfig.rabbitHostname(),
                 propertiesConfig.rabbitPort(), propertiesConfig.tlsVersion());
-        final com.rabbitmq.client.ConnectionFactory connectionFactory = new TLSConnectionFactory(propertiesConfig);
+
+        if (propertiesConfig.isSslEnabled())
+        {
+            connectionFactory = new TLSConnectionFactory(propertiesConfig);
+        }
+        else
+        {
+            connectionFactory = new com.rabbitmq.client.ConnectionFactory();
+        }
+
         return new RabbitMQCachingConnectionFactory(connectionFactory, propertiesConfig);
     }
 }

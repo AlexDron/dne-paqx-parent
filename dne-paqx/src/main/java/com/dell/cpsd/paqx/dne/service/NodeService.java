@@ -10,6 +10,8 @@ import java.util.List;
 import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
+import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
 
 public interface NodeService
 {
@@ -29,7 +31,18 @@ public interface NodeService
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
-    List<VirtualizationCluster> listClusters() throws ServiceTimeoutException, ServiceExecutionException;
+    List<ClusterInfo> listClusters() throws ServiceTimeoutException, ServiceExecutionException;
+
+
+    /**
+     * List the validated cluster names
+     *
+     * @return
+     * @throws ServiceTimeoutException
+     * @throws ServiceExecutionException
+     */
+    ValidateVcenterClusterResponseMessage validateClusters(List<ClusterInfo> clusterInfoList ) throws ServiceTimeoutException, ServiceExecutionException;
+
 
     /**
      * Notify the Node Discovery Service that node allocation is complete
@@ -76,5 +89,15 @@ public interface NodeService
      */
 
     BootDeviceIdracStatus bootDeviceIdracStatus (ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
+            throws ServiceTimeoutException, ServiceExecutionException;
+
+    ListScaleIoComponentsTaskResponse requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
+
+    ListVCenterComponentsTaskResponse requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException;
+
+    DiscoverScaleIoTaskResponse requestDiscoverScaleIo(final ComponentEndpointIds componentEndpointIds)
+            throws ServiceTimeoutException, ServiceExecutionException;
+
+    DiscoverVCenterTaskResponse requestDiscoverVCenter(final ComponentEndpointIds componentEndpointIds)
             throws ServiceTimeoutException, ServiceExecutionException;
 }

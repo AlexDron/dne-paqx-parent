@@ -41,6 +41,9 @@ public class ConsumerConfig
     @Autowired @Qualifier("nodeExpansionResponseQueue")
     private Queue responseQueue;
 
+    @Autowired
+    private Queue essResponseQueue;
+
     @Bean
     SimpleMessageListenerContainer requestListenerContainer(
             @Autowired DelegatingMessageConsumer delegatingMessageConsumer,
@@ -49,7 +52,7 @@ public class ConsumerConfig
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(rabbitConnectionFactory);
         container.setAcknowledgeMode(AcknowledgeMode.AUTO);
-        container.setQueues(responseQueue);
+        container.setQueues(responseQueue, essResponseQueue);
         container.setAdviceChain(new Advice[]{dneListenerRetryPolicy()});
         container.setMessageConverter(dneMessageConverter);
         container.setMessageListener(new MessageListenerAdapter(delegatingMessageConsumer, dneMessageConverter));

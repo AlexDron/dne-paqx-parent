@@ -10,10 +10,14 @@ import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
 import com.dell.cpsd.paqx.dne.service.model.Step;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class WorkflowServiceImplTest
 {
@@ -37,6 +41,8 @@ public class WorkflowServiceImplTest
 
         workflowSteps.put("startAddNodeWorkflow", new Step("completed", true));
         workflowSteps.put("completed", null);
+        workflowSteps.put("listScaleIoComponents", new Step("listVCenterComponents", false));
+        workflowSteps.put("listVCenterComponents", new Step("listRackHdComponents", false));
 
         this.workflowServiceUnderTest =
             new WorkflowServiceImpl(inMemoryJobRepository, workflowSteps);
@@ -217,5 +223,21 @@ public class WorkflowServiceImplTest
         final Job foundJob = workflowServiceUnderTest.findJob(jobId);
 
         assertNull(foundJob);
+    }
+
+    @Test
+    public void testMultipleJobs() throws Exception
+    {
+
+
+        final Job captureScaleIojob = workflowServiceUnderTest
+                .createWorkflow("addNode", "listScaleIoComponents", "Capture VCenter component request submitted successfully",
+                        new HashMap<>());
+        final Job captureVCenterJob = workflowServiceUnderTest
+                .createWorkflow("addNode", "listVCenterComponents", "Capture VCenter component request submitted successfully",
+            new HashMap<>());
+
+        assertNotNull(captureScaleIojob);
+        assertNotNull(captureVCenterJob);
     }
 }

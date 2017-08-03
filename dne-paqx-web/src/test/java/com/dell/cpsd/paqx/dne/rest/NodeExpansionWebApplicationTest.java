@@ -10,10 +10,10 @@ import com.dell.cpsd.paqx.dne.rest.controller.NodeExpansionController;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
 import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
-import com.dell.cpsd.paqx.dne.service.model.VirtualizationCluster;
 import com.dell.cpsd.paqx.dne.service.orchestration.IOrchestrationService;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.IAddNodeService;
 import com.dell.cpsd.paqx.dne.service.workflow.preprocess.IPreProcessService;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
 import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -78,12 +78,12 @@ public class NodeExpansionWebApplicationTest
                 .build();
 
         request = new NodeExpansionRequest();
-        request.setEsxiKernelIpAddress1("1.1.1.1");
-        request.setEsxiKernelIpAddress2("2.2.2.2");
+        request.setEsxiManagementIpAddress("1.1.1.1");
+        request.setEsxiManagementGatewayIpAddress("2.2.2.2");
         request.setIdracGatewayIpAddress("3.3.3.3");
         request.setIdracIpAddress("4.4.4.4");
         request.setIdracSubnetMask("5.55.5.5");
-        request.setManagementIpAddress("6.66.6.6");
+        request.setEsxiManagementSubnetMask("6.66.6.6");
         request.setScaleIOSVMDataIpAddress1("7.7.7.7");
         request.setScaleIOSVMDataIpAddress2("8.88.8.8");
         request.setScaleIOSVMManagementIpAddress("9.99.9.9");
@@ -96,17 +96,17 @@ public class NodeExpansionWebApplicationTest
     public void verifyRequestParams(){
         NodeExpansionRequest params = new NodeExpansionRequest();
 
-        params.setEsxiKernelIpAddress1("1.1.1.1");
-        assertNotNull(params.getEsxiKernelIpAddress1());
+        params.setEsxiManagementIpAddress("1.1.1.1");
+        assertNotNull(params.getEsxiManagementIpAddress());
 
-        params.setEsxiKernelIpAddress2("1.1.1.1");
-        assertNotNull(params.getEsxiKernelIpAddress2());
+        params.setEsxiManagementGatewayIpAddress("1.1.1.1");
+        assertNotNull(params.getEsxiManagementGatewayIpAddress());
 
         params.setIdracIpAddress("1.1.1.1");
         assertNotNull(params.getIdracIpAddress());
 
-        params.setManagementIpAddress("1.1.1.1");
-        assertNotNull(params.getManagementIpAddress());
+        params.setEsxiManagementSubnetMask("1.1.1.1");
+        assertNotNull(params.getEsxiManagementSubnetMask());
 
         params.setScaleIOSVMDataIpAddress1("1.1.1.1");
         assertNotNull(params.getScaleIOSVMDataIpAddress1());
@@ -141,7 +141,7 @@ public class NodeExpansionWebApplicationTest
     @Test
     public void testGetClusters() throws  Exception{
         String uuidStr = UUID.randomUUID().toString();
-        VirtualizationCluster cluster = new VirtualizationCluster("TestCluster", 10);
+        ClusterInfo cluster = new ClusterInfo("TestCluster", 10);
         Mockito.when(nodeService.listClusters()).thenReturn(Collections.singletonList(cluster));
         MvcResult result = this.mockMvc.perform(get("/dne/clusters"))
                 .andExpect(status().isAccepted()).andReturn();
@@ -174,6 +174,21 @@ public class NodeExpansionWebApplicationTest
         verify(preProcessService, times(1)).findJob(jobId);
         verifyNoMoreInteractions(preProcessService);
     }
+
+    @Test
+    public void getInvalidNodeJobIdForPreprocess_StringJobId() throws Exception {
+
+        Mockito.when(preProcessService.findJob(Mockito.any(UUID.class))).thenReturn(null);
+        final String jobId = "anyString";
+
+        this.mockMvc.perform(get("/dne/preprocess/{jobId}", jobId)
+                .param("jobId", jobId.toString())
+                .param("servletRequest", ""))
+                .andExpect(status().isNotFound());
+        verify(preProcessService, times(0)).findJob(null);
+        verifyNoMoreInteractions(preProcessService);
+    }
+
 
     @Test
     public void getGetNodeJobIdForPreprocess() throws Exception {
@@ -245,6 +260,20 @@ public class NodeExpansionWebApplicationTest
     }
 
     @Test
+    public void getInvalidNodeJobIdForNodes_StringJobId() throws Exception {
+
+        Mockito.when(addNodeServiceUnderTest.findJob(Mockito.any(UUID.class))).thenReturn(null);
+        final String jobId = "anyString";
+
+        this.mockMvc.perform(get("/dne/nodes/{jobId}", jobId)
+                .param("jobId", jobId.toString())
+                .param("servletRequest", ""))
+                .andExpect(status().isNotFound());
+        verify(addNodeServiceUnderTest, times(0)).findJob(null);
+        verifyNoMoreInteractions(addNodeServiceUnderTest);
+    }
+
+    @Test
     public void getGetNodeJobIdForNodes() throws Exception {
         Job mockJob = new Job(UUID.randomUUID(), "test", "startAddNodeWorkflow", "status1", new HashMap<String, WorkflowTask>());
         Mockito.when(addNodeServiceUnderTest.findJob(Mockito.any(UUID.class))).thenReturn(mockJob);
@@ -284,6 +313,4 @@ public class NodeExpansionWebApplicationTest
                 .andExpect(status().isNotFound());
 
     }
-
-
 }

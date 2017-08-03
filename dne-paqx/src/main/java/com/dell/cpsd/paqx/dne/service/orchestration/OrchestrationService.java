@@ -28,45 +28,59 @@ import java.util.Map;
  * @since 1.0
  */
 
-public class OrchestrationService implements IOrchestrationService {
+public class OrchestrationService implements IOrchestrationService
+{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrchestrationService.class);
 
     @Async
-    public void orchestrateWorkflow(Job job, IBaseService jobService){
+    public void orchestrateWorkflow(Job job, IBaseService jobService)
+    {
         job.setStatus(Status.IN_PROGRESS);
         WorkflowService workflowService = jobService.getWorkflowService();
-        while(workflowService.findNextStep(job.getWorkflow(), job.getStep())!=null) {
+        while (workflowService.findNextStep(job.getWorkflow(), job.getStep()) != null)
+        {
             LOGGER.info("starting Orchestration on job:" + job);
             WorkflowTask task = job.getCurrentTask();
-            if(task!=null){
-                if(task.getTaskHandler().preExecute(job)) {
-                    if(task.getTaskHandler().executeTask(job)) {
+            if (task != null)
+            {
+                if (task.getTaskHandler().preExecute(job))
+                {
+                    if (task.getTaskHandler().executeTask(job))
+                    {
                         //wait fot the execute task to finish.
-                        while (getTaskResponseStatus(job) == Status.IN_PROGRESS) {
-                            try {
+                        while (getTaskResponseStatus(job) == Status.IN_PROGRESS)
+                        {
+                            try
+                            {
                                 Thread.sleep(100);
-                            } catch (Exception e) {}
+                            }
+                            catch (Exception e)
+                            {
+                            }
                         }
-                        if (task.getTaskHandler().postExecute(job)) {
-
+                        if (task.getTaskHandler().postExecute(job))
+                        {
 
                         }
-                        else{
+                        else
+                        {
                             //post execute failed
                             job.setStatus(Status.FAILED);
                             LOGGER.info("Finished Orchestration on job:" + job);
                             return;
                         }
                     }
-                    else{
+                    else
+                    {
                         //execute failed
                         job.setStatus(Status.FAILED);
                         LOGGER.info("Finished Orchestration on job:" + job);
                         return;
                     }
                 }
-                else{
+                else
+                {
                     //pre execute failed
                     job.setStatus(Status.FAILED);
                     LOGGER.info("Finished Orchestration on job:" + job);
@@ -80,12 +94,13 @@ public class OrchestrationService implements IOrchestrationService {
         return;
     }
 
-
-    private Status getTaskResponseStatus(Job job) {
+    private Status getTaskResponseStatus(Job job)
+    {
         Status status = Status.UNKNOWN;
         Map<String, TaskResponse> taskResponseMap = job.getTaskResponseMap();
         TaskResponse taskResponse = taskResponseMap.get(job.getStep());
-        if(taskResponse!=null) {
+        if (taskResponse != null)
+        {
             status = taskResponse.getWorkFlowTaskStatus();
         }
 

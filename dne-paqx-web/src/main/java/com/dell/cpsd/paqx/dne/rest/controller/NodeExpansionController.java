@@ -7,15 +7,21 @@ package com.dell.cpsd.paqx.dne.rest.controller;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.rest.exception.WorkflowNotFoundException;
 import com.dell.cpsd.paqx.dne.rest.model.AboutInfo;
-import com.dell.cpsd.paqx.dne.rest.model.ClusterInfo;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.WorkflowService;
-import com.dell.cpsd.paqx.dne.service.workflow.addnode.IAddNodeService;
-import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
+import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
+import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
+import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
+import com.dell.cpsd.paqx.dne.service.model.NodeExpansionResponse;
+import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
+import com.dell.cpsd.paqx.dne.service.model.NodeStatus;
 import com.dell.cpsd.paqx.dne.service.orchestration.IOrchestrationService;
+import com.dell.cpsd.paqx.dne.service.workflow.addnode.IAddNodeService;
 import com.dell.cpsd.paqx.dne.service.workflow.preprocess.IPreProcessService;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +29,16 @@ import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -240,12 +255,11 @@ public class NodeExpansionController
     @ResponseStatus(HttpStatus.ACCEPTED)
     public List<ClusterInfo> listVirtualizationClusters(HttpServletRequest servletRequest) throws ServiceTimeoutException, ServiceExecutionException {
 
-        List<VirtualizationCluster> clusters = nodeService.listClusters();
+        List<ClusterInfo> clusters = nodeService.listClusters();
         if (clusters != null )
         {
             LOGGER.info("Return " + clusters.size() + " clusters information.");
-            return clusters.stream().map(c -> new ClusterInfo(c.getName(), c.getNumberOfHosts()))
-                    .collect(Collectors.toList());
+            return clusters;
         }
 
         return new ArrayList<>();
@@ -256,6 +270,16 @@ public class NodeExpansionController
     void handleWorkflowNotFoundException(WorkflowNotFoundException e, HttpServletRequest request, HttpServletResponse response) throws IOException {
         request.setAttribute(DefaultErrorAttributes.class.getName() + ".ERROR", null);
         response.sendError(e.getCode(), e.getMessage());
+    }
+
+    //to hide the exception class name from http response
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    void handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e, HttpServletRequest request, HttpServletResponse response) throws IOException{
+        String errMsg = "Can not find the JobId - "+e.getValue();
+        LOGGER.error(errMsg);
+        request.setAttribute(DefaultErrorAttributes.class.getName() + ".ERROR", null);
+        response.sendError(HttpStatus.NOT_FOUND.value(), errMsg);
     }
 
     @RequestMapping(path = "/idrackNetworkSettings", method = RequestMethod.POST, produces = "application/json")

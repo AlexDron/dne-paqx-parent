@@ -7,10 +7,13 @@
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.dell.cpsd.credential.model.api.component.credentials.supplied.CredentialElement;
-import com.dell.cpsd.credential.model.api.component.credentials.supplied.Credentials;
-import com.dell.cpsd.service.system.definition.api.CredentialNameId;
-import com.dell.cpsd.service.system.definition.api.Definition;
 import com.dell.cpsd.service.system.definition.api.Identity;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +50,6 @@ import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 import com.dell.cpsd.service.system.definition.api.Component;
 import com.dell.cpsd.service.system.definition.api.ComponentsFilter;
 import com.dell.cpsd.service.system.definition.api.ConvergedSystem;
-import com.dell.cpsd.service.system.definition.api.Endpoint;
 import com.dell.cpsd.service.system.definition.api.Group;
 
 /**
@@ -112,38 +110,28 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
     @Test
     public void testExecuteTask_successful_case()
     {
-        ConvergedSystem cs = new ConvergedSystem();
-        cs.setUuid(UUID.randomUUID().toString());
+        ConvergedSystem system = mock(ConvergedSystem.class);
+        Component component = mock(Component.class);
+        Group group = mock(Group.class);
+        Identity identity = mock(Identity.class);
 
-        ComponentsFilter filter = new ComponentsFilter();
-        filter.setSystemUuid(cs.getUuid());
-
-        ConvergedSystem systemToUpdate = new ConvergedSystem();
-
-        List<Group> groups = new ArrayList<>();
-        groups.add(new Group("group-uuid1", "SystemCompute", Group.Type.COMPUTE, null, null, null));
-        systemToUpdate.setGroups(groups);
-
-        List<Endpoint> endpoints = new ArrayList<>();
-        List<CredentialNameId> credentials1 = new ArrayList<>();
-        credentials1.add(new CredentialNameId("credential-1", "credential-uuid-1"));
-        credentials1.add(new CredentialNameId("credential-2", "credential-uuid-2"));
-        endpoints.add(new Endpoint("endpoint-uuid1", "HTTP", "address", 9000, "RACKHD", "identifier-2", credentials1));
-
-        List<CredentialNameId> credentials2 = new ArrayList<>();
-        credentials2.add(new CredentialNameId("credential-3", "credential-uuid-3"));
-        credentials2.add(new CredentialNameId("credential-4", "credential-uuid-4"));
-        endpoints.add(new Endpoint("endpoint-uuid2", "HTTP", "address", 9001, "COMMON-IDRAC", "identifier-2", credentials2));
-        systemToUpdate.setEndpoints(endpoints);
+        List<ConvergedSystem> systems = new ArrayList<>();
+        systems.add(system);
 
         List<Component> components = new ArrayList<>();
-        components.add(new Component("common-server-uuid-1", new Identity("COMMON-SERVER", "identifier", "address", "serialNumber", null),
-                        new Definition(), Arrays.asList("endpoint-uuid1", "endpoint-uuid2"), Arrays.asList("group-uuid1")));
-        systemToUpdate.setComponents(components);
+        components.add(component);
 
-        when(this.client.getConvergedSystems()).thenReturn(Arrays.asList(cs));
-        when(this.client.getComponents(filter)).thenReturn(Arrays.asList(systemToUpdate));
-        
+        List<Group> groups = new ArrayList<>();
+        groups.add(group);
+
+        doReturn(systems).when(this.client).getConvergedSystems();
+        doReturn(systems).when(this.client).getComponents(any(ComponentsFilter.class));
+        doReturn(groups).when(system).getGroups();
+        doNothing().when(client).addComponent(any(ConvergedSystem.class), any(Component.class), anyList(), anyString());
+        doReturn(components).when(system).getComponents();
+        doReturn(identity).when(component).getIdentity();
+        doReturn("symphonyUuid").when(identity).getIdentifier();
+
         ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
         AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
         boolean expectedResult = true;
@@ -272,5 +260,44 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
         assertEquals(expectedResult, actualResult);
         verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
         assertEquals(1, system.getComponents().size());// Components list should be unaltered...
+    }
+
+    /**
+     * Test successful execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method
+     *
+     * @since 1.0
+     */
+    @Test
+    public void testExecuteTask_node_not_added_to_system_definition()
+    {
+        ConvergedSystem system = mock(ConvergedSystem.class);
+        Component component = mock(Component.class);
+        Group group = mock(Group.class);
+        Identity identity = mock(Identity.class);
+
+        List<ConvergedSystem> systems = new ArrayList<>();
+        systems.add(system);
+
+        List<Component> components = new ArrayList<>();
+        components.add(component);
+
+        List<Group> groups = new ArrayList<>();
+        groups.add(group);
+
+        doReturn(systems).when(this.client).getConvergedSystems();
+        doReturn(systems).when(this.client).getComponents(any(ComponentsFilter.class));
+        doReturn(groups).when(system).getGroups();
+        doNothing().when(client).addComponent(any(ConvergedSystem.class), any(Component.class), anyList(), anyString());
+        doReturn(components).when(system).getComponents();
+        doReturn(identity).when(component).getIdentity();
+        doReturn("identifier-1").when(identity).getIdentifier();
+
+        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
+        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
+        boolean expectedResult = false;
+        boolean actualResult = instance.executeTask(this.job);
+
+        assertEquals(expectedResult, actualResult);
+        verify(this.client, times(1)).addComponent(csCaptor.capture(), any(), any(), any());
     }
 }
