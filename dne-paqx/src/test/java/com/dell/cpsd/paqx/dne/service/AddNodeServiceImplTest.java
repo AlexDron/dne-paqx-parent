@@ -69,15 +69,10 @@ public class AddNodeServiceImplTest {
     public void testAddNodeWorkFlowTasks_setup() 
     {
         Assert.assertNotNull(workFlowTasks);
-        Assert.assertEquals(4, workFlowTasks.size());
+        Assert.assertEquals(3, workFlowTasks.size());
     }
     
-    @Test
-    public void testTaskName_findAvailableNodes()
-    {
-        Assert.assertEquals("Finding discovered Nodes", workFlowTasks.get("findAvailableNodes").getTaskName());
-    }
-    
+
     @Test
     public void testTaskName_updateSystemDefinitionTask()
     {

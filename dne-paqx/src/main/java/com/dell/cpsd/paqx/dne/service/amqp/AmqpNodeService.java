@@ -13,10 +13,15 @@ import com.dell.converged.capabilities.compute.discovered.nodes.api.CompleteNode
 import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracError;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracRequestMessage;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracResponseMessage;
+import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
+import com.dell.converged.capabilities.compute.discovered.nodes.api.InstallESXiRequestMessage;
+import com.dell.converged.capabilities.compute.discovered.nodes.api.InstallESXiResponseMessage;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.ListNodes;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.NodesListed;
 import com.dell.cpsd.common.logging.ILogger;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
+import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
+import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.amqp.adapter.*;
@@ -25,14 +30,12 @@ import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointDetails;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
 import com.dell.cpsd.paqx.dne.service.model.ConfigureBootDeviceIdracRequest;
-import com.dell.cpsd.paqx.dne.service.model.DiscoverScaleIoTaskResponse;
-import com.dell.cpsd.paqx.dne.service.model.DiscoverVCenterTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
 import com.dell.cpsd.paqx.dne.service.model.EndpointCredentials;
 import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
 import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
-import com.dell.cpsd.paqx.dne.service.model.ListScaleIoComponentsTaskResponse;
-import com.dell.cpsd.paqx.dne.service.model.ListVCenterComponentsTaskResponse;
+import com.dell.cpsd.paqx.dne.transformers.DiscoveryInfoToVCenterDomainTransformer;
+import com.dell.cpsd.paqx.dne.transformers.ScaleIORestToScaleIODomainTransformer;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettings;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponseMessage;
@@ -105,6 +108,9 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
     private final DataServiceRepository repository;
 
+    private final DiscoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer;
+    private final ScaleIORestToScaleIODomainTransformer   scaleIORestToScaleIODomainTransformer;
+
     /**
      * AmqpNodeService constructor.
      *
@@ -113,10 +119,13 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
      * @param producer - The <code>DneProducer</code> instance.
      * @param replyTo  - The replyTo queue name.
      * @param repository
-     * @since 1.0
+     * @param discoveryInfoToVCenterDomainTransformer
+     *@param scaleIORestToScaleIODomainTransformer
+     * @param hostToInstallEsxiRequestTransformer @since 1.0
      */
     public AmqpNodeService(ILogger logger, DelegatingMessageConsumer consumer, DneProducer producer, String replyTo,
-            final DataServiceRepository repository)
+            final DataServiceRepository repository, final DiscoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer,
+            final ScaleIORestToScaleIODomainTransformer scaleIORestToScaleIODomainTransformer)
     {
         super(logger);
 
@@ -124,6 +133,8 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         this.producer = producer;
         this.replyTo = replyTo;
         this.repository = repository;
+        this.discoveryInfoToVCenterDomainTransformer = discoveryInfoToVCenterDomainTransformer;
+        this.scaleIORestToScaleIODomainTransformer = scaleIORestToScaleIODomainTransformer;
 
         initCallbacks();
     }
@@ -549,9 +560,9 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     }
 
     @Override
-    public ListScaleIoComponentsTaskResponse requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException
+    public List<ComponentEndpointDetails> requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException
     {
-        final ListScaleIoComponentsTaskResponse taskResponse = new ListScaleIoComponentsTaskResponse();
+        final List<ComponentEndpointDetails> componentEndpointDetailsListResponse = new ArrayList<>();
 
         try
         {
@@ -579,15 +590,10 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
             if (responseMessage != null && responseMessage.getMessageProperties() != null)
             {
-                taskResponse.setType(responseMessage.getType());
-                taskResponse.setMessage("SUCCESS");
-
                 final List<ScaleIOComponentDetails> scaleIOComponentDetailsList = responseMessage.getComponents();
 
                 if (scaleIOComponentDetailsList != null)
                 {
-                    final List<ComponentEndpointDetails> componentEndpointDetailsList = new ArrayList<>();
-
                     scaleIOComponentDetailsList.stream().filter(Objects::nonNull).forEach(scaleIOComponentDetails -> {
 
                         final ComponentEndpointDetails componentEndpointDetails = new ComponentEndpointDetails();
@@ -608,13 +614,11 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                             });
                         }
 
-                        componentEndpointDetailsList.add(componentEndpointDetails);
+                        componentEndpointDetailsListResponse.add(componentEndpointDetails);
 
                     });
 
-                    taskResponse.setComponentEndpointDetails(componentEndpointDetailsList);
-
-                    repository.saveScaleIoComponentDetails(componentEndpointDetailsList);
+                    repository.saveScaleIoComponentDetails(componentEndpointDetailsListResponse);
                 }
             }
             else
@@ -628,13 +632,13 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return taskResponse;
+        return componentEndpointDetailsListResponse;
     }
 
     @Override
-    public ListVCenterComponentsTaskResponse requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException
+    public List<ComponentEndpointDetails> requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException
     {
-        final ListVCenterComponentsTaskResponse taskResponse = new ListVCenterComponentsTaskResponse();
+        final List<ComponentEndpointDetails> componentEndpointDetailsListResponse = new ArrayList<>();
 
         try
         {
@@ -662,15 +666,10 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
             if (responseMessage != null && responseMessage.getMessageProperties() != null)
             {
-                taskResponse.setType(responseMessage.getType());
-                taskResponse.setMessage("SUCCESS");
-
                 final List<VCenterComponentDetails> vCenterComponentDetailsList = responseMessage.getVcenterComponentDetails();
 
                 if (vCenterComponentDetailsList != null)
                 {
-                    final List<ComponentEndpointDetails> componentEndpointDetailsList = new ArrayList<>();
-
                     vCenterComponentDetailsList.stream().filter(Objects::nonNull).forEach(vcenterComponentDetails -> {
 
                         final ComponentEndpointDetails componentEndpointDetails = new ComponentEndpointDetails();
@@ -691,13 +690,12 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                             });
                         }
 
-                        componentEndpointDetailsList.add(componentEndpointDetails);
+                        componentEndpointDetailsListResponse.add(componentEndpointDetails);
 
                     });
 
-                    taskResponse.setComponentEndpointDetails(componentEndpointDetailsList);
 
-                    repository.saveVCenterComponentDetails(componentEndpointDetailsList);
+                    repository.saveVCenterComponentDetails(componentEndpointDetailsListResponse);
                 }
             }
             else
@@ -711,15 +709,13 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return taskResponse;
+        return componentEndpointDetailsListResponse;
     }
 
     @Override
-    public DiscoverScaleIoTaskResponse requestDiscoverScaleIo(final ComponentEndpointIds componentEndpointIds)
+    public boolean requestDiscoverScaleIo(final ComponentEndpointIds componentEndpointIds, final String jobId)
             throws ServiceTimeoutException, ServiceExecutionException
     {
-        final DiscoverScaleIoTaskResponse taskResponse = new DiscoverScaleIoTaskResponse();
-
         try
         {
             final ListStorageRequestMessage requestMessage = new ListStorageRequestMessage();
@@ -748,10 +744,17 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
             ListStorageResponseMessage responseMessage = processResponse(callbackResponse, ListStorageResponseMessage.class);
 
-            if (responseMessage != null && responseMessage.getMessageProperties()!= null)
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
             {
-                //TODO: Send some data and persist it
-                repository.saveScaleIoData();
+                final ScaleIOData scaleIOData = scaleIORestToScaleIODomainTransformer
+                        .transform(responseMessage.getScaleIOSystemDataRestRep());
+
+                if (scaleIOData == null)
+                {
+                    return false;
+                }
+
+                return repository.saveScaleIoData(jobId, scaleIOData);
             }
             else
             {
@@ -763,15 +766,13 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return taskResponse;
+        return false;
     }
 
     @Override
-    public DiscoverVCenterTaskResponse requestDiscoverVCenter(final ComponentEndpointIds componentEndpointIds)
+    public boolean requestDiscoverVCenter(final ComponentEndpointIds componentEndpointIds, final String jobId)
             throws ServiceTimeoutException, ServiceExecutionException
     {
-        final DiscoverVCenterTaskResponse taskResponse = new DiscoverVCenterTaskResponse();
-
         try
         {
             final DiscoveryRequestInfoMessage requestMessage = new DiscoveryRequestInfoMessage();
@@ -802,8 +803,15 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
             if (responseMessage != null && responseMessage.getMessageProperties() != null)
             {
-                //TODO: Send some data and persist it
-                repository.saveVCenterData();
+                final VCenter vCenterData = discoveryInfoToVCenterDomainTransformer
+                        .transform(responseMessage);
+
+                if (vCenterData == null)
+                {
+                    return false;
+                }
+
+                return repository.saveVCenterData(jobId, vCenterData);
             }
             else
             {
@@ -815,6 +823,51 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return taskResponse;
+        return false;
+    }
+
+    @Override
+    public boolean requestInstallEsxi(final EsxiInstallationInfo esxiInstallationInfo)
+    {
+        try
+        {
+            final InstallESXiRequestMessage requestMessage = new InstallESXiRequestMessage();
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(new MessageProperties(new Date(), correlationId, replyTo));
+            requestMessage.setEsxiInstallationInfo(esxiInstallationInfo);
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishInstallEsxiRequest(requestMessage);
+                }
+            });
+
+            InstallESXiResponseMessage responseMessage = processResponse(callbackResponse, InstallESXiResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                //TODO: Not sure what to use in status
+                return "FINISHED".equalsIgnoreCase(responseMessage.getStatus());
+            }
+            else
+            {
+                LOGGER.error("Message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+
+        return false;
     }
 }

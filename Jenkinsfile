@@ -1,14 +1,13 @@
-UPSTREAM_JOBS_LIST = [
-    "dellemc-symphony/common-dependencies/${env.BRANCH_NAME}",
-    "dellemc-symphony/common-client-parent/${env.BRANCH_NAME}",
-    "vce-symphony/hdp-capability-registry-client/${env.BRANCH_NAME}",
-    "dellemc-symphony/common-messaging-parent/${env.BRANCH_NAME}",
-    "dellemc-symphony/engineering-standards-service-parent/${env.BRANCH_NAME}",
-    "dellemc-symphony/compute-capabilities-api/${env.BRANCH_NAME}",
-    "dellemc-symphony/system-integration-sdk/${env.BRANCH_NAME}",
-    "dellemc-symphony/virtualization-capabilities-api/${env.BRANCH_NAME}"
-]
-UPSTREAM_JOBS = UPSTREAM_JOBS_LIST.join(',')
+UPSTREAM_TRIGGERS = getUpstreamTriggers([
+    "common-dependencies",
+    "common-client-parent",
+    "common-messaging-parent",
+    "compute-capabilities-api",
+    "engineering-standards-service-parent",
+    "hdp-capability-registry-client-parent",
+    "system-integration-sdk",
+    "virtualization-capabilities-api"
+])
 
 MAVEN_PHASE = "install"
 if (env.BRANCH_NAME ==~ /master|develop|release\/.*/) {
@@ -22,7 +21,7 @@ pipeline {
         string(name: 'dockerImageTag',  defaultValue: '${BRANCH_NAME}.${BUILD_NUMBER}')
     }
     triggers {
-        upstream(upstreamProjects: UPSTREAM_JOBS, threshold: hudson.model.Result.SUCCESS)
+        upstream(upstreamProjects: UPSTREAM_TRIGGERS, threshold: hudson.model.Result.SUCCESS)
     }
     agent {
         node {
@@ -47,8 +46,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 doCheckout()
-	    }
-	}
+            }
+        }
         stage("Build") {
             steps {
                 sh "mvn clean ${MAVEN_PHASE} -Dmaven.repo.local=.repo -DskipDocker=false -PbuildDockerImageOnJenkins -Ddocker.registry=${params.dockerRegistry} -DdockerImage.tag=${params.dockerImageTag} -DdeleteDockerImages=${params.dockerImagesDel}"
@@ -64,16 +63,14 @@ pipeline {
                 archiveArtifacts artifacts: '**/*.rpm', fingerprint: true 
             }
         }
-	stage('Upload to Repo') {
+        stage('Upload to Repo') {
             steps {
                 uploadArtifactsToArtifactory()
             }
         }
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') { 
-                    doSonarAnalysis()    
-                }
+                doSonarAnalysis()    
             }
         }
         stage('Third Party Audit') {
@@ -82,10 +79,10 @@ pipeline {
             }
         }
         stage('PasswordScan') {
-		    steps {
-			    doPwScan()
-		    }
-	    }
+            steps {
+                doPwScan()
+            }
+        }
         stage('Github Release') {
             steps {
                 githubRelease()

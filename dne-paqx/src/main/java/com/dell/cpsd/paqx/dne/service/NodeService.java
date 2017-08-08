@@ -7,6 +7,7 @@ package com.dell.cpsd.paqx.dne.service;
 
 import java.util.List;
 
+import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
 import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
@@ -91,13 +92,15 @@ public interface NodeService
     BootDeviceIdracStatus bootDeviceIdracStatus (ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
 
-    ListScaleIoComponentsTaskResponse requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
+    List<ComponentEndpointDetails> requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
 
-    ListVCenterComponentsTaskResponse requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException;
+    List<ComponentEndpointDetails> requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException;
 
-    DiscoverScaleIoTaskResponse requestDiscoverScaleIo(final ComponentEndpointIds componentEndpointIds)
+    boolean requestDiscoverScaleIo(final ComponentEndpointIds componentEndpointIds, final String jobId)
             throws ServiceTimeoutException, ServiceExecutionException;
 
-    DiscoverVCenterTaskResponse requestDiscoverVCenter(final ComponentEndpointIds componentEndpointIds)
+    boolean requestDiscoverVCenter(final ComponentEndpointIds componentEndpointIds, final String jobId)
             throws ServiceTimeoutException, ServiceExecutionException;
+
+    boolean requestInstallEsxi(final EsxiInstallationInfo esxiInstallationInfo);
 }

@@ -1,6 +1,9 @@
 package com.dell.cpsd.paqx.dne.repository;
 
+import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
+import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
+import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointDetails;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,14 +26,11 @@ public interface DataServiceRepository
     @Transactional
     void saveVCenterComponentDetails(List<ComponentEndpointDetails> componentEndpointDetailsList);
 
-    @Transactional
-    //TODO: Define this
-    void saveVCenterData();
+    boolean saveVCenterData(final String jobId, final VCenter vCenterData);
 
-    @Transactional
-    //TODO: Define this
-    void saveScaleIoData();
+    boolean saveScaleIoData(final String jobId, final ScaleIOData scaleIOData);
 
-    @Transactional
     Host getVCenterHost(final String hostName) throws NoResultException;
+
+    List<PortGroup> getPortGroups();
 }

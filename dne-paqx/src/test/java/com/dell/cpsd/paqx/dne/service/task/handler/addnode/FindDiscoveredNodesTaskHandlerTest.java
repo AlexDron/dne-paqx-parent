@@ -15,6 +15,8 @@ import com.dell.cpsd.paqx.dne.service.WorkflowServiceImpl;
 import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeService;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeTaskConfig;
+import com.dell.cpsd.paqx.dne.service.workflow.preprocess.PreProcessService;
+import com.dell.cpsd.paqx.dne.service.workflow.preprocess.PreProcessTaskConfig;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 import org.junit.Before;
@@ -60,16 +62,16 @@ public class FindDiscoveredNodesTaskHandlerTest
     @Before
     public void setUp()
     {
-        AddNodeTaskConfig addNodeConfig = new AddNodeTaskConfig();
-        WorkflowService workflowService = new WorkflowServiceImpl(new InMemoryJobRepository(), addNodeConfig.addNodeWorkflowSteps());
+        PreProcessTaskConfig preProcessTaskConfig = new PreProcessTaskConfig();
+        WorkflowService workflowService = new WorkflowServiceImpl(new InMemoryJobRepository(), preProcessTaskConfig.preProcessWorkflowSteps());
 
-        AddNodeService addNodeService = new AddNodeService();
-        addNodeService.setWorkflowService(workflowService);
+        PreProcessService preProcessService = new PreProcessService();
+        preProcessService.setWorkflowService(workflowService);
 
-        this.job = addNodeService.createWorkflow("addNode", "startAddNodeWorkflow", "submitted");
+        this.job = preProcessService.createWorkflow("preprocess", "startPreProcessWorkflow", "submitted");
         this.job.setInputParams(new NodeExpansionRequest("idracIpAddress", "idracGatewayIpAddress", "idracSubnetMask",
                 "managementIpAddress", "esxiKernelIpAddress1", "esxiKernelIpAddress2", "scaleIOSVMDataIpAddress1",
-                "scaleIOSVMDataIpAddress2", "scaleIOSVMManagementIpAddress"));
+                "scaleIOSVMDataIpAddress2", "scaleIOSVMManagementIpAddress", "nodeId", "symphonyUuid", "clausterName"));
 
         FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();
         response.setNodeInfo(new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED));

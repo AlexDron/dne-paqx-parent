@@ -10,22 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.dell.cpsd.paqx.dne.service.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
-import com.dell.cpsd.paqx.dne.service.model.FirstAvailableDiscoveredNodeResponse;
-import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
-import com.dell.cpsd.paqx.dne.service.model.Status;
-import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import com.dell.cpsd.sdk.AMQPClient;
 import com.dell.cpsd.service.system.definition.api.Component;
 import com.dell.cpsd.service.system.definition.api.ComponentsFilter;
 import com.dell.cpsd.service.system.definition.api.ConvergedSystem;
 import com.dell.cpsd.service.system.definition.api.Group;
+import org.springframework.util.StringUtils;
 
 /**
  * Task responsible for adding a discovered node to the system definition.
@@ -83,19 +81,11 @@ public class AddNodeToSystemDefinitionTaskHandler extends BaseTaskHandler implem
 
         try
         {
-            Map<String, TaskResponse> responseMap = job.getTaskResponseMap();
-            FirstAvailableDiscoveredNodeResponse findNodeTask = (FirstAvailableDiscoveredNodeResponse) responseMap
-                    .get("findAvailableNodes");
-            if (findNodeTask == null)
-            {
-                throw new IllegalStateException("No discovered node task found.");
-            }
-
-            NodeInfo nodeInfo = findNodeTask.getNodeInfo();
-            if (nodeInfo == null)
+            if (StringUtils.isEmpty(job.getInputParams().getSymphonyUuid()) || StringUtils.isEmpty(job.getInputParams().getNodeId()))
             {
                 throw new IllegalStateException("No discovered node info found.");
             }
+
 
             List<ConvergedSystem> allConvergedSystems = this.sdkAMQPClient.getConvergedSystems();
             if (CollectionUtils.isEmpty(allConvergedSystems))
@@ -115,6 +105,7 @@ public class AddNodeToSystemDefinitionTaskHandler extends BaseTaskHandler implem
 
             ConvergedSystem systemToBeUpdated = systemDetails.get(0);
 
+            NodeInfo nodeInfo = new NodeInfo(job.getInputParams().getSymphonyUuid(), job.getInputParams().getNodeId(), NodeStatus.DISCOVERED);
             Component newNode = new Component();
             newNode.setUuid(nodeInfo.getSymphonyUuid());
             newNode.setIdentity(nodeInfo.getIdentity());

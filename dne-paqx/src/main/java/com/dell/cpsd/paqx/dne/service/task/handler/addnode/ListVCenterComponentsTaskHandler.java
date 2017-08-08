@@ -4,6 +4,7 @@ import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointDetails;
+import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
 import com.dell.cpsd.paqx.dne.service.model.EndpointCredentials;
 import com.dell.cpsd.paqx.dne.service.model.ListVCenterComponentsTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.Status;
@@ -53,44 +54,44 @@ public class ListVCenterComponentsTaskHandler extends BaseTaskHandler implements
 
         try
         {
-            final ListVCenterComponentsTaskResponse taskResponse = this.nodeService.requestVCenterComponents();
+            final List<ComponentEndpointDetails> componentEndpointDetailsList = this.nodeService.requestVCenterComponents();
 
-            if (taskResponse == null)
+            if (componentEndpointDetailsList.isEmpty())
             {
                 response.setWorkFlowTaskStatus(Status.FAILED);
                 return false;
             }
 
-            if (SUCCESS.equalsIgnoreCase(taskResponse.getMessage()))
-            {
-                response.setWorkFlowTaskStatus(Status.SUCCEEDED);
-                response.setResults(buildResponseResult(taskResponse));
-                return true;
-            }
-            else
-            {
-                response.setWorkFlowTaskStatus(Status.FAILED);
-                return false;
-            }
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+            response.setResults(buildResponseResult(componentEndpointDetailsList));
+            //TODO: For MVP keeping options open
+            final String componentUuid = response.getResults().get("vCenterComponentUuid");
+            final String credentialUuid = response.getResults().get("vCenterCredentialUuid");
+            final String endpointUuid = response.getResults().get("vCenterEndpointUuid");
+            final String endpointUrl = response.getResults().get("vCenterEndpointUrl");
+
+            final ComponentEndpointIds componentEndpointIds = new ComponentEndpointIds(componentUuid, endpointUuid, endpointUrl,
+                    credentialUuid);
+
+            ((ListVCenterComponentsTaskResponse) response).setComponentEndpointIds(componentEndpointIds);
+            return true;
+
         }
         catch (Exception e)
         {
             LOGGER.error("Error while listing the VCenter components", e);
             response.addError(e.toString());
+            response.setWorkFlowTaskStatus(Status.FAILED);
+            return false;
         }
-
-        response.setWorkFlowTaskStatus(Status.FAILED);
-        return false;
     }
 
     /*
      * This method add all the node information to the response object
      */
-    private Map<String, String> buildResponseResult(final ListVCenterComponentsTaskResponse response)
+    private Map<String, String> buildResponseResult(final List<ComponentEndpointDetails> componentEndpointDetailsList)
     {
         final Map<String, String> result = new HashMap<>();
-
-        final List<ComponentEndpointDetails> componentEndpointDetailsList = response.getComponentEndpointDetails();
 
         if (componentEndpointDetailsList.isEmpty())
         {

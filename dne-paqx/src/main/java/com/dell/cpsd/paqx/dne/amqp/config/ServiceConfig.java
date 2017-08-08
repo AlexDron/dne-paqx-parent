@@ -9,6 +9,9 @@ import java.util.Map;
 
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.repository.H2DataRepository;
+import com.dell.cpsd.paqx.dne.transformers.DiscoveryInfoToVCenterDomainTransformer;
+import com.dell.cpsd.paqx.dne.transformers.HostToInstallEsxiRequestTransformer;
+import com.dell.cpsd.paqx.dne.transformers.ScaleIORestToScaleIODomainTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -61,18 +64,31 @@ import com.google.common.base.Splitter;
     SystemDefinitionMessenger.class, 
     AMQPClient.class,
     PersistencePropertiesConfig.class,
-    PersistenceConfig.class
+    PersistenceConfig.class,
+    DiscoveryInfoToVCenterDomainTransformer.class,
+    ScaleIORestToScaleIODomainTransformer.class,
+    HostToInstallEsxiRequestTransformer.class
 })
 public class ServiceConfig
 {
     private static ILogger LOGGER = DneLoggingManager.getLogger(ServiceConfig.class);
+
+    @Autowired
+    private DiscoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer;
+
+    @Autowired
+    private ScaleIORestToScaleIODomainTransformer scaleIORestToScaleIODomainTransformer;
+
+    @Autowired
+    private HostToInstallEsxiRequestTransformer hostToInstallEsxiRequestTransformer;
 
     @Bean
     public NodeService nodeServiceClient(@Autowired DelegatingMessageConsumer delegatingMessageConsumer,
             @Autowired DneProducer dneProducer,
             @Autowired String replyTo)
     {
-        return new AmqpNodeService(LOGGER, delegatingMessageConsumer, dneProducer, replyTo, repository());
+        return new AmqpNodeService(LOGGER, delegatingMessageConsumer, dneProducer, replyTo, repository(),
+                discoveryInfoToVCenterDomainTransformer, scaleIORestToScaleIODomainTransformer);
     }
 
     @Bean

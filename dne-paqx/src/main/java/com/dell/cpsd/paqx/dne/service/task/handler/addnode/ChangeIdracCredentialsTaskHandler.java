@@ -12,18 +12,15 @@ import java.util.Map;
  * @since 1.0
  */
 
+import com.dell.cpsd.paqx.dne.service.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
-import com.dell.cpsd.paqx.dne.service.model.FirstAvailableDiscoveredNodeResponse;
-import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
-import com.dell.cpsd.paqx.dne.service.model.Status;
-import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
+import org.springframework.util.StringUtils;
 
 public class ChangeIdracCredentialsTaskHandler  extends BaseTaskHandler implements IWorkflowTaskHandler
 {
@@ -60,20 +57,12 @@ public class ChangeIdracCredentialsTaskHandler  extends BaseTaskHandler implemen
 
         try
         {
-            Map<String, TaskResponse> responseMap = job.getTaskResponseMap();
-            FirstAvailableDiscoveredNodeResponse findNodeTask = (FirstAvailableDiscoveredNodeResponse)responseMap.get("findAvailableNodes");
-            if (findNodeTask == null)
+            if (StringUtils.isEmpty(job.getInputParams().getNodeId()))
             {
-                throw new IllegalStateException("No discovered node task found.");
+                throw new IllegalStateException("No discovered node passed.");
             }
-            
-            NodeInfo nodeInfo = findNodeTask.getNodeInfo();
-            if (nodeInfo == null)
-            {
-                throw new IllegalStateException("No discovered node info found.");
-            }
-            
-            ChangeIdracCredentialsResponse responseMessage = this.nodeService.changeIdracCredentials(nodeInfo.getNodeId());
+
+            ChangeIdracCredentialsResponse responseMessage = this.nodeService.changeIdracCredentials(job.getInputParams().getNodeId());
             
             if ("SUCCESS".equalsIgnoreCase(responseMessage.getMessage()))
             {

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
+import com.dell.cpsd.paqx.dne.service.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,10 +27,6 @@ import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.WorkflowService;
 import com.dell.cpsd.paqx.dne.service.WorkflowServiceImpl;
-import com.dell.cpsd.paqx.dne.service.model.FirstAvailableDiscoveredNodeResponse;
-import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
-import com.dell.cpsd.paqx.dne.service.model.NodeStatus;
-import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeService;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeTaskConfig;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
@@ -74,9 +71,14 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
 
         this.job = addNodeService.createWorkflow("addNode", "startAddNodeWorkflow", "submitted");
 
-        FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();
-        response.setNodeInfo(new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED));
-        this.job.addTaskResponse("findAvailableNodes", response);
+//        FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();
+//        response.setNodeInfo(new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED));
+//        this.job.addTaskResponse("findAvailableNodes", response);
+
+        NodeExpansionRequest request = new NodeExpansionRequest();
+        request.setNodeId("node-1234");
+        request.setSymphonyUuid("symphony-1234");
+        this.job.setInputParams(request);
 
         this.job.changeToNextStep("notifyNodeDiscoveryToUpdateStatus");
     }
@@ -115,8 +117,7 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
     @Test
     public void testExecuteTask_no_find_nodes_response() throws ServiceTimeoutException, ServiceExecutionException
     {
-        Map<String, TaskResponse> taskResponse = this.job.getTaskResponseMap();
-        taskResponse.remove("findAvailableNodes");
+        this.job.getInputParams().setSymphonyUuid(null);
 
         NotifyNodeDiscoveryToUpdateStatusTaskHandler instance = new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.nodeService);
         boolean expectedResult = false;
@@ -136,11 +137,9 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
      * @since 1.0
      */
     @Test
-    public void testExecuteTask_no_discovered_node() throws ServiceTimeoutException, ServiceExecutionException
+    public void testExecuteTask_no_input_params() throws ServiceTimeoutException, ServiceExecutionException
     {
-        Map<String, TaskResponse> taskResponse = this.job.getTaskResponseMap();
-        FirstAvailableDiscoveredNodeResponse response = (FirstAvailableDiscoveredNodeResponse) taskResponse.get("findAvailableNodes");
-        response.setNodeInfo(null);
+        this.job.setInputParams(null);
 
         NotifyNodeDiscoveryToUpdateStatusTaskHandler instance = new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.nodeService);
         boolean expectedResult = false;

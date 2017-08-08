@@ -8,6 +8,7 @@ package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
 import static org.mockito.Mockito.when;
 
+import com.dell.cpsd.paqx.dne.service.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,10 +24,6 @@ import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.WorkflowService;
 import com.dell.cpsd.paqx.dne.service.WorkflowServiceImpl;
-import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
-import com.dell.cpsd.paqx.dne.service.model.FirstAvailableDiscoveredNodeResponse;
-import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
-import com.dell.cpsd.paqx.dne.service.model.NodeStatus;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeService;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeTaskConfig;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
@@ -84,9 +81,9 @@ public class ChangeIdracCredentialsTaskHandlerTest
     public void testExecuteTask_success() throws ServiceTimeoutException, ServiceExecutionException
     {
 
-        FirstAvailableDiscoveredNodeResponse nodeDiscoverResponse = new FirstAvailableDiscoveredNodeResponse();
-        nodeDiscoverResponse.setNodeInfo(new NodeInfo("symphonyUuid", "DellNodeId", NodeStatus.DISCOVERED));
-        this.job.addTaskResponse("findAvailableNodes", nodeDiscoverResponse);
+        NodeExpansionRequest request = new NodeExpansionRequest();
+        request.setNodeId("1234");
+        this.job.setInputParams(request);
 
         ChangeIdracCredentialsResponse responseMessage = new ChangeIdracCredentialsResponse();
         responseMessage.setMessage("SUCCESS");
@@ -107,10 +104,26 @@ public class ChangeIdracCredentialsTaskHandlerTest
     }
 
     @Test()
-    public void testExecuteTask__no_node_info() throws ServiceTimeoutException, ServiceExecutionException
+    public void testExecuteTask__null_node() throws ServiceTimeoutException, ServiceExecutionException
     {
-        FirstAvailableDiscoveredNodeResponse nodeDiscoverResponse = new FirstAvailableDiscoveredNodeResponse();
-        this.job.addTaskResponse("findAvailableNodes", nodeDiscoverResponse);
+        NodeExpansionRequest request = new NodeExpansionRequest();
+        request.setNodeId(null);
+        this.job.setInputParams(request);
+
+
+        boolean result = classUnderTest.executeTask(this.job);
+        Assert.assertFalse(result);
+        Assert.assertFalse(CollectionUtils.isEmpty(job.getTaskResponseMap().get("changeIdracCredentials").getErrors()));
+    }
+
+    @Test()
+    public void testExecuteTask__empty_node() throws ServiceTimeoutException, ServiceExecutionException
+    {
+        NodeExpansionRequest request = new NodeExpansionRequest();
+        request.setNodeId("");
+        this.job.setInputParams(request);
+
+
         boolean result = classUnderTest.executeTask(this.job);
         Assert.assertFalse(result);
         Assert.assertFalse(CollectionUtils.isEmpty(job.getTaskResponseMap().get("changeIdracCredentials").getErrors()));
@@ -119,9 +132,9 @@ public class ChangeIdracCredentialsTaskHandlerTest
     @Test()
     public void testExecuteTask__error_response() throws ServiceTimeoutException, ServiceExecutionException
     {
-        FirstAvailableDiscoveredNodeResponse nodeDiscoverResponse = new FirstAvailableDiscoveredNodeResponse();
-        nodeDiscoverResponse.setNodeInfo(new NodeInfo("symphonyUuid", "DellNodeId", NodeStatus.DISCOVERED));
-        this.job.addTaskResponse("findAvailableNodes", nodeDiscoverResponse);
+        NodeExpansionRequest request = new NodeExpansionRequest();
+        request.setNodeId("1234");
+        this.job.setInputParams(request);
 
         ChangeIdracCredentialsResponse responseMessage = new ChangeIdracCredentialsResponse();
         responseMessage.setMessage("FAILED");

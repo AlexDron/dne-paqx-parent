@@ -8,16 +8,13 @@ package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
 import java.util.Map;
 
+import com.dell.cpsd.paqx.dne.service.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.model.FirstAvailableDiscoveredNodeResponse;
-import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
-import com.dell.cpsd.paqx.dne.service.model.Status;
-import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 
 /**
@@ -73,20 +70,21 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandler extends BaseTaskHandle
 
         try
         {
-            Map<String, TaskResponse> responseMap = job.getTaskResponseMap();
-            FirstAvailableDiscoveredNodeResponse findNodeTask = (FirstAvailableDiscoveredNodeResponse)responseMap.get("findAvailableNodes");
-            if (findNodeTask == null)
+            final NodeExpansionRequest inputParams = job.getInputParams();
+
+            if (inputParams == null)
             {
-                throw new IllegalStateException("No discovered node task found.");
+                throw new IllegalStateException("Job input parameters are null");
+            }
+
+            final String symphonyUuid = inputParams.getSymphonyUuid();
+
+            if (symphonyUuid == null)
+            {
+                throw new IllegalStateException("Symphony uuid is null");
             }
             
-            NodeInfo nodeInfo = findNodeTask.getNodeInfo();
-            if (nodeInfo == null)
-            {
-                throw new IllegalStateException("No discovered node info found.");
-            }
-            
-            boolean result = this.nodeService.notifyNodeAllocationComplete(nodeInfo.getSymphonyUuid());
+            boolean result = this.nodeService.notifyNodeAllocationComplete(symphonyUuid);
             
             if (result)
             {

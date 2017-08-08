@@ -93,11 +93,12 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
         this.job.setInputParams(
                 new NodeExpansionRequest("idracIpAddress", "idracGatewayIpAddress", "idracSubnetMask", "managementIpAddress",
                         "esxiKernelIpAddress1", "esxiKernelIpAddress2", "scaleIOSVMDataIpAddress1", "scaleIOSVMDataIpAddress2",
-                        "scaleIOSVMManagementIpAddress"));
+                        "scaleIOSVMManagementIpAddress", "nodeId", "symphonyUuid", "clausterName"));
 
-        FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();
-        response.setNodeInfo(new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED));
-        this.job.addTaskResponse("findAvailableNodes", response);
+        NodeExpansionRequest request = new NodeExpansionRequest();
+        request.setNodeId("nodeId-1234");
+        request.setSymphonyUuid("symphonyUuid");
+        this.job.setInputParams(request);
 
         this.job.changeToNextStep("updateSystemDefinition");
     }
@@ -119,6 +120,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
         systems.add(system);
 
         List<Component> components = new ArrayList<>();
+        component.setIdentity(new Identity());
         components.add(component);
 
         List<Group> groups = new ArrayList<>();
@@ -152,8 +154,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
     @Test
     public void testExecuteTask_no_find_nodes_response() throws ServiceTimeoutException, ServiceExecutionException
     {
-        Map<String, TaskResponse> taskResponse = this.job.getTaskResponseMap();
-        taskResponse.remove("findAvailableNodes");
+        this.job.getInputParams().setSymphonyUuid(null);
 
         ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
         AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
@@ -173,9 +174,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
     @Test
     public void testExecuteTask_no_discovered_node()
     {
-        Map<String, TaskResponse> taskResponse = this.job.getTaskResponseMap();
-        FirstAvailableDiscoveredNodeResponse response = (FirstAvailableDiscoveredNodeResponse) taskResponse.get("findAvailableNodes");
-        response.setNodeInfo(null);
+        this.job.getInputParams().setNodeId(null);
 
         ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
         AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
@@ -238,7 +237,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
         ConvergedSystem cs = new ConvergedSystem();
         cs.setUuid(UUID.randomUUID().toString());
 
-        NodeInfo nodeInfo = ((FirstAvailableDiscoveredNodeResponse) this.job.getTaskResponseMap().get("findAvailableNodes")).getNodeInfo();
+        NodeInfo nodeInfo = new NodeInfo(job.getInputParams().getSymphonyUuid(), job.getInputParams().getNodeId(), NodeStatus.DISCOVERED);
         Component node = new Component();
         node.setIdentity(nodeInfo.getIdentity());
 

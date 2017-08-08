@@ -4,6 +4,7 @@ import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointDetails;
+import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
 import com.dell.cpsd.paqx.dne.service.model.EndpointCredentials;
 import com.dell.cpsd.paqx.dne.service.model.ListScaleIoComponentsTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.Status;
@@ -52,44 +53,44 @@ public class ListScaleIoComponentsTaskHandler extends BaseTaskHandler implements
 
         try
         {
-            final ListScaleIoComponentsTaskResponse taskResponse = this.nodeService.requestScaleIoComponents();
+            final List<ComponentEndpointDetails> componentEndpointDetailsList = this.nodeService.requestScaleIoComponents();
 
-            if (taskResponse == null)
+            if (componentEndpointDetailsList.isEmpty())
             {
                 response.setWorkFlowTaskStatus(Status.FAILED);
                 return false;
             }
 
-            if ("SUCCESS".equalsIgnoreCase(taskResponse.getMessage()))
-            {
-                response.setWorkFlowTaskStatus(Status.SUCCEEDED);
-                response.setResults(buildResponseResult(taskResponse));
-                return true;
-            }
-            else
-            {
-                response.setWorkFlowTaskStatus(Status.FAILED);
-                return false;
-            }
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+            response.setResults(buildResponseResult(componentEndpointDetailsList));
+            //TODO: For MVP keeping options open
+            final String componentUuid = response.getResults().get("scaleIoComponentUuid");
+            final String credentialUuid = response.getResults().get("scaleIoCredentialUuid");
+            final String endpointUuid = response.getResults().get("scaleIoEndpointUuid");
+            final String endpointUrl = response.getResults().get("scaleIoEndpointUrl");
+
+            final ComponentEndpointIds componentEndpointIds = new ComponentEndpointIds(componentUuid, endpointUuid, endpointUrl,
+                    credentialUuid);
+
+            ((ListScaleIoComponentsTaskResponse) response).setComponentEndpointIds(componentEndpointIds);
+            return true;
+
         }
         catch (Exception e)
         {
             LOGGER.error("Error while listing the ScaleIO components", e);
             response.addError(e.toString());
+            response.setWorkFlowTaskStatus(Status.FAILED);
+            return false;
         }
-
-        response.setWorkFlowTaskStatus(Status.FAILED);
-        return false;
     }
 
     /*
      * This method add all the node information to the response object
      */
-    private Map<String, String> buildResponseResult(final ListScaleIoComponentsTaskResponse response)
+    private Map<String, String> buildResponseResult(final List<ComponentEndpointDetails> componentEndpointDetailsList)
     {
         final Map<String, String> result = new HashMap<>();
-
-        final List<ComponentEndpointDetails> componentEndpointDetailsList = response.getComponentEndpointDetails();
 
         if (componentEndpointDetailsList.isEmpty())
         {

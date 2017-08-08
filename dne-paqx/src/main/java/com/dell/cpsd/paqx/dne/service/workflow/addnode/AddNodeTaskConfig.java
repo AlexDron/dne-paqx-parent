@@ -23,8 +23,7 @@ public class AddNodeTaskConfig
     {
         final Map<String, Step> workflowSteps = new HashMap<>();
 
-        workflowSteps.put("startAddNodeWorkflow", new Step("findAvailableNodes"));
-        workflowSteps.put("findAvailableNodes", new Step("changeIdracCredentials"));
+        workflowSteps.put("startAddNodeWorkflow", new Step("changeIdracCredentials"));
         workflowSteps.put("changeIdracCredentials", new Step("updateSystemDefinition"));
         //TODO: Add all the steps here once tested
         /*workflowSteps.put("listScaleIoComponents", new Step("listVCenterComponents"));

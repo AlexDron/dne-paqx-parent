@@ -66,7 +66,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -93,7 +94,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -133,7 +135,8 @@ public class AmqpNodeServiceTest
     {
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -157,7 +160,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -184,7 +188,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -223,7 +228,8 @@ public class AmqpNodeServiceTest
     {
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -250,7 +256,8 @@ public class AmqpNodeServiceTest
         IdracNetworkSettingsRequest idracNetworkSettingsRequest = new IdracNetworkSettingsRequest("nodeId", "idracIpAddress",
                 "idracGatewayIpAddress", "idracSubnetMask");
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -288,7 +295,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
         IdracNetworkSettingsRequest idracNetworkSettingsRequest = new IdracNetworkSettingsRequest("nodeId", "idracIpAddress", "idracGatewayIpAddress", "idracSubnetMask");
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -314,7 +322,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -350,7 +359,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -377,7 +387,8 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
         ConfigureBootDeviceIdracRequest bootOrderSequenceRequest = new ConfigureBootDeviceIdracRequest("nodeId", "idracIpAddress");
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -414,7 +425,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
         ConfigureBootDeviceIdracRequest bootOrderSequenceRequest = new ConfigureBootDeviceIdracRequest("nodeId", "idracIpAddress");
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -440,7 +452,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -478,7 +491,8 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
+                null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,

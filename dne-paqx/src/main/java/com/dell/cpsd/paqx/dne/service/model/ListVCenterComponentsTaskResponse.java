@@ -20,6 +20,18 @@ public class ListVCenterComponentsTaskResponse extends TaskResponse
 
     private List<ComponentEndpointDetails> componentEndpointDetails = new ArrayList<>();
 
+    private ComponentEndpointIds componentEndpointIds;
+
+    public ComponentEndpointIds getComponentEndpointIds()
+    {
+        return componentEndpointIds;
+    }
+
+    public void setComponentEndpointIds(final ComponentEndpointIds componentEndpointIds)
+    {
+        this.componentEndpointIds = componentEndpointIds;
+    }
+
     public String getMessage()
     {
         return message;

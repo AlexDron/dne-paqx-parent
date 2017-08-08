@@ -19,6 +19,9 @@ public class NodeExpansionRequest
     private String scaleIOSVMDataIpAddress2;
     private String scaleIOSVMManagementIpAddress;
     private String hostname;
+    private String nodeId;
+    private String clusterName;
+    private String symphonyUuid;
 
     public NodeExpansionRequest()
     {
@@ -27,7 +30,7 @@ public class NodeExpansionRequest
     public NodeExpansionRequest(String idracIpAddress, String idracGatewayIpAddress, String idracSubnetMask,
                                 String esxiManagementIpAddress, String esxiManagementGatewayIpAddress, String esxiManagementSubnetMask,
                                 String scaleIOSVMDataIpAddress1, String scaleIOSVMDataIpAddress2,
-                                String scaleIOSVMManagementIpAddress) {
+                                String scaleIOSVMManagementIpAddress, String nodeId, String symphonyUuid, String clusterName) {
         this.idracIpAddress = idracIpAddress;
         this.idracGatewayIpAddress = idracGatewayIpAddress;
         this.idracSubnetMask = idracSubnetMask;
@@ -37,6 +40,9 @@ public class NodeExpansionRequest
         this.scaleIOSVMDataIpAddress1 = scaleIOSVMDataIpAddress1;
         this.scaleIOSVMDataIpAddress2 = scaleIOSVMDataIpAddress2;
         this.scaleIOSVMManagementIpAddress = scaleIOSVMManagementIpAddress;
+        this.nodeId = nodeId;
+        this.symphonyUuid = symphonyUuid;
+        this.clusterName = clusterName;
     }
 
     public String getIdracIpAddress()
@@ -138,6 +144,30 @@ public class NodeExpansionRequest
         this.hostname = hostname;
     }
 
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(String nodeId) {
+        this.nodeId = nodeId;
+    }
+
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    public void setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+    }
+
+    public String getSymphonyUuid() {
+        return symphonyUuid;
+    }
+
+    public void setSymphonyUuid(String symphonyUuid) {
+        this.symphonyUuid = symphonyUuid;
+    }
+
     @Override
     public String toString()
     {
@@ -151,6 +181,9 @@ public class NodeExpansionRequest
                 + ", scaleIOSVMDataIpAddress1='" + scaleIOSVMDataIpAddress1 + '\''
                 + ", scaleIOSVMDataIpAddress2='" + scaleIOSVMDataIpAddress2 + '\''
                 + ", scaleIOSVMManagementIpAddress='" + scaleIOSVMManagementIpAddress + '\''
+                + ", nodeId='" + nodeId + '\''
+                + ", clusterName='" + clusterName + '\''
+                + ", symphonyUuid='" + symphonyUuid + '\''
                 + ", hostname='" + hostname + '\'' + '}';
     }
 }
