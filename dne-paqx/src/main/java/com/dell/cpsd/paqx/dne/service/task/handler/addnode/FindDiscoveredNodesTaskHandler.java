@@ -92,6 +92,7 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
                     return true;
                 }
                 LOGGER.warn("No discovered nodes found");
+                response.addError("No discovered nodes found");
             }
         }
         catch (Exception e)
