@@ -5,10 +5,10 @@
 
 package com.dell.cpsd.paqx.dne.amqp.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -31,19 +31,43 @@ import java.util.Properties;
  */
 @Configuration
 @EnableTransactionManagement
-@Import({PersistencePropertiesConfig.class})
+@PropertySource(value = "classpath:META-INF/spring/dne-paqx/persistence.properties")
 public class PersistenceConfig
 {
-    @Autowired
-    private PersistencePropertiesConfig propertiesConfig;
+    @Value("${remote.dell.database.password}")
+    private String databasePassword;
+
+    @Value("${remote.dell.database.url}")
+    private String databaseUrl;
+
+    @Value("${remote.dell.database.username}")
+    private String databaseUsername;
+
+    @Value("${remote.dell.database.driver.class.name}")
+    private String databaseDriverClassName;
+
+    @Value("${hibernate.dialect}")
+    private String hibernateDialect;
+
+    @Value("${hibernate.show_sql}")
+    private String hibernateShowSql;
+
+    @Value("${hibernate.hbm2ddl.auto}")
+    private String hibernateHBM2DdlAuto;
+
+    @Value("${hibernate.naming_strategy}")
+    private String hibernateNamingStrategy;
+
+    @Value("${hibernate.default_schema}")
+    private String hibernateDefaultSchema;
 
     public DriverManagerDataSource dataSource()
     {
         final DriverManagerDataSource source = new DriverManagerDataSource();
-        source.setDriverClassName(propertiesConfig.databaseDriverClassName());
-        source.setUrl(propertiesConfig.databaseUrl());
-        source.setUsername(propertiesConfig.databaseUsername());
-        source.setPassword(propertiesConfig.databasePassword());
+        source.setDriverClassName(databaseDriverClassName);
+        source.setUrl(databaseUrl);
+        source.setUsername(databaseUsername);
+        source.setPassword(databasePassword);
 
         return source;
     }
@@ -65,10 +89,10 @@ public class PersistenceConfig
         entityManagerFactory.setPackagesToScan("com.dell.cpsd.paqx.dne.domain");
 
         final Properties properties = new Properties();
-        properties.put("hibernate.dialect", propertiesConfig.hibernateDialect());
-        properties.put("hibernate.show_sql", propertiesConfig.hibernateShowSql());
-        properties.put("hibernate.hbm2ddl.auto", propertiesConfig.hibernateHBM2DdlAuto());
-        properties.put("hibernate.naming_strategy", propertiesConfig.hibernateNamingStrategy());
+        properties.put("hibernate.dialect", hibernateDialect);
+        properties.put("hibernate.show_sql", hibernateShowSql);
+        properties.put("hibernate.hbm2ddl.auto", hibernateHBM2DdlAuto);
+        properties.put("hibernate.naming_strategy", hibernateNamingStrategy);
 
         entityManagerFactory.setJpaProperties(properties);
         return entityManagerFactory;

@@ -5,7 +5,7 @@ import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointDetails;
-import org.springframework.transaction.annotation.Transactional;
+import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
 
 import javax.persistence.NoResultException;
 import java.util.List;
@@ -20,11 +20,11 @@ import java.util.List;
  */
 public interface DataServiceRepository
 {
-    @Transactional
-    void saveScaleIoComponentDetails(List<ComponentEndpointDetails> componentEndpointDetailsList);
+    boolean saveScaleIoComponentDetails(List<ComponentEndpointDetails> componentEndpointDetailsList);
 
-    @Transactional
-    void saveVCenterComponentDetails(List<ComponentEndpointDetails> componentEndpointDetailsList);
+    boolean saveVCenterComponentDetails(List<ComponentEndpointDetails> componentEndpointDetailsList);
+
+    ComponentEndpointIds getComponentEndpointIds(final String componentType);
 
     boolean saveVCenterData(final String jobId, final VCenter vCenterData);
 
@@ -33,4 +33,6 @@ public interface DataServiceRepository
     Host getVCenterHost(final String hostName) throws NoResultException;
 
     List<PortGroup> getPortGroups();
+
+    ScaleIOData getScaleIoData(final String jobId);
 }

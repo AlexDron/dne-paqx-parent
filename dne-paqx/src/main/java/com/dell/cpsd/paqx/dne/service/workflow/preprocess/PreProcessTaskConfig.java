@@ -31,6 +31,11 @@ public class PreProcessTaskConfig {
 
         workflowSteps.put("startPreProcessWorkflow", new Step("findAvailableNodes"));
         workflowSteps.put("findAvailableNodes", new Step("configIdrac"));
+        /*workflowSteps.put("findAvailableNodes", new Step("listScaleIoComponents"));
+        workflowSteps.put("listScaleIoComponents", new Step("listVCenterComponents"));
+        workflowSteps.put("listVCenterComponents", new Step("discoverScaleIo"));
+        workflowSteps.put("discoverScaleIo", new Step("discoverVCenter"));
+        workflowSteps.put("discoverVCenter", new Step("configIdrac"));*/
         workflowSteps.put("configIdrac", new Step("configureBootDeviceIdrac"));
         workflowSteps.put("configureBootDeviceIdrac", new Step("findVCluster"));
         workflowSteps.put("findVCluster", new Step("findProtectionDomain"));

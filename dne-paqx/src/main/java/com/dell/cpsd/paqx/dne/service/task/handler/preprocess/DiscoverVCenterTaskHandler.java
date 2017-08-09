@@ -1,11 +1,12 @@
-package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
+package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
+import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
-import com.dell.cpsd.paqx.dne.service.model.DiscoverScaleIoTaskResponse;
-import com.dell.cpsd.paqx.dne.service.model.ListScaleIoComponentsTaskResponse;
+import com.dell.cpsd.paqx.dne.service.model.DiscoverVCenterTaskResponse;
+import com.dell.cpsd.paqx.dne.service.model.ListVCenterComponentsTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.Status;
 import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
@@ -23,52 +24,46 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public class DiscoverScaleIoTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler
+public class DiscoverVCenterTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler
 {
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoverScaleIoTaskHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoverVCenterTaskHandler.class);
 
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService nodeService;
+    private final NodeService           nodeService;
+    private final DataServiceRepository repository;
 
-    public DiscoverScaleIoTaskHandler(final NodeService nodeService)
+    public DiscoverVCenterTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
     {
         this.nodeService = nodeService;
+        this.repository = repository;
     }
 
     @Override
     public boolean executeTask(final Job job)
     {
-        LOGGER.info("Execute Discover ScaleIO task");
+        LOGGER.info("Execute Discover VCenter task");
 
         final TaskResponse response = initializeResponse(job);
 
         try
         {
-            final Map<String, TaskResponse> responseMap = job.getTaskResponseMap();
-            final ListScaleIoComponentsTaskResponse listScaleIoComponents = (ListScaleIoComponentsTaskResponse)responseMap.get("listScaleIoComponents");
-            if (listScaleIoComponents == null)
-            {
-                throw new IllegalStateException("No list scale io components task found.");
-            }
-
-            final ComponentEndpointIds componentEndpointIds = listScaleIoComponents.getComponentEndpointIds();
+            final ComponentEndpointIds componentEndpointIds = repository.getComponentEndpointIds("VCENTER");
 
             if (componentEndpointIds == null)
             {
-                throw new IllegalStateException("No ScaleIO components found.");
+                throw new IllegalStateException("No VCenter components found.");
             }
 
-            final boolean success = this.nodeService.requestDiscoverScaleIo(componentEndpointIds, job.getId().toString());
+            final boolean success = this.nodeService.requestDiscoverVCenter(componentEndpointIds, job.getId().toString());
 
             response.setWorkFlowTaskStatus(success? Status.SUCCEEDED : Status.FAILED);
 
             return success;
-
         }
         catch (Exception e)
         {
@@ -78,9 +73,9 @@ public class DiscoverScaleIoTaskHandler extends BaseTaskHandler implements IWork
     }
 
     @Override
-    public DiscoverScaleIoTaskResponse initializeResponse(Job job)
+    public DiscoverVCenterTaskResponse initializeResponse(Job job)
     {
-        final DiscoverScaleIoTaskResponse response = new DiscoverScaleIoTaskResponse();
+        final DiscoverVCenterTaskResponse response = new DiscoverVCenterTaskResponse();
         response.setWorkFlowTaskName(job.getCurrentTask().getTaskName());
         response.setWorkFlowTaskStatus(Status.IN_PROGRESS);
         job.addTaskResponse(job.getStep(), response);

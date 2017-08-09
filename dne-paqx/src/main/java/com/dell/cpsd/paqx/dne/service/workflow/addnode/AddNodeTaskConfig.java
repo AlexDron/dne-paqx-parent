@@ -26,10 +26,6 @@ public class AddNodeTaskConfig
         workflowSteps.put("startAddNodeWorkflow", new Step("changeIdracCredentials"));
         workflowSteps.put("changeIdracCredentials", new Step("updateSystemDefinition"));
         //TODO: Add all the steps here once tested
-        /*workflowSteps.put("listScaleIoComponents", new Step("listVCenterComponents"));
-        workflowSteps.put("listVCenterComponents", new Step("discoverScaleIo"));
-        workflowSteps.put("discoverScaleIo", new Step("discoverVCenter"));
-        workflowSteps.put("discoverVCenter", new Step("updateSystemDefinition"));*/
         workflowSteps.put("updateSystemDefinition", new Step("notifyNodeDiscoveryToUpdateStatus"));
         workflowSteps.put("notifyNodeDiscoveryToUpdateStatus", new Step("completed", true));
         workflowSteps.put("completed", null);

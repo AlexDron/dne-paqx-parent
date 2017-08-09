@@ -70,7 +70,7 @@ public class FindDiscoveredNodesTaskHandlerTest
 
         this.job = preProcessService.createWorkflow("preprocess", "startPreProcessWorkflow", "submitted");
         this.job.setInputParams(new NodeExpansionRequest("idracIpAddress", "idracGatewayIpAddress", "idracSubnetMask",
-                "managementIpAddress", "esxiKernelIpAddress1", "esxiKernelIpAddress2", "scaleIOSVMDataIpAddress1",
+                "managementIpAddress", "esxiKernelIpAddress1", "esxiKernelIpAddress2", "esxiManagementHostname", "scaleIOSVMDataIpAddress1",
                 "scaleIOSVMDataIpAddress2", "scaleIOSVMManagementIpAddress", "nodeId", "symphonyUuid", "clausterName"));
 
         FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();

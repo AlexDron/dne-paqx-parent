@@ -11,7 +11,16 @@ import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstalla
 import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
+import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
+import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBConfigureRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
 
 public interface NodeService
@@ -92,9 +101,9 @@ public interface NodeService
     BootDeviceIdracStatus bootDeviceIdracStatus (ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
 
-    List<ComponentEndpointDetails> requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
+    boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
 
-    List<ComponentEndpointDetails> requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException;
+    boolean requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException;
 
     boolean requestDiscoverScaleIo(final ComponentEndpointIds componentEndpointIds, final String jobId)
             throws ServiceTimeoutException, ServiceExecutionException;
@@ -103,4 +112,23 @@ public interface NodeService
             throws ServiceTimeoutException, ServiceExecutionException;
 
     boolean requestInstallEsxi(final EsxiInstallationInfo esxiInstallationInfo);
+
+    boolean requestAddHostToVCenter(final ClusterOperationRequestMessage requestMessage);
+
+    boolean requestInstallSoftwareVib(final SoftwareVIBRequestMessage requestMessage);
+
+    boolean requestConfigureScaleIoVib(final SoftwareVIBConfigureRequestMessage requestMessage);
+
+    boolean requestAddHostToDvSwitch(final AddHostToDvSwitchRequestMessage requestMessage);
+
+    boolean requestDeployScaleIoVm(final DeployVMFromTemplateRequestMessage requestMessage);
+
+    boolean requestEnablePciPassThrough(final EnablePCIPassthroughRequestMessage requestMessage);
+
+    boolean requestHostReboot(final HostPowerOperationRequestMessage requestMessage);
+
+    boolean requestSetPciPassThrough(final UpdatePCIPassthruSVMRequestMessage requestMessage);
+
+    boolean requestInstallEsxiLicense(final AddEsxiHostVSphereLicenseRequest requestMessage);
+
 }

@@ -118,10 +118,10 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
      * @param consumer - The <code>DelegatingMessageConsumer</code> instance.
      * @param producer - The <code>DneProducer</code> instance.
      * @param replyTo  - The replyTo queue name.
-     * @param repository
-     * @param discoveryInfoToVCenterDomainTransformer
-     *@param scaleIORestToScaleIODomainTransformer
-     * @param hostToInstallEsxiRequestTransformer @since 1.0
+     * @param repository repository
+     * @param discoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer
+     * @param scaleIORestToScaleIODomainTransformer scaleIORestToScaleIODomainTransformer
+     * @since 1.0
      */
     public AmqpNodeService(ILogger logger, DelegatingMessageConsumer consumer, DneProducer producer, String replyTo,
             final DataServiceRepository repository, final DiscoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer,
@@ -560,7 +560,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     }
 
     @Override
-    public List<ComponentEndpointDetails> requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException
+    public boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException
     {
         final List<ComponentEndpointDetails> componentEndpointDetailsListResponse = new ArrayList<>();
 
@@ -618,7 +618,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
                     });
 
-                    repository.saveScaleIoComponentDetails(componentEndpointDetailsListResponse);
+                    return repository.saveScaleIoComponentDetails(componentEndpointDetailsListResponse);
                 }
             }
             else
@@ -632,11 +632,11 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return componentEndpointDetailsListResponse;
+        return false;
     }
 
     @Override
-    public List<ComponentEndpointDetails> requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException
+    public boolean requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException
     {
         final List<ComponentEndpointDetails> componentEndpointDetailsListResponse = new ArrayList<>();
 
@@ -695,7 +695,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                     });
 
 
-                    repository.saveVCenterComponentDetails(componentEndpointDetailsListResponse);
+                    return repository.saveVCenterComponentDetails(componentEndpointDetailsListResponse);
                 }
             }
             else
@@ -709,7 +709,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return componentEndpointDetailsListResponse;
+        return false;
     }
 
     @Override
@@ -749,12 +749,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                 final ScaleIOData scaleIOData = scaleIORestToScaleIODomainTransformer
                         .transform(responseMessage.getScaleIOSystemDataRestRep());
 
-                if (scaleIOData == null)
-                {
-                    return false;
-                }
-
-                return repository.saveScaleIoData(jobId, scaleIOData);
+                return scaleIOData != null && repository.saveScaleIoData(jobId, scaleIOData);
             }
             else
             {
@@ -803,15 +798,9 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
             if (responseMessage != null && responseMessage.getMessageProperties() != null)
             {
-                final VCenter vCenterData = discoveryInfoToVCenterDomainTransformer
-                        .transform(responseMessage);
+                final VCenter vCenterData = discoveryInfoToVCenterDomainTransformer.transform(responseMessage);
 
-                if (vCenterData == null)
-                {
-                    return false;
-                }
-
-                return repository.saveVCenterData(jobId, vCenterData);
+                return vCenterData != null && repository.saveVCenterData(jobId, vCenterData);
             }
             else
             {
@@ -868,6 +857,392 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
+        return false;
+    }
+
+    @Override
+    public boolean requestAddHostToVCenter(final ClusterOperationRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishAddHostToVCenter(requestMessage);
+                }
+            });
+
+            ClusterOperationResponseMessage responseMessage = processResponse(callbackResponse,
+                    ClusterOperationResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(ClusterOperationResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestInstallSoftwareVib(final SoftwareVIBRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishInstallScaleIoVib(requestMessage);
+                }
+            });
+
+            SoftwareVIBResponseMessage responseMessage = processResponse(callbackResponse,
+                    SoftwareVIBResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(SoftwareVIBResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestConfigureScaleIoVib(final SoftwareVIBConfigureRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            LOGGER.info("Setting Request Call Back for Software Vib Configure");
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishConfigureScaleIoVib(requestMessage);
+                }
+            });
+
+            SoftwareVIBResponseMessage responseMessage = processResponse(callbackResponse,
+                    SoftwareVIBResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(SoftwareVIBResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestAddHostToDvSwitch(final AddHostToDvSwitchRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishAddHostToDvSwitch(requestMessage);
+                }
+            });
+
+            AddHostToDvSwitchResponseMessage responseMessage = processResponse(callbackResponse,
+                    AddHostToDvSwitchResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(AddHostToDvSwitchResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestDeployScaleIoVm(final DeployVMFromTemplateRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishDeployVmFromTemplate(requestMessage);
+                }
+            });
+
+            DeployVMFromTemplateResponseMessage responseMessage = processResponse(callbackResponse,
+                    DeployVMFromTemplateResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(DeployVMFromTemplateResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestEnablePciPassThrough(final EnablePCIPassthroughRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishEnablePciPassthrough(requestMessage);
+                }
+            });
+
+            EnablePCIPassthroughResponseMessage responseMessage = processResponse(callbackResponse,
+                    EnablePCIPassthroughResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(EnablePCIPassthroughResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestHostReboot(final HostPowerOperationRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishRebootHost(requestMessage);
+                }
+            });
+
+            HostPowerOperationResponseMessage responseMessage = processResponse(callbackResponse, HostPowerOperationResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(HostPowerOperationResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestSetPciPassThrough(final UpdatePCIPassthruSVMRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishSetPciPassthrough(requestMessage);
+                }
+            });
+
+            UpdatePCIPassthruSVMResponseMessage responseMessage = processResponse(callbackResponse, UpdatePCIPassthruSVMResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(UpdatePCIPassthruSVMResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestInstallEsxiLicense(final AddEsxiHostVSphereLicenseRequest requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishApplyEsxiLicense(requestMessage);
+                }
+            });
+
+            AddEsxiHostVSphereLicenseResponse responseMessage = processResponse(callbackResponse, AddEsxiHostVSphereLicenseResponse.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(AddEsxiHostVSphereLicenseResponse.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
         return false;
     }
 }

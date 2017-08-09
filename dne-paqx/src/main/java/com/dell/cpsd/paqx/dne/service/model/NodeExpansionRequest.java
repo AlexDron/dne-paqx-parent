@@ -14,6 +14,7 @@ public class NodeExpansionRequest
     private String esxiManagementIpAddress;
     private String esxiManagementGatewayIpAddress;
     private String esxiManagementSubnetMask;
+    private String esxiManagementHostname;
 
     private String scaleIOSVMDataIpAddress1;
     private String scaleIOSVMDataIpAddress2;
@@ -29,7 +30,7 @@ public class NodeExpansionRequest
 
     public NodeExpansionRequest(String idracIpAddress, String idracGatewayIpAddress, String idracSubnetMask,
                                 String esxiManagementIpAddress, String esxiManagementGatewayIpAddress, String esxiManagementSubnetMask,
-                                String scaleIOSVMDataIpAddress1, String scaleIOSVMDataIpAddress2,
+                                String esxiManagementHostname, String scaleIOSVMDataIpAddress1, String scaleIOSVMDataIpAddress2,
                                 String scaleIOSVMManagementIpAddress, String nodeId, String symphonyUuid, String clusterName) {
         this.idracIpAddress = idracIpAddress;
         this.idracGatewayIpAddress = idracGatewayIpAddress;
@@ -37,12 +38,14 @@ public class NodeExpansionRequest
         this.esxiManagementIpAddress = esxiManagementIpAddress;
         this.esxiManagementGatewayIpAddress = esxiManagementGatewayIpAddress;
         this.esxiManagementSubnetMask = esxiManagementSubnetMask;
+        this.esxiManagementHostname = esxiManagementHostname;
         this.scaleIOSVMDataIpAddress1 = scaleIOSVMDataIpAddress1;
         this.scaleIOSVMDataIpAddress2 = scaleIOSVMDataIpAddress2;
         this.scaleIOSVMManagementIpAddress = scaleIOSVMManagementIpAddress;
         this.nodeId = nodeId;
         this.symphonyUuid = symphonyUuid;
         this.clusterName = clusterName;
+
     }
 
     public String getIdracIpAddress()
@@ -90,10 +93,7 @@ public class NodeExpansionRequest
         return esxiManagementGatewayIpAddress;
     }
 
-    public void setEsxiManagementGatewayIpAddress(String esxiManagementGatewayIpAddress)
-    {
-        this.esxiManagementGatewayIpAddress = esxiManagementGatewayIpAddress;
-    }
+    public void setEsxiManagementGatewayIpAddress(String esxiManagementGatewayIpAddress) { this.esxiManagementGatewayIpAddress = esxiManagementGatewayIpAddress; }
 
     public String getEsxiManagementSubnetMask()
     {
@@ -102,6 +102,15 @@ public class NodeExpansionRequest
 
     public void setEsxiManagementSubnetMask(String esxiManagementSubnetMask) {
         this.esxiManagementSubnetMask = esxiManagementSubnetMask;
+    }
+
+    public String getEsxiManagementHostname()
+    {
+        return esxiManagementHostname;
+    }
+
+    public void setEsxiManagementHostname(String esxiManagementHostname) {
+        this.esxiManagementHostname = esxiManagementHostname;
     }
 
     public String getScaleIOSVMDataIpAddress1()
@@ -129,10 +138,7 @@ public class NodeExpansionRequest
         return scaleIOSVMManagementIpAddress;
     }
 
-    public void setScaleIOSVMManagementIpAddress(String scaleIOSVMManagementIpAddress)
-    {
-        this.scaleIOSVMManagementIpAddress = scaleIOSVMManagementIpAddress;
-    }
+    public void setScaleIOSVMManagementIpAddress(String scaleIOSVMManagementIpAddress) { this.scaleIOSVMManagementIpAddress = scaleIOSVMManagementIpAddress; }
 
     public String getHostname()
     {
@@ -178,6 +184,7 @@ public class NodeExpansionRequest
                 + ", esxiManagementIpAddress='" + esxiManagementIpAddress + '\''
                 + ", esxiManagementGatewayIpAddress='" + esxiManagementGatewayIpAddress + '\''
                 + ", esxiManagementSubnetMask='" + esxiManagementSubnetMask + '\''
+                + ", esxiManagementHostname='" + esxiManagementHostname + '\''
                 + ", scaleIOSVMDataIpAddress1='" + scaleIOSVMDataIpAddress1 + '\''
                 + ", scaleIOSVMDataIpAddress2='" + scaleIOSVMDataIpAddress2 + '\''
                 + ", scaleIOSVMManagementIpAddress='" + scaleIOSVMManagementIpAddress + '\''
