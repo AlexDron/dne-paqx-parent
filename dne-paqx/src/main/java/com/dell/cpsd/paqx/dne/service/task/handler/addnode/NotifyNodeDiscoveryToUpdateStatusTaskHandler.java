@@ -6,7 +6,6 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import java.util.Map;
 
 import com.dell.cpsd.paqx.dne.service.model.*;
 import org.slf4j.Logger;
@@ -16,6 +15,7 @@ import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * Task responsible for notifying the node discovery service that node
@@ -79,18 +79,20 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandler extends BaseTaskHandle
 
             final String symphonyUuid = inputParams.getSymphonyUuid();
 
-            if (symphonyUuid == null)
+            if (StringUtils.isEmpty(symphonyUuid))
             {
                 throw new IllegalStateException("Symphony uuid is null");
             }
             
-            boolean result = this.nodeService.notifyNodeAllocationComplete(symphonyUuid);
+            boolean succeeded = this.nodeService.notifyNodeAllocationComplete(symphonyUuid);
             
-            if (result)
+            if (!succeeded)
             {
-                response.setWorkFlowTaskStatus(Status.SUCCEEDED);
-                return true;
+                throw new IllegalStateException("Node allocation completion failed");
             }
+
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+            return true;
         }
         catch (Exception e)
         {

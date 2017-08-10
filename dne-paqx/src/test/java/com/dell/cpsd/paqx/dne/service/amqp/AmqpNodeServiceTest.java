@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponse;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponseMessage;
 import org.junit.Assert;
@@ -160,12 +161,12 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe",
+                Mockito.mock(DataServiceRepository.class), null, null)
         {
             @Override
-            protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
-                    long timeout) throws ServiceTimeoutException
+            protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
+                    throws ServiceTimeoutException
             {
                 throw new ServiceTimeoutException("blah");
             }
@@ -188,8 +189,10 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+
+
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe",
+                Mockito.mock(DataServiceRepository.class), null, null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -207,6 +210,8 @@ public class AmqpNodeServiceTest
                 serviceCallback.handleServiceResponse(new ServiceResponse<>(requestId, responseInfoMessage, null));
             }
         };
+
+
 
         List<ClusterInfo> discovereds = nodeService.listClusters();
         Assert.assertEquals(1, discovereds.size());

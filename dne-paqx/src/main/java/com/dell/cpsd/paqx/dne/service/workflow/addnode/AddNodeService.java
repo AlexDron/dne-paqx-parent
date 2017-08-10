@@ -11,18 +11,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddHostToDvSwitchTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddHostToVCenterTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ApplyEsxiLicenseTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ConfigureScaleIoVibTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.DeployScaleIoVmTaskHandler;
-import com.dell.cpsd.paqx.dne.service.task.handler.addnode.DiscoverScaleIoTaskHandler;
-import com.dell.cpsd.paqx.dne.service.task.handler.addnode.DiscoverVCenterTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.EnablePciPassthroughTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.InstallEsxiTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.InstallScaleIoVibTaskHandler;
-import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ListScaleIoComponentsTaskHandler;
-import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ListVCenterComponentsTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.RebootHostTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.UpdatePciPassthroughTaskHandler;
 import com.dell.cpsd.paqx.dne.transformers.HostToInstallEsxiRequestTransformer;
@@ -41,7 +38,6 @@ import com.dell.cpsd.paqx.dne.service.WorkflowService;
 import com.dell.cpsd.paqx.dne.service.model.NodeExpansionResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ChangeIdracCredentialsTaskHandler;
-import com.dell.cpsd.paqx.dne.service.task.handler.addnode.FindDiscoveredNodesTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.NotifyNodeDiscoveryToUpdateStatusTaskHandler;
 import com.dell.cpsd.sdk.AMQPClient;
 
@@ -66,6 +62,9 @@ public class AddNodeService extends BaseService implements IAddNodeService
     @Autowired
     private HostToInstallEsxiRequestTransformer hostToInstallEsxiRequestTransformer;
 
+    @Autowired
+    private DataServiceRepository repository;
+
     @Override
     public Job createWorkflow(final String workflowType, final String startingStep, final String currentStatus)
     {
@@ -79,23 +78,17 @@ public class AddNodeService extends BaseService implements IAddNodeService
         final Map<String, WorkflowTask> workflowTasks = new HashMap<>();
 
 		workflowTasks.put("changeIdracCredentials", changeIdracCredentialsTask());
-		//TODO: Uncomment this out when integration is done
-        //It's working till discover vcenter step
-		/*workflowTasks.put("listScaleIoComponents", listScaleIoComponentsTask());
-		workflowTasks.put("listVCenterComponents", listVCenterComponentsTask());
-        workflowTasks.put("discoverScaleIo", discoverScaleIoTask());
-        workflowTasks.put("discoverVCenter", discoverVCenterTask());
-        workflowTasks.put("installEsxi", null);
-        workflowTasks.put("addHostToVcenter", null);
-        workflowTasks.put("installScaleIoVib", null);
-        workflowTasks.put("configureScaleIoVib", null);
-        workflowTasks.put("addHostToDvSwitch", null);
-        workflowTasks.put("deploySVM", null);
-        workflowTasks.put("enablePciPassthroughHost", null);
-        workflowTasks.put("rebootHost", null);
-        workflowTasks.put("setPciPassthroughSioVm", null);
-        workflowTasks.put("applyEsxiLicense", null);
-        workflowTasks.put("installScaleIOSDC", null);
+        workflowTasks.put("installEsxi", installEsxiTask());//Should work fine, hostname not an issue
+        workflowTasks.put("addHostToVcenter", addHostToVcenterTask());//Issues due to invalid hostname, we have hostname, vcenter needs cluster id as of now
+        workflowTasks.put("installScaleIoVib", installScaleIoVibTask());//If above step works, this works fine
+        workflowTasks.put("configureScaleIoVib", configureScaleIoVibTask());//Module options can change
+        workflowTasks.put("addHostToDvSwitch", addHostToDvSwitchTask());//Requires dvs names and pnic names - from host (don't have yet)
+        workflowTasks.put("deploySVM", deploySVMTask());//Datacenter name not required to be sent from the paqx, update the adapter, Get the vm name from the UI or hardcoded. New vm name add to the task response, required by the setPciPassthroughSioVm, update the vcenter adapter
+        workflowTasks.put("enablePciPassthroughHost", enablePciPassthroughHostTask());//Requires hostname, hostPciDeviceId figure it out
+        workflowTasks.put("rebootHost", rebootHostTask());//Simply requires the hostname
+        workflowTasks.put("setPciPassthroughSioVm", setPciPassthroughSioVmTask());//PCI device Id and vmid required (can be vmname itself in the deploySVM task response)
+        workflowTasks.put("applyEsxiLicense", applyEsxiLicenseTask());// hostname is required, we have it
+        /*workflowTasks.put("installScaleIOSDC", null);
         workflowTasks.put("addNewHostToScaleIO", null);*/
         workflowTasks.put("updateSystemDefinition", updateSystemDefinitionTask());
         workflowTasks.put("notifyNodeDiscoveryToUpdateStatus", notifyNodeDiscoveryToUpdateStatusTask());
@@ -114,30 +107,6 @@ public class AddNodeService extends BaseService implements IAddNodeService
         return createTask("Change Out of Band Management Credentials", new ChangeIdracCredentialsTaskHandler(this.nodeService));
     }
 
-    @Bean("listScaleIoComponentsTask")
-    private WorkflowTask listScaleIoComponentsTask()
-    {
-        return createTask("List ScaleIO Components", new ListScaleIoComponentsTaskHandler(this.nodeService));
-    }
-
-    @Bean("listVCenterComponentsTask")
-    private WorkflowTask listVCenterComponentsTask()
-    {
-        return createTask("List VCenter Components", new ListVCenterComponentsTaskHandler(this.nodeService));
-    }
-
-    @Bean("discoverScaleIoTask")
-    private WorkflowTask discoverScaleIoTask()
-    {
-        return createTask("Discover ScaleIO", new DiscoverScaleIoTaskHandler(this.nodeService));
-    }
-
-    @Bean("discoverVCenterTask")
-    private WorkflowTask discoverVCenterTask()
-    {
-        return createTask("Discover VCenter", new DiscoverVCenterTaskHandler(this.nodeService));
-    }
-
     @Bean("installEsxiTask")
     private WorkflowTask installEsxiTask()
     {
@@ -147,55 +116,55 @@ public class AddNodeService extends BaseService implements IAddNodeService
     @Bean("addHostToVcenterTask")
     private WorkflowTask addHostToVcenterTask()
     {
-        return createTask("Add Host to VCenter", new AddHostToVCenterTaskHandler(this.nodeService));
+        return createTask("Add Host to VCenter", new AddHostToVCenterTaskHandler(this.nodeService, repository));
     }
 
     @Bean("installScaleIoVibTask")
     private WorkflowTask installScaleIoVibTask()
     {
-        return createTask("Install ScaleIO VIB", new InstallScaleIoVibTaskHandler(this.nodeService));
+        return createTask("Install ScaleIO VIB", new InstallScaleIoVibTaskHandler(this.nodeService, repository));
     }
 
     @Bean("configureScaleIoVibTask")
     private WorkflowTask configureScaleIoVibTask()
     {
-        return createTask("Configure ScaleIO VIB", new ConfigureScaleIoVibTaskHandler(this.nodeService));
+        return createTask("Configure ScaleIO VIB", new ConfigureScaleIoVibTaskHandler(this.nodeService, repository));
     }
 
     @Bean("addHostToDvSwitchTask")
     private WorkflowTask addHostToDvSwitchTask()
     {
-        return createTask("Add Host to DV Switch", new AddHostToDvSwitchTaskHandler(this.nodeService));
+        return createTask("Add Host to DV Switch", new AddHostToDvSwitchTaskHandler(this.nodeService, repository));
     }
 
     @Bean("deploySVMTask")
     private WorkflowTask deploySVMTask()
     {
-        return createTask("Deploy ScaleIO VM", new DeployScaleIoVmTaskHandler(this.nodeService));
+        return createTask("Deploy ScaleIO VM", new DeployScaleIoVmTaskHandler(this.nodeService, repository));
     }
 
     @Bean("enablePciPassthroughHostTask")
     private WorkflowTask enablePciPassthroughHostTask()
     {
-        return createTask("Enable PCI pass through", new EnablePciPassthroughTaskHandler(this.nodeService));
+        return createTask("Enable PCI pass through", new EnablePciPassthroughTaskHandler(this.nodeService, repository));
     }
 
     @Bean("rebootHostTask")
     private WorkflowTask rebootHostTask()
     {
-        return createTask("Reboot Host", new RebootHostTaskHandler(this.nodeService));
+        return createTask("Reboot Host", new RebootHostTaskHandler(this.nodeService, repository));
     }
 
     @Bean("setPciPassthroughSioVmTask")
     private WorkflowTask setPciPassthroughSioVmTask()
     {
-        return createTask("Set PCI Pass through ScaleIO VM", new UpdatePciPassthroughTaskHandler(this.nodeService));
+        return createTask("Set PCI Pass through ScaleIO VM", new UpdatePciPassthroughTaskHandler(this.nodeService, repository));
     }
 
     @Bean("applyEsxiLicenseTask")
     private WorkflowTask applyEsxiLicenseTask()
     {
-        return createTask("Apply ESXi License", new ApplyEsxiLicenseTaskHandler(this.nodeService));
+        return createTask("Apply ESXi License", new ApplyEsxiLicenseTaskHandler(this.nodeService, repository));
     }
 
     @Bean("notifyNodeDiscoveryToUpdateStatusTask")

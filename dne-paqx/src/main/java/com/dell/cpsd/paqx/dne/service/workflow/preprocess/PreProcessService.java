@@ -9,6 +9,7 @@ package com.dell.cpsd.paqx.dne.service.workflow.preprocess;
 
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.domain.WorkflowTask;
+import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.BaseService;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.WorkflowService;
@@ -45,6 +46,9 @@ public class PreProcessService extends BaseService implements IPreProcessService
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private DataServiceRepository repository;
 
     @Bean("findDiscoveredNodesTask")
     private WorkflowTask findDiscoveredNodesTask(){
@@ -86,11 +90,39 @@ public class PreProcessService extends BaseService implements IPreProcessService
         return createTask("Assign Default Credentials", new AssignDefaultCredentialsTaskHandler(workflowService));
     }
 
+    @Bean("listScaleIoComponentsTask")
+    private WorkflowTask listScaleIoComponentsTask()
+    {
+        return createTask("List ScaleIO Components", new ListScaleIoComponentsTaskHandler(this.nodeService));
+    }
+
+    @Bean("listVCenterComponentsTask")
+    private WorkflowTask listVCenterComponentsTask()
+    {
+        return createTask("List VCenter Components", new ListVCenterComponentsTaskHandler(this.nodeService));
+    }
+
+    @Bean("discoverScaleIoTask")
+    private WorkflowTask discoverScaleIoTask()
+    {
+        return createTask("Discover ScaleIO", new DiscoverScaleIoTaskHandler(this.nodeService, repository));
+    }
+
+    @Bean("discoverVCenterTask")
+    private WorkflowTask discoverVCenterTask()
+    {
+        return createTask("Discover VCenter", new DiscoverVCenterTaskHandler(this.nodeService, repository));
+    }
+
     @Bean("preProcessWorkflowTasks")
     public Map<String, WorkflowTask> preProcessWorkflowTasks(){
         final Map<String, WorkflowTask> workflowTasks = new HashMap<>();
 
         workflowTasks.put("findAvailableNodes", findDiscoveredNodesTask());
+        workflowTasks.put("listScaleIoComponents", listScaleIoComponentsTask());
+        workflowTasks.put("listVCenterComponents", listVCenterComponentsTask());
+        workflowTasks.put("discoverScaleIo", discoverScaleIoTask());
+        workflowTasks.put("discoverVCenter", discoverVCenterTask());
         workflowTasks.put("configIdrac", configIdracTask());
         workflowTasks.put("configureBootDeviceIdrac", configureBootDeviceIdrac());
         workflowTasks.put("findVCluster", createVClusterTask());

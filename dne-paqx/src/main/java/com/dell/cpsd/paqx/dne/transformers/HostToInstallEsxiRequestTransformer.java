@@ -4,7 +4,6 @@ import com.dell.converged.capabilities.compute.discovered.nodes.api.BootImageNet
 import com.dell.converged.capabilities.compute.discovered.nodes.api.BootImageNetworkAddressV6;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.BootImageNetworkDevice;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.NodeEventDataDiscovered;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.NodeWorkflowSwitchDevice;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
 import com.dell.cpsd.paqx.dne.domain.vcenter.HostDnsConfig;
@@ -12,7 +11,6 @@ import com.dell.cpsd.paqx.dne.domain.vcenter.HostIpRouteConfig;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VirtualNic;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
-import com.dell.cpsd.paqx.dne.service.model.EndpointCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

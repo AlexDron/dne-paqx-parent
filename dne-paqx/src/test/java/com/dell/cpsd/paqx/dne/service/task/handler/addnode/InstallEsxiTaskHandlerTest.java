@@ -69,6 +69,7 @@ public class InstallEsxiTaskHandlerTest
     private String stepName = "installEsxiStep";
     private String nodeId   = "nodeId";
     private String esxiManagementIpAddress = "1.2.3.4";
+    private String esxiManagementHostname  = "vCenter_1_2_3_4";
 
     /**
      * The test setup.
@@ -92,6 +93,7 @@ public class InstallEsxiTaskHandlerTest
         doReturn(this.request).when(this.job).getInputParams();
         doReturn(this.nodeId).when(this.request).getNodeId();
         doReturn(this.esxiManagementIpAddress).when(this.request).getEsxiManagementIpAddress();
+        doReturn(this.esxiManagementHostname).when(this.request).getEsxiManagementHostname();
         doReturn(this.esxiInstallInfo).when(this.transformer).transformInstallEsxiData(anyString(), anyString());
         doReturn(true).when(this.service).requestInstallEsxi(any());
 
@@ -100,6 +102,7 @@ public class InstallEsxiTaskHandlerTest
         verify(this.transformer).transformInstallEsxiData(anyString(), anyString());
         verify(this.service).requestInstallEsxi(any());
         verify(this.response).setWorkFlowTaskStatus(Status.SUCCEEDED);
+        verify(this.response, never()).addError(anyString());
     }
 
     /**
@@ -117,6 +120,7 @@ public class InstallEsxiTaskHandlerTest
         verify(this.transformer, never()).transformInstallEsxiData(anyString(), anyString());
         verify(this.service, never()).requestInstallEsxi(any());
         verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
     }
 
     /**
@@ -135,6 +139,7 @@ public class InstallEsxiTaskHandlerTest
         verify(this.transformer, never()).transformInstallEsxiData(anyString(), anyString());
         verify(this.service, never()).requestInstallEsxi(any());
         verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
     }
 
     /**
@@ -155,6 +160,31 @@ public class InstallEsxiTaskHandlerTest
         verify(this.transformer, never()).transformInstallEsxiData(anyString(), anyString());
         verify(this.service, never()).requestInstallEsxi(any());
         verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
+    }
+
+    /**
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.InstallEsxiTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
+     */
+    @Test
+    public void testExecuteTask_esxi_management_hostname_is_null_it_should_be_auto_generated()
+    {
+        String nullEsxiManagementHostname = null;
+
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.esxiManagementIpAddress).when(this.request).getEsxiManagementIpAddress();
+        doReturn(nullEsxiManagementHostname).when(this.request).getEsxiManagementHostname();
+        doReturn(this.esxiInstallInfo).when(this.transformer).transformInstallEsxiData(anyString(), anyString());
+        doReturn(true).when(this.service).requestInstallEsxi(any());
+
+        assertEquals(true, this.spy.executeTask(this.job));
+        verify(this.response).setHostname(argThat(value -> value.contains("_1_2_3_4")));
+        verify(this.transformer).transformInstallEsxiData(anyString(), anyString());
+        verify(this.service).requestInstallEsxi(any());
+        verify(this.response).setWorkFlowTaskStatus(Status.SUCCEEDED);
+        verify(this.response, never()).addError(anyString());
     }
 
     /**

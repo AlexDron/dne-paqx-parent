@@ -80,6 +80,7 @@ public class NodeExpansionWebApplicationTest
         request = new NodeExpansionRequest();
         request.setEsxiManagementIpAddress("1.1.1.1");
         request.setEsxiManagementGatewayIpAddress("2.2.2.2");
+        request.setEsxiManagementHostname("vCenter_1_2_3_4");
         request.setIdracGatewayIpAddress("3.3.3.3");
         request.setIdracIpAddress("4.4.4.4");
         request.setIdracSubnetMask("5.55.5.5");
@@ -101,6 +102,9 @@ public class NodeExpansionWebApplicationTest
 
         params.setEsxiManagementGatewayIpAddress("1.1.1.1");
         assertNotNull(params.getEsxiManagementGatewayIpAddress());
+
+        params.setEsxiManagementHostname("vCenter_1_2_3_4");
+        assertNotNull(params.getEsxiManagementHostname());
 
         params.setIdracIpAddress("1.1.1.1");
         assertNotNull(params.getIdracIpAddress());

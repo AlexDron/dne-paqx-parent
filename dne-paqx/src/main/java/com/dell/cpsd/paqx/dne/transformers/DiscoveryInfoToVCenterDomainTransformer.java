@@ -331,7 +331,8 @@ public class DiscoveryInfoToVCenterDomainTransformer
             }
         }
 
-        if (hostSystem.getHostHardwareInfo() != null)
+        if (hostSystem.getHostHardwareInfo() != null && hostSystem.getHostHardwareInfo().getHostSystemInfo() != null
+                && hostSystem.getHostHardwareInfo().getHostSystemInfo().getHostSystemIdentificationInfo() != null)
         {
             returnVal.setServiceTag(hostSystem.getHostHardwareInfo().getHostSystemInfo().getHostSystemIdentificationInfo().getServiceTag());
         }

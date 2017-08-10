@@ -4,19 +4,14 @@ import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstalla
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.model.FirstAvailableDiscoveredNodeResponse;
 import com.dell.cpsd.paqx.dne.service.model.InstallEsxiTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
-import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
 import com.dell.cpsd.paqx.dne.service.model.Status;
-import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import com.dell.cpsd.paqx.dne.transformers.HostToInstallEsxiRequestTransformer;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
+import org.springframework.util.StringUtils;
 
 /**
  * TODO: Document Usage
@@ -32,7 +27,7 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoverScaleIoTaskHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstallEsxiTaskHandler.class);
 
     /**
      * The <code>NodeService</code> instance
@@ -64,23 +59,33 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
 
             final String nodeId = inputParams.getNodeId();
 
-            if (nodeId == null)
+            if (StringUtils.isEmpty(nodeId))
             {
                 throw new IllegalStateException("Node Id is null");
             }
 
             final String esxiManagementIpAddress = inputParams.getEsxiManagementIpAddress();
 
-            if (esxiManagementIpAddress == null)
+            if (StringUtils.isEmpty(esxiManagementIpAddress))
             {
                 throw new IllegalStateException("ESXi Management IP Address is null");
             }
 
-            final String hostname = this.generateHostname(esxiManagementIpAddress);
-            response.setHostname(hostname);
+            String esxiManagementHostname = inputParams.getEsxiManagementHostname();
+
+            if (StringUtils.isEmpty(esxiManagementHostname))
+            {
+                LOGGER.warn("ESXi Management hostname is null, will auto generate hostname");
+
+                esxiManagementHostname = this.generateHostname(esxiManagementIpAddress);
+
+                LOGGER.info("Auto generated ESXi Management hostname is " + esxiManagementHostname);
+            }
+
+            response.setHostname(esxiManagementHostname);
 
             final EsxiInstallationInfo esxiInstallationInfo = hostToInstallEsxiRequestTransformer
-                    .transformInstallEsxiData(hostname, nodeId);
+                    .transformInstallEsxiData(esxiManagementHostname, nodeId);
 
             final boolean success = this.nodeService.requestInstallEsxi(esxiInstallationInfo);
 
@@ -90,10 +95,12 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
         }
         catch (Exception e)
         {
-            LOGGER.error("Exception occurred", e);
-            response.setWorkFlowTaskStatus(Status.FAILED);
-            return false;
+            LOGGER.error("Error installing ESXi", e);
+            response.addError(e.toString());
         }
+
+        response.setWorkFlowTaskStatus(Status.FAILED);
+        return false;
     }
 
     @Override

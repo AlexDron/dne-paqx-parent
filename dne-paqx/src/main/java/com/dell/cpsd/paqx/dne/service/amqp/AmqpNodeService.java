@@ -20,6 +20,9 @@ import com.dell.converged.capabilities.compute.discovered.nodes.api.ListNodes;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.NodesListed;
 import com.dell.cpsd.common.logging.ILogger;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
+import com.dell.cpsd.paqx.dne.domain.ComponentDetails;
+import com.dell.cpsd.paqx.dne.domain.CredentialDetails;
+import com.dell.cpsd.paqx.dne.domain.EndpointDetails;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
@@ -27,11 +30,9 @@ import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.amqp.adapter.*;
 import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
 import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
-import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointDetails;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
 import com.dell.cpsd.paqx.dne.service.model.ConfigureBootDeviceIdracRequest;
 import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
-import com.dell.cpsd.paqx.dne.service.model.EndpointCredentials;
 import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
 import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
 import com.dell.cpsd.paqx.dne.transformers.DiscoveryInfoToVCenterDomainTransformer;
@@ -118,10 +119,10 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
      * @param consumer - The <code>DelegatingMessageConsumer</code> instance.
      * @param producer - The <code>DneProducer</code> instance.
      * @param replyTo  - The replyTo queue name.
-     * @param repository
-     * @param discoveryInfoToVCenterDomainTransformer
-     *@param scaleIORestToScaleIODomainTransformer
-     * @param hostToInstallEsxiRequestTransformer @since 1.0
+     * @param repository repository
+     * @param discoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer
+     * @param scaleIORestToScaleIODomainTransformer scaleIORestToScaleIODomainTransformer
+     * @since 1.0
      */
     public AmqpNodeService(ILogger logger, DelegatingMessageConsumer consumer, DneProducer producer, String replyTo,
             final DataServiceRepository repository, final DiscoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer,
@@ -301,7 +302,16 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         messageProperties.setTimestamp(Calendar.getInstance().getTime());
         messageProperties.setReplyTo(replyTo);
 
+        final ComponentEndpointIds componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
         DiscoverClusterRequestInfoMessage request = new DiscoverClusterRequestInfoMessage();
+        if (componentEndpointIds != null)
+        {
+            request.setComponentEndpointIds(
+                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+            request.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        }
+
         request.setMessageProperties(messageProperties);
         ServiceResponse<?> response = processRequest(timeout, new ServiceRequestCallback()
         {
@@ -337,6 +347,15 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         messageProperties.setReplyTo(replyTo);
 
         ValidateVcenterClusterRequestMessage request = new ValidateVcenterClusterRequestMessage();
+
+        final ComponentEndpointIds componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
+        if (componentEndpointIds != null)
+        {
+            request.setComponentEndpointIds(
+                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+        }
+
         request.setMessageProperties(messageProperties);
         request.setDiscoverClusterResponseInfo(new DiscoverClusterResponseInfo(clusterInfoList));
         ServiceResponse<?> response = processRequest(timeout, new ServiceRequestCallback()
@@ -560,9 +579,9 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     }
 
     @Override
-    public List<ComponentEndpointDetails> requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException
+    public boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException
     {
-        final List<ComponentEndpointDetails> componentEndpointDetailsListResponse = new ArrayList<>();
+        final List<ComponentDetails> componentEndpointDetailsListResponse = new ArrayList<>();
 
         try
         {
@@ -596,29 +615,41 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                 {
                     scaleIOComponentDetailsList.stream().filter(Objects::nonNull).forEach(scaleIOComponentDetails -> {
 
-                        final ComponentEndpointDetails componentEndpointDetails = new ComponentEndpointDetails();
+                        final ComponentDetails componentDetails = new ComponentDetails();
 
-                        componentEndpointDetails.setComponentUuid(scaleIOComponentDetails.getComponentUuid());
-                        componentEndpointDetails.setElementType(scaleIOComponentDetails.getElementType());
+                        componentDetails.setComponentUuid(scaleIOComponentDetails.getComponentUuid());
+                        componentDetails.setElementType(scaleIOComponentDetails.getElementType());
+                        componentDetails.setComponentType("SCALEIO");
+                        componentDetails.setIdentifier("SCALEIO");
 
                         final List<ScaleIoEndpointDetails> endpointDetailsList = scaleIOComponentDetails.getEndpoints();
 
                         if (endpointDetailsList != null)
                         {
                             endpointDetailsList.stream().filter(Objects::nonNull).forEach(scaleIoEndpointDetails -> {
-                                final EndpointCredentials endpointCredentials = new EndpointCredentials();
-                                endpointCredentials.setEndpointUrl(scaleIoEndpointDetails.getEndpointUrl());
-                                endpointCredentials.setEndpointUuid(scaleIoEndpointDetails.getEndpointUuid());
-                                endpointCredentials.setCredentialUuids(scaleIoEndpointDetails.getCredentialUuids());
-                                componentEndpointDetails.getEndpointCredentials().add(endpointCredentials);
+                                final EndpointDetails endpointDetails = new EndpointDetails();
+                                endpointDetails.setEndpointUrl(scaleIoEndpointDetails.getEndpointUrl());
+                                endpointDetails.setEndpointUuid(scaleIoEndpointDetails.getEndpointUuid());
+                                endpointDetails.setIdentifier("SCALEIO");
+                                endpointDetails.setType("SCALEIO");
+                                final List<String> credentialUuids = scaleIoEndpointDetails.getCredentialUuids();
+                                credentialUuids.forEach(credential -> {
+                                    final CredentialDetails credentialDetails = new CredentialDetails();
+                                    credentialDetails.setCredentialName("DEFAULT");
+                                    credentialDetails.setCredentialUuid(credential);
+                                    credentialDetails.setEndpointDetails(endpointDetails);
+                                    endpointDetails.getCredentialDetailsList().add(credentialDetails);
+                                });
+                                endpointDetails.setComponentDetails(componentDetails);
+                                componentDetails.getEndpointDetails().add(endpointDetails);
                             });
                         }
 
-                        componentEndpointDetailsListResponse.add(componentEndpointDetails);
+                        componentEndpointDetailsListResponse.add(componentDetails);
 
                     });
 
-                    repository.saveScaleIoComponentDetails(componentEndpointDetailsListResponse);
+                    return repository.saveScaleIoComponentDetails(componentEndpointDetailsListResponse);
                 }
             }
             else
@@ -632,13 +663,13 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return componentEndpointDetailsListResponse;
+        return false;
     }
 
     @Override
-    public List<ComponentEndpointDetails> requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException
+    public boolean requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException
     {
-        final List<ComponentEndpointDetails> componentEndpointDetailsListResponse = new ArrayList<>();
+        final List<ComponentDetails> componentEndpointDetailsListResponse = new ArrayList<>();
 
         try
         {
@@ -672,30 +703,43 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                 {
                     vCenterComponentDetailsList.stream().filter(Objects::nonNull).forEach(vcenterComponentDetails -> {
 
-                        final ComponentEndpointDetails componentEndpointDetails = new ComponentEndpointDetails();
+                        final ComponentDetails componentDetails = new ComponentDetails();
 
-                        componentEndpointDetails.setComponentUuid(vcenterComponentDetails.getComponentUuid());
-                        componentEndpointDetails.setElementType(vcenterComponentDetails.getElementType());
+                        componentDetails.setComponentUuid(vcenterComponentDetails.getComponentUuid());
+                        componentDetails.setElementType(vcenterComponentDetails.getElementType());
+                        componentDetails.setComponentType("VCENTER");
+                        componentDetails.setIdentifier(vcenterComponentDetails.getIdentifier());
 
                         final List<VCenterEndpointDetails> endpointDetailsList = vcenterComponentDetails.getEndpoints();
 
                         if (endpointDetailsList != null)
                         {
-                            endpointDetailsList.stream().filter(Objects::nonNull).forEach(vcenterEndpointDetails -> {
-                                final EndpointCredentials endpointCredentials = new EndpointCredentials();
-                                endpointCredentials.setEndpointUrl(vcenterEndpointDetails.getEndpointUrl());
-                                endpointCredentials.setEndpointUuid(vcenterEndpointDetails.getEndpointUuid());
-                                endpointCredentials.setCredentialUuids(vcenterEndpointDetails.getCredentialUuids());
-                                componentEndpointDetails.getEndpointCredentials().add(endpointCredentials);
+                            endpointDetailsList.stream().filter(Objects::nonNull).forEach(vCenterEndpointDetails -> {
+                                final EndpointDetails endpointDetails = new EndpointDetails();
+                                endpointDetails.setEndpointUrl(vCenterEndpointDetails.getEndpointUrl());
+                                endpointDetails.setEndpointUuid(vCenterEndpointDetails.getEndpointUuid());
+                                endpointDetails.setIdentifier(vCenterEndpointDetails.getIdentifier());
+                                endpointDetails.setType(vCenterEndpointDetails.getType());
+                                final List<VCenterCredentialDetails> credentialDetailsList = vCenterEndpointDetails.getCredentialDetails();
+                                credentialDetailsList.stream().filter(Objects::nonNull).forEach(credential -> {
+                                    final CredentialDetails credentialDetails = new CredentialDetails();
+                                    credentialDetails.setCredentialName(credential.getCredentialName());
+                                    credentialDetails.setCredentialUuid(credential.getCredentialUuid());
+                                    credentialDetails.setEndpointDetails(endpointDetails);
+                                    endpointDetails.getCredentialDetailsList().add(credentialDetails);
+                                });
+                                endpointDetails.setComponentDetails(componentDetails);
+                                componentDetails.getEndpointDetails().add(endpointDetails);
                             });
                         }
 
-                        componentEndpointDetailsListResponse.add(componentEndpointDetails);
+                        componentEndpointDetailsListResponse.add(componentDetails);
 
                     });
 
 
-                    repository.saveVCenterComponentDetails(componentEndpointDetailsListResponse);
+
+                    return repository.saveVCenterComponentDetails(componentEndpointDetailsListResponse);
                 }
             }
             else
@@ -709,7 +753,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
-        return componentEndpointDetailsListResponse;
+        return false;
     }
 
     @Override
@@ -722,7 +766,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             final String correlationId = UUID.randomUUID().toString();
             requestMessage.setMessageProperties(
                     new com.dell.cpsd.storage.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
-            requestMessage.setEndpointURL(componentEndpointIds.getEndpointUrl());
+            requestMessage.setEndpointURL("https://" +componentEndpointIds.getEndpointUrl());
             requestMessage.setComponentUuid(componentEndpointIds.getComponentUuid());
             requestMessage.setEndpointUuid(componentEndpointIds.getEndpointUuid());
             requestMessage.setCredentialUuid(componentEndpointIds.getCredentialUuid());
@@ -749,12 +793,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                 final ScaleIOData scaleIOData = scaleIORestToScaleIODomainTransformer
                         .transform(responseMessage.getScaleIOSystemDataRestRep());
 
-                if (scaleIOData == null)
-                {
-                    return false;
-                }
-
-                return repository.saveScaleIoData(jobId, scaleIOData);
+                return scaleIOData != null && repository.saveScaleIoData(jobId, scaleIOData);
             }
             else
             {
@@ -779,7 +818,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             final String correlationId = UUID.randomUUID().toString();
             requestMessage.setMessageProperties(
                     new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+            requestMessage.setCredentials(new Credentials("https://" + componentEndpointIds.getEndpointUrl(), null, null));
             requestMessage.setComponentEndpointIds(
                     new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
                             componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
@@ -803,15 +842,9 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
             if (responseMessage != null && responseMessage.getMessageProperties() != null)
             {
-                final VCenter vCenterData = discoveryInfoToVCenterDomainTransformer
-                        .transform(responseMessage);
+                final VCenter vCenterData = discoveryInfoToVCenterDomainTransformer.transform(responseMessage);
 
-                if (vCenterData == null)
-                {
-                    return false;
-                }
-
-                return repository.saveVCenterData(jobId, vCenterData);
+                return vCenterData != null && repository.saveVCenterData(jobId, vCenterData);
             }
             else
             {
@@ -868,6 +901,392 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             LOGGER.error("Exception occurred", e);
         }
 
+        return false;
+    }
+
+    @Override
+    public boolean requestAddHostToVCenter(final ClusterOperationRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishAddHostToVCenter(requestMessage);
+                }
+            });
+
+            ClusterOperationResponseMessage responseMessage = processResponse(callbackResponse,
+                    ClusterOperationResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(ClusterOperationResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestInstallSoftwareVib(final SoftwareVIBRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishInstallScaleIoVib(requestMessage);
+                }
+            });
+
+            SoftwareVIBResponseMessage responseMessage = processResponse(callbackResponse,
+                    SoftwareVIBResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(SoftwareVIBResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestConfigureScaleIoVib(final SoftwareVIBConfigureRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            LOGGER.info("Setting Request Call Back for Software Vib Configure");
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishConfigureScaleIoVib(requestMessage);
+                }
+            });
+
+            SoftwareVIBResponseMessage responseMessage = processResponse(callbackResponse,
+                    SoftwareVIBResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(SoftwareVIBResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestAddHostToDvSwitch(final AddHostToDvSwitchRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishAddHostToDvSwitch(requestMessage);
+                }
+            });
+
+            AddHostToDvSwitchResponseMessage responseMessage = processResponse(callbackResponse,
+                    AddHostToDvSwitchResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(AddHostToDvSwitchResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestDeployScaleIoVm(final DeployVMFromTemplateRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishDeployVmFromTemplate(requestMessage);
+                }
+            });
+
+            DeployVMFromTemplateResponseMessage responseMessage = processResponse(callbackResponse,
+                    DeployVMFromTemplateResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(DeployVMFromTemplateResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestEnablePciPassThrough(final EnablePCIPassthroughRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishEnablePciPassthrough(requestMessage);
+                }
+            });
+
+            EnablePCIPassthroughResponseMessage responseMessage = processResponse(callbackResponse,
+                    EnablePCIPassthroughResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(EnablePCIPassthroughResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestHostReboot(final HostPowerOperationRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishRebootHost(requestMessage);
+                }
+            });
+
+            HostPowerOperationResponseMessage responseMessage = processResponse(callbackResponse, HostPowerOperationResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(HostPowerOperationResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestSetPciPassThrough(final UpdatePCIPassthruSVMRequestMessage requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishSetPciPassthrough(requestMessage);
+                }
+            });
+
+            UpdatePCIPassthruSVMResponseMessage responseMessage = processResponse(callbackResponse, UpdatePCIPassthruSVMResponseMessage.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(UpdatePCIPassthruSVMResponseMessage.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestInstallEsxiLicense(final AddEsxiHostVSphereLicenseRequest requestMessage)
+    {
+        try
+        {
+            final String correlationId = UUID.randomUUID().toString();
+            requestMessage.setMessageProperties(
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
+
+            ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return correlationId;
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishApplyEsxiLicense(requestMessage);
+                }
+            });
+
+            AddEsxiHostVSphereLicenseResponse responseMessage = processResponse(callbackResponse, AddEsxiHostVSphereLicenseResponse.class);
+
+            if (responseMessage != null && responseMessage.getMessageProperties() != null)
+            {
+                return responseMessage.getStatus().equals(AddEsxiHostVSphereLicenseResponse.Status.SUCCESS);
+            }
+            else
+            {
+                LOGGER.error("Response message is null");
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+        }
         return false;
     }
 }

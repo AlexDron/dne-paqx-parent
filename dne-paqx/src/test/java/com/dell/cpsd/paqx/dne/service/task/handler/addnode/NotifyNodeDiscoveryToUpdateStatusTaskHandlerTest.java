@@ -6,31 +6,28 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Map;
-
-import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.paqx.dne.domain.Job;
+import com.dell.cpsd.paqx.dne.domain.WorkflowTask;
+import com.dell.cpsd.paqx.dne.service.NodeService;
+import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
+import com.dell.cpsd.paqx.dne.service.model.Status;
+import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
+import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
+import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.dell.cpsd.paqx.dne.domain.Job;
-import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
-import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.WorkflowService;
-import com.dell.cpsd.paqx.dne.service.WorkflowServiceImpl;
-import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeService;
-import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeTaskConfig;
-import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
-import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * The tests for the NotifyNodeDiscoveryToUpdateStatusTaskHandler.
@@ -43,17 +40,27 @@ import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 @RunWith(MockitoJUnitRunner.class)
 public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
 {
-
-    /*
-     * The <code>NodeService</code> instance.
-     */
     @Mock
-    private NodeService nodeService = null;
+    private WorkflowTask task;
 
-    /*
-     * The job running the notify node discovery service node allocation complete task handler.
-     */
-    private Job         job         = null;
+    @Mock
+    private NodeService  service;
+
+    @Mock
+    private Job job;
+
+    @Mock
+    private TaskResponse response;
+
+    @Mock
+    private NodeExpansionRequest request;
+
+    private NotifyNodeDiscoveryToUpdateStatusTaskHandler handler;
+    private NotifyNodeDiscoveryToUpdateStatusTaskHandler spy;
+
+    private String taskName = "notifyNodeDiscoveryToUpdateStatusTask";
+    private String stepName = "notifyNodeDiscoveryToUpdateStatusStep";
+    private String symphonyUuid = "symphonyUuid";
 
     /**
      * The test setup.
@@ -63,28 +70,12 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
     @Before
     public void setUp()
     {
-        AddNodeTaskConfig addNodeConfig = new AddNodeTaskConfig();
-        WorkflowService workflowService = new WorkflowServiceImpl(new InMemoryJobRepository(), addNodeConfig.addNodeWorkflowSteps());
-
-        AddNodeService addNodeService = new AddNodeService();
-        addNodeService.setWorkflowService(workflowService);
-
-        this.job = addNodeService.createWorkflow("addNode", "startAddNodeWorkflow", "submitted");
-
-//        FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();
-//        response.setNodeInfo(new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED));
-//        this.job.addTaskResponse("findAvailableNodes", response);
-
-        NodeExpansionRequest request = new NodeExpansionRequest();
-        request.setNodeId("node-1234");
-        request.setSymphonyUuid("symphony-1234");
-        this.job.setInputParams(request);
-
-        this.job.changeToNextStep("notifyNodeDiscoveryToUpdateStatus");
+        this.handler = new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.service);
+        this.spy = spy(this.handler);
     }
 
     /**
-     * Test successful execution of NotifyNodeDiscoveryToUpdateStatusTaskHandler.executeTask() method
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.NotifyNodeDiscoveryToUpdateStatusTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      * 
      * @throws ServiceExecutionException
      * @throws ServiceTimeoutException
@@ -94,42 +85,19 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
     @Test
     public void testExecuteTask_successful_case() throws ServiceTimeoutException, ServiceExecutionException
     {
-        ArgumentCaptor<String> elementIdentifierCaptor = ArgumentCaptor.forClass(String.class);
-        when(this.nodeService.notifyNodeAllocationComplete(elementIdentifierCaptor.capture())).thenReturn(true);
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
+        doReturn(true).when(this.service).notifyNodeAllocationComplete(anyString());
 
-        NotifyNodeDiscoveryToUpdateStatusTaskHandler instance = new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.nodeService);
-        boolean expectedResult = true;
-        boolean actualResult = instance.executeTask(this.job);
-
-        assertEquals(expectedResult, actualResult);
-        verify(this.nodeService, times(1)).notifyNodeAllocationComplete(elementIdentifierCaptor.capture());
+        assertEquals(true, this.spy.executeTask(this.job));
+        verify(this.service).notifyNodeAllocationComplete(any());
+        verify(this.response).setWorkFlowTaskStatus(Status.SUCCEEDED);
+        verify(this.response, never()).addError(anyString());
     }
 
     /**
-     * Test error execution of NotifyNodeDiscoveryToUpdateStatusTaskHandler.executeTask() method - test error case where no 
-     * findAvailableNodes task response was set.
-     * 
-     * @throws ServiceExecutionException
-     * @throws ServiceTimeoutException
-     * 
-     * @since 1.0
-     */
-    @Test
-    public void testExecuteTask_no_find_nodes_response() throws ServiceTimeoutException, ServiceExecutionException
-    {
-        this.job.getInputParams().setSymphonyUuid(null);
-
-        NotifyNodeDiscoveryToUpdateStatusTaskHandler instance = new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.nodeService);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
-
-        assertEquals(expectedResult, actualResult);
-        verify(this.nodeService, times(0)).notifyNodeAllocationComplete(any());
-    }
-
-    /**
-     * Test error execution of NotifyNodeDiscoveryToUpdateStatusTaskHandler.executeTask() method - test error case where no discovered node
-     * instance is present.
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.NotifyNodeDiscoveryToUpdateStatusTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      * 
      * @throws ServiceExecutionException
      * @throws ServiceTimeoutException
@@ -139,19 +107,42 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
     @Test
     public void testExecuteTask_no_input_params() throws ServiceTimeoutException, ServiceExecutionException
     {
-        this.job.setInputParams(null);
+        NodeExpansionRequest nullRequest = null;
 
-        NotifyNodeDiscoveryToUpdateStatusTaskHandler instance = new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.nodeService);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(nullRequest).when(this.job).getInputParams();
 
-        assertEquals(expectedResult, actualResult);
-        verify(this.nodeService, times(0)).notifyNodeAllocationComplete(any());
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.service, never()).notifyNodeAllocationComplete(any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
     }
 
     /**
-     * Test error execution of NotifyNodeDiscoveryToUpdateStatusTaskHandler.executeTask() method - test error case where the node 
-     * discovery service encounters a problem during the node allocation completion request.
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.NotifyNodeDiscoveryToUpdateStatusTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
+     *
+     * @throws ServiceExecutionException
+     * @throws ServiceTimeoutException
+     *
+     * @since 1.0
+     */
+    @Test
+    public void testExecuteTask_no_symphonyuuid() throws ServiceTimeoutException, ServiceExecutionException
+    {
+        String emptySymphonyUuid = null;
+
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(emptySymphonyUuid).when(this.request).getSymphonyUuid();
+
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.service, never()).notifyNodeAllocationComplete(any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
+    }
+
+    /**
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.NotifyNodeDiscoveryToUpdateStatusTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      * 
      * @throws ServiceExecutionException
      * @throws ServiceTimeoutException
@@ -161,13 +152,30 @@ public class NotifyNodeDiscoveryToUpdateStatusTaskHandlerTest
     @Test
     public void testExecuteTask_node_discovery_service_error() throws ServiceTimeoutException, ServiceExecutionException
     {
-        when(this.nodeService.notifyNodeAllocationComplete(any())).thenReturn(false);
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
+        doReturn(false).when(this.service).notifyNodeAllocationComplete(anyString());
 
-        NotifyNodeDiscoveryToUpdateStatusTaskHandler instance = new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.nodeService);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.service).notifyNodeAllocationComplete(any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
+    }
 
-        assertEquals(expectedResult, actualResult);
-        verify(this.nodeService, times(1)).notifyNodeAllocationComplete(any());
+    /**
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.NotifyNodeDiscoveryToUpdateStatusTaskHandler#initializeResponse(com.dell.cpsd.paqx.dne.domain.Job)}.
+     */
+    @Test
+    public void testInitializeResponse()
+    {
+        doReturn(this.task).when(this.job).getCurrentTask();
+        doReturn(this.taskName).when(this.task).getTaskName();
+        doReturn(this.stepName).when(this.job).getStep();
+
+        TaskResponse response = this.handler.initializeResponse(this.job);
+        assertNotNull(response);
+        assertEquals(this.taskName, response.getWorkFlowTaskName());
+        assertEquals(Status.IN_PROGRESS, response.getWorkFlowTaskStatus());
     }
 }

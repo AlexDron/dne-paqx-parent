@@ -6,44 +6,11 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import com.dell.cpsd.service.system.definition.api.Identity;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import com.dell.cpsd.paqx.dne.domain.Job;
-import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
-import com.dell.cpsd.paqx.dne.service.WorkflowService;
-import com.dell.cpsd.paqx.dne.service.WorkflowServiceImpl;
-import com.dell.cpsd.paqx.dne.service.model.FirstAvailableDiscoveredNodeResponse;
+import com.dell.cpsd.paqx.dne.domain.WorkflowTask;
 import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
-import com.dell.cpsd.paqx.dne.service.model.NodeInfo;
-import com.dell.cpsd.paqx.dne.service.model.NodeStatus;
+import com.dell.cpsd.paqx.dne.service.model.Status;
 import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
-import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeService;
-import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeTaskConfig;
 import com.dell.cpsd.sdk.AMQPClient;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
@@ -51,6 +18,27 @@ import com.dell.cpsd.service.system.definition.api.Component;
 import com.dell.cpsd.service.system.definition.api.ComponentsFilter;
 import com.dell.cpsd.service.system.definition.api.ConvergedSystem;
 import com.dell.cpsd.service.system.definition.api.Group;
+import com.dell.cpsd.service.system.definition.api.Identity;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * The tests for the AddNodeToSystemDefinitionTaskHandler class.
@@ -63,17 +51,44 @@ import com.dell.cpsd.service.system.definition.api.Group;
 @RunWith(MockitoJUnitRunner.class)
 public class AddNodeToSystemDefinitionTaskHandlerTest
 {
-
-    /*
-     * The AMQPClient instance
-     */
     @Mock
-    private AMQPClient client = null;
+    private AMQPClient client;
 
-    /*
-     * The job running the add node to system definition task handler
-     */
-    private Job job = null;
+    @Mock
+    private WorkflowTask task;
+
+    @Mock
+    private Job job;
+
+    @Mock
+    private TaskResponse response;
+
+    @Mock
+    private NodeExpansionRequest request;
+
+    @Mock
+    private ConvergedSystem system;
+
+    @Mock
+    private Component component;
+
+    @Mock
+    private Group group;
+
+    @Mock
+    private Identity identity;
+
+    private String taskName = "addNodeTosystemDefinitionTask";
+    private String stepName = "addNodeTosystemDefinitionStep";
+    private String nodeId       = "nodeId";
+    private String symphonyUuid = "symphonyUuid";
+
+    private AddNodeToSystemDefinitionTaskHandler handler;
+    private AddNodeToSystemDefinitionTaskHandler spy;
+
+    private List<ConvergedSystem> systems;
+    private List<Component> components;
+    private List<Group> groups;
 
     /**
      * The test setup.
@@ -83,220 +98,188 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
     @Before
     public void setUp()
     {
-        AddNodeTaskConfig addNodeConfig = new AddNodeTaskConfig();
-        WorkflowService workflowService = new WorkflowServiceImpl(new InMemoryJobRepository(), addNodeConfig.addNodeWorkflowSteps());
+        this.handler = new AddNodeToSystemDefinitionTaskHandler(this.client);
+        this.spy = spy(this.handler);
 
-        AddNodeService addNodeService = new AddNodeService();
-        addNodeService.setWorkflowService(workflowService);
+        this.systems = new ArrayList<>();
+        this.systems.add(this.system);
 
-        this.job = addNodeService.createWorkflow("addNode", "startAddNodeWorkflow", "submitted");
-        this.job.setInputParams(
-                new NodeExpansionRequest("idracIpAddress", "idracGatewayIpAddress", "idracSubnetMask", "managementIpAddress",
-                        "esxiKernelIpAddress1", "esxiKernelIpAddress2", "scaleIOSVMDataIpAddress1", "scaleIOSVMDataIpAddress2",
-                        "scaleIOSVMManagementIpAddress", "nodeId", "symphonyUuid", "clausterName"));
+        this.components = new ArrayList<>();
+        this.component.setIdentity(new Identity());
+        this.components.add(this.component);
 
-        NodeExpansionRequest request = new NodeExpansionRequest();
-        request.setNodeId("nodeId-1234");
-        request.setSymphonyUuid("symphonyUuid");
-        this.job.setInputParams(request);
-
-        this.job.changeToNextStep("updateSystemDefinition");
+        this.groups = new ArrayList<>();
+        this.groups.add(this.group);
     }
 
     /**
-     * Test successful execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method
-     *
-     * @since 1.0
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      */
     @Test
     public void testExecuteTask_successful_case()
     {
-        ConvergedSystem system = mock(ConvergedSystem.class);
-        Component component = mock(Component.class);
-        Group group = mock(Group.class);
-        Identity identity = mock(Identity.class);
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
+        doReturn(this.systems).when(this.client).getConvergedSystems();
+        doReturn(this.systems).when(this.client).getComponents(any(ComponentsFilter.class));
+        doReturn(this.groups).when(this.system).getGroups();
+        doNothing().when(this.client).addComponent(any(ConvergedSystem.class), any(Component.class), anyList(), anyString());
+        doReturn(this.components).when(this.system).getComponents();
+        doReturn(this.identity).when(this.component).getIdentity();
+        doReturn(this.symphonyUuid).when(this.identity).getIdentifier();
 
-        List<ConvergedSystem> systems = new ArrayList<>();
-        systems.add(system);
-
-        List<Component> components = new ArrayList<>();
-        component.setIdentity(new Identity());
-        components.add(component);
-
-        List<Group> groups = new ArrayList<>();
-        groups.add(group);
-
-        doReturn(systems).when(this.client).getConvergedSystems();
-        doReturn(systems).when(this.client).getComponents(any(ComponentsFilter.class));
-        doReturn(groups).when(system).getGroups();
-        doNothing().when(client).addComponent(any(ConvergedSystem.class), any(Component.class), anyList(), anyString());
-        doReturn(components).when(system).getComponents();
-        doReturn(identity).when(component).getIdentity();
-        doReturn("symphonyUuid").when(identity).getIdentifier();
-
-        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
-        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
-        boolean expectedResult = true;
-        boolean actualResult = instance.executeTask(this.job);
-
-        assertEquals(expectedResult, actualResult);
-        verify(this.client, times(1)).addComponent(csCaptor.capture(), any(), any(), any());
+        assertEquals(true, this.spy.executeTask(this.job));
+        verify(this.client).addComponent(any(), any(), any(), any());
+        verify(this.response).setWorkFlowTaskStatus(Status.SUCCEEDED);
+        verify(this.response, never()).addError(anyString());
     }
 
     /**
-     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no findAvailableNodes task
-     * response was set.
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      *
      * @throws ServiceExecutionException
      * @throws ServiceTimeoutException
      * @since 1.0
      */
     @Test
-    public void testExecuteTask_no_find_nodes_response() throws ServiceTimeoutException, ServiceExecutionException
+    public void testExecuteTask_node_expansion_request_is_null() throws ServiceTimeoutException, ServiceExecutionException
     {
-        this.job.getInputParams().setSymphonyUuid(null);
+        NodeExpansionRequest nullRequest = null;
 
-        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
-        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(nullRequest).when(this.job).getInputParams();
 
-        assertEquals(expectedResult, actualResult);
-        verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.client, never()).addComponent(any(), any(), any(), any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
     }
 
     /**
-     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no discovered node instance
-     * is present.
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      *
      * @since 1.0
      */
     @Test
-    public void testExecuteTask_no_discovered_node()
+    public void testExecuteTask_no_discovered_node_because_symphonyuuid_is_empty()
     {
-        this.job.getInputParams().setNodeId(null);
+        String emptySymphonyUuid = null;
 
-        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
-        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(emptySymphonyUuid).when(this.request).getSymphonyUuid();
 
-        assertEquals(expectedResult, actualResult);
-        verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.client, never()).addComponent(any(), any(), any(), any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
     }
 
     /**
-     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no converged systems are
-     * present.
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
+     *
+     * @since 1.0
+     */
+    @Test
+    public void testExecuteTask_no_discovered_node_because_nodeId_is_empty()
+    {
+        String emptyNodeId = null;
+
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
+        doReturn(emptyNodeId).when(this.request).getNodeId();
+
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.client, never()).addComponent(any(), any(), any(), any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
+    }
+
+    /**
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      *
      * @since 1.0
      */
     @Test
     public void testExecuteTask_no_converged_systems()
     {
-        when(this.client.getConvergedSystems()).thenReturn(Collections.emptyList());
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
+        doReturn(Collections.emptyList()).when(this.client).getConvergedSystems();
 
-        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
-        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
-
-        assertEquals(expectedResult, actualResult);
-        verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.client, never()).addComponent(any(), any(), any(), any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
     }
 
     /**
-     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no converged system
-     * instance is present.
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      *
      * @since 1.0
      */
     @Test
     public void testExecuteTask_no_converged_system()
     {
-        when(this.client.getConvergedSystems()).thenReturn(new ArrayList<>());
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
+        doReturn(this.systems).when(this.client).getConvergedSystems();
+        doReturn(Collections.emptyList()).when(this.client).getComponents(any(ComponentsFilter.class));
 
-        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
-        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
-
-        assertEquals(expectedResult, actualResult);
-        verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.client, never()).addComponent(any(), any(), any(), any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
     }
 
     /**
-     * Test execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test case where a node that already exists in the
-     * system definition is attempted to be added again.
-     *
-     * @since 1.0
-     */
-    @Test
-    public void testExecuteTask_no_duplicate_nodes()
-    {
-        ConvergedSystem cs = new ConvergedSystem();
-        cs.setUuid(UUID.randomUUID().toString());
-
-        NodeInfo nodeInfo = new NodeInfo(job.getInputParams().getSymphonyUuid(), job.getInputParams().getNodeId(), NodeStatus.DISCOVERED);
-        Component node = new Component();
-        node.setIdentity(nodeInfo.getIdentity());
-
-        ConvergedSystem system = new ConvergedSystem();
-        system.setUuid(UUID.randomUUID().toString());
-        system.getComponents().add(node);
-
-        ComponentsFilter filter = new ComponentsFilter();
-        filter.setSystemUuid(cs.getUuid());
-
-        when(this.client.getConvergedSystems()).thenReturn(Arrays.asList(cs));
-        when(this.client.getComponents(filter)).thenReturn(Arrays.asList(system));
-
-        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
-        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
-        boolean expectedResult = true;
-        boolean actualResult = instance.executeTask(this.job);
-
-        assertEquals(expectedResult, actualResult);
-        verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
-        assertEquals(1, system.getComponents().size());// Components list should be unaltered...
-    }
-
-    /**
-     * Test successful execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#executeTask(com.dell.cpsd.paqx.dne.domain.Job)}.
      *
      * @since 1.0
      */
     @Test
     public void testExecuteTask_node_not_added_to_system_definition()
     {
-        ConvergedSystem system = mock(ConvergedSystem.class);
-        Component component = mock(Component.class);
-        Group group = mock(Group.class);
-        Identity identity = mock(Identity.class);
+        String identifier = "identifier-1";
 
-        List<ConvergedSystem> systems = new ArrayList<>();
-        systems.add(system);
+        doReturn(this.response).when(this.spy).initializeResponse(this.job);
+        doReturn(this.request).when(this.job).getInputParams();
+        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
+        doReturn(this.systems).when(this.client).getConvergedSystems();
+        doReturn(this.systems).when(this.client).getComponents(any(ComponentsFilter.class));
+        doReturn(this.groups).when(this.system).getGroups();
+        doNothing().when(this.client).addComponent(any(ConvergedSystem.class), any(Component.class), anyList(), anyString());
+        doReturn(this.components).when(this.system).getComponents();
+        doReturn(this.identity).when(this.component).getIdentity();
+        doReturn(identifier).when(this.identity).getIdentifier();
 
-        List<Component> components = new ArrayList<>();
-        components.add(component);
+        assertEquals(false, this.spy.executeTask(this.job));
+        verify(this.client).addComponent(any(), any(), any(), any());
+        verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
+        verify(this.response).addError(anyString());
+    }
 
-        List<Group> groups = new ArrayList<>();
-        groups.add(group);
+    /**
+     * {@link com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddNodeToSystemDefinitionTaskHandler#initializeResponse(com.dell.cpsd.paqx.dne.domain.Job)}.
+     */
+    @Test
+    public void testInitializeResponse()
+    {
+        doReturn(this.task).when(this.job).getCurrentTask();
+        doReturn(this.taskName).when(this.task).getTaskName();
+        doReturn(this.stepName).when(this.job).getStep();
 
-        doReturn(systems).when(this.client).getConvergedSystems();
-        doReturn(systems).when(this.client).getComponents(any(ComponentsFilter.class));
-        doReturn(groups).when(system).getGroups();
-        doNothing().when(client).addComponent(any(ConvergedSystem.class), any(Component.class), anyList(), anyString());
-        doReturn(components).when(system).getComponents();
-        doReturn(identity).when(component).getIdentity();
-        doReturn("identifier-1").when(identity).getIdentifier();
-
-        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
-        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
-        boolean expectedResult = false;
-        boolean actualResult = instance.executeTask(this.job);
-
-        assertEquals(expectedResult, actualResult);
-        verify(this.client, times(1)).addComponent(csCaptor.capture(), any(), any(), any());
+        TaskResponse response = this.handler.initializeResponse(this.job);
+        assertNotNull(response);
+        assertEquals(this.taskName, response.getWorkFlowTaskName());
+        assertEquals(Status.IN_PROGRESS, response.getWorkFlowTaskStatus());
     }
 }

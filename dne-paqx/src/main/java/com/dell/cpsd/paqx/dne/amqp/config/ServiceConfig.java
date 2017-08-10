@@ -63,7 +63,6 @@ import com.google.common.base.Splitter;
     SDKConfiguration.class,
     SystemDefinitionMessenger.class, 
     AMQPClient.class,
-    PersistencePropertiesConfig.class,
     PersistenceConfig.class,
     DiscoveryInfoToVCenterDomainTransformer.class,
     ScaleIORestToScaleIODomainTransformer.class,
