@@ -41,7 +41,7 @@ public class ComponentDetails
     @Column(name = "IDENTIFIER", nullable = false)
     private String identifier;
 
-    @Column(name = "COMPONENT_UUID", nullable = false)
+    @Column(name = "COMPONENT_UUID", unique = true, nullable = false)
     private String componentUuid;
 
     @LazyCollection(LazyCollectionOption.FALSE)

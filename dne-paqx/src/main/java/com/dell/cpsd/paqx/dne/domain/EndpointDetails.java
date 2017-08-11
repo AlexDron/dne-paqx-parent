@@ -40,7 +40,7 @@ public class EndpointDetails
     @Column(name = "IDENTIFIER", nullable = false)
     private String identifier;
 
-    @Column(name = "ENDPOINT_UUID", nullable = false)
+    @Column(name = "ENDPOINT_UUID", unique = true, nullable = false)
     private String endpointUuid;
 
     @Column(name = "ENDPOINT_URL", nullable = false)

@@ -18,6 +18,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * TODO: Document Usage
@@ -49,7 +50,33 @@ public class H2DataRepository implements DataServiceRepository
 
         try
         {
-            componentEndpointDetailsList.forEach(entityManager::persist);
+            componentEndpointDetailsList.stream().filter(Objects::nonNull).forEach(componentDetails -> {
+                String componentUuid = componentDetails.getComponentUuid();
+
+                try
+                {
+                    TypedQuery<ComponentDetails> componentDetailsTypedQuery = entityManager
+                            .createQuery("select c from ComponentDetails as c where c.componentUuid =:componentUuid",
+                                    ComponentDetails.class);
+                    componentDetailsTypedQuery.setParameter("componentUuid", componentUuid);
+
+                    final List<ComponentDetails> existingComponentList = componentDetailsTypedQuery.getResultList();
+                    if (existingComponentList != null && !existingComponentList.isEmpty())
+                    {
+                        entityManager.merge(existingComponentList.get(0));
+                        entityManager.flush();
+                    }
+                    else
+                    {
+                        entityManager.persist(componentDetails);
+                    }
+                }
+                catch (Exception e)
+                {
+                    LOG.error("Exception occurred [{}]", e);
+                }
+            });
+
             return true;
         }
         catch (Exception e)
@@ -73,7 +100,33 @@ public class H2DataRepository implements DataServiceRepository
 
         try
         {
-            componentEndpointDetailsList.forEach(entityManager::persist);
+            componentEndpointDetailsList.stream().filter(Objects::nonNull).forEach(componentDetails -> {
+                String componentUuid = componentDetails.getComponentUuid();
+
+                try
+                {
+                    TypedQuery<ComponentDetails> componentDetailsTypedQuery = entityManager
+                            .createQuery("select c from ComponentDetails as c where c.componentUuid =:componentUuid",
+                                    ComponentDetails.class);
+                    componentDetailsTypedQuery.setParameter("componentUuid", componentUuid);
+
+                    final List<ComponentDetails> existingComponentList = componentDetailsTypedQuery.getResultList();
+                    if (existingComponentList != null && !existingComponentList.isEmpty())
+                    {
+                        entityManager.merge(existingComponentList.get(0));
+                        entityManager.flush();
+                    }
+                    else
+                    {
+                        entityManager.persist(componentDetails);
+                    }
+                }
+                catch (Exception e)
+                {
+                    LOG.error("Exception occurred while persisting vcenter component details[{}]", e);
+                }
+            });
+
             return true;
         }
         catch (Exception e)
@@ -145,9 +198,9 @@ public class H2DataRepository implements DataServiceRepository
     public ComponentEndpointIds getVCenterComponentEndpointIdsByEndpointType(final String endpointType)
     {
         final TypedQuery<ComponentDetails> typedQuery = entityManager.createQuery(
-                "select endpoint.componentDetails from EndpointDetails as endpoint where endpoint.type = :endpointType and endpoint.componentDetails.componentType = :componentType",
+                "select endpoint.componentDetails from EndpointDetails as endpoint where lower(endpoint.type) = :endpointType and endpoint.componentDetails.componentType = :componentType",
                 ComponentDetails.class);
-        typedQuery.setParameter("endpointType", endpointType);
+        typedQuery.setParameter("endpointType", endpointType.toLowerCase());
         typedQuery.setParameter("componentType", "VCENTER");
 
         try
@@ -197,80 +250,156 @@ public class H2DataRepository implements DataServiceRepository
     @Transactional
     public boolean saveVCenterData(final String jobId, final VCenter vCenterData)
     {
-        TypedQuery<DneJob> query = entityManager.createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
-
-        DneJob dneJob = null;
+        final TypedQuery<VCenter> vCenterTypedQuery = entityManager.createQuery("select v from VCenter as v", VCenter.class);
 
         try
         {
-            dneJob = query.setParameter("jobId", jobId).getSingleResult();
-        }
-        catch (NoResultException e)
-        {
-            LOG.error("No job found with id: {}", jobId);
-            LOG.error("No result", e.getMessage());
-        }
+            final List<VCenter> vCenterList = vCenterTypedQuery.getResultList();
 
-        if (dneJob == null)
-        {
-            dneJob = new DneJob(jobId, null, vCenterData);
-            entityManager.persist(dneJob);
-        }
-        else
-        {
-            LOG.info("DneJob != null for vcenter save");
-            vCenterData.setJob(dneJob);
-            dneJob.setVcenter(vCenterData);
-            entityManager.merge(dneJob);
-        }
-        entityManager.flush();
+            //Don't allow multiple discoveries for now
+            if (vCenterList != null && !vCenterList.isEmpty())
+            {
+                LOG.info("Found vcenter data doing nothing");
+                return true;
+            }
+            else
+            {
+                final TypedQuery<DneJob> query = entityManager.createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
 
-        if (dneJob.getUuid() == null)
+                DneJob dneJob = null;
+
+                try
+                {
+                    dneJob = query.setParameter("jobId", jobId).getSingleResult();
+                }
+                catch (NoResultException e)
+                {
+                    LOG.error("No job found with id: {}", jobId);
+                    LOG.error("No result", e.getMessage());
+                }
+
+                // Not supporting multiple discoveries for now.
+
+                if (dneJob == null)
+                {
+                    dneJob = new DneJob(jobId, null, vCenterData);
+                    entityManager.persist(dneJob);
+                }
+                else
+                {
+                    final TypedQuery<VCenter> vCenterDataTypedQuery = entityManager
+                            .createQuery("SELECT vcenter from VCenter as vcenter", VCenter.class);
+
+                    try
+                    {
+                        final VCenter existingVCenter = vCenterDataTypedQuery.getSingleResult();
+                        if (existingVCenter != null)
+                        {
+                            entityManager.merge(existingVCenter);
+
+                            entityManager.flush();
+
+                            return existingVCenter.getUuid() != null;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        LOG.error("No VCenter data exist");
+                    }
+
+                    LOG.info("DneJob != null for vcenter save");
+                    vCenterData.setJob(dneJob);
+                    dneJob.setVcenter(vCenterData);
+                    entityManager.merge(dneJob);
+                }
+                entityManager.flush();
+
+                return dneJob.getUuid() != null;
+            }
+        }
+        catch (Exception e)
         {
+            LOG.error("Exception occurred [{}]", e);
             return false;
         }
-
-        return true;
     }
 
     @Override
     @Transactional
     public boolean saveScaleIoData(final String jobId, final ScaleIOData scaleIOData)
     {
-        TypedQuery<DneJob> query = entityManager.createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
-
-        DneJob dneJob = null;
+        final TypedQuery<ScaleIOData> scaleIODataTypedQuery = entityManager.createQuery("select s from ScaleIOData as s", ScaleIOData.class);
 
         try
         {
-            dneJob = query.setParameter("jobId", jobId).getSingleResult();
-        }
-        catch (NoResultException e)
-        {
-            LOG.error("No job found with id: {}", jobId);
-            LOG.error("No result", e.getMessage());
-        }
+            final List<ScaleIOData> scaleIODataResultList = scaleIODataTypedQuery.getResultList();
 
-        if (dneJob == null)
-        {
-            dneJob = new DneJob(jobId, scaleIOData, null);
-            entityManager.persist(dneJob);
-        }
-        else
-        {
-            LOG.info("DneJob != null for scaleio save");
-            scaleIOData.setJob(dneJob);
-            dneJob.setScaleIO(scaleIOData);
-            entityManager.merge(dneJob);
-        }
-        entityManager.flush();
+            // Multiple discoveries not supported yet
+            if (scaleIODataResultList != null && !scaleIODataResultList.isEmpty())
+            {
+                LOG.info("Found ScaleIO Data doing nothing");
+                return true;
+            }
+            else
+            {
+                final TypedQuery<DneJob> query = entityManager.createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
 
-        if (dneJob.getUuid() == null)
+                DneJob dneJob = null;
+
+                try
+                {
+                    dneJob = query.setParameter("jobId", jobId).getSingleResult();
+                }
+                catch (NoResultException e)
+                {
+                    LOG.error("No job found with id: {}", jobId);
+                    LOG.error("No result", e.getMessage());
+                }
+
+                // Not supporting multiple discoveries for now.
+
+                if (dneJob == null)
+                {
+                    dneJob = new DneJob(jobId, scaleIOData, null);
+                    entityManager.persist(dneJob);
+                }
+                else
+                {
+                    final TypedQuery<ScaleIOData> scaleIoDataTypedQuery = entityManager
+                            .createQuery("SELECT scaleio from ScaleIOData as scaleio", ScaleIOData.class);
+
+                    try
+                    {
+                        final ScaleIOData existingScaleIo = scaleIoDataTypedQuery.getSingleResult();
+                        if (existingScaleIo != null)
+                        {
+                            entityManager.merge(existingScaleIo);
+
+                            entityManager.flush();
+
+                            return existingScaleIo.getUuid() != null;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        LOG.error("No VCenter data exist");
+                    }
+
+                    LOG.info("DneJob != null for scaleio save");
+                    scaleIOData.setJob(dneJob);
+                    dneJob.setScaleIO(scaleIOData);
+                    entityManager.merge(dneJob);
+                }
+                entityManager.flush();
+
+                return dneJob.getUuid() != null;
+            }
+        }
+        catch (Exception e)
         {
+            LOG.error("Exception occurred [{}]", e);
             return false;
         }
-
-        return true;
     }
 
     @Override
