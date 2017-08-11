@@ -821,7 +821,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
             final String correlationId = UUID.randomUUID().toString();
             requestMessage.setMessageProperties(
                     new com.dell.cpsd.virtualization.capabilities.api.MessageProperties(new Date(), correlationId, replyTo));
-            requestMessage.setCredentials(new Credentials("https://" + componentEndpointIds.getEndpointUrl(), null, null));
+            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
             requestMessage.setComponentEndpointIds(
                     new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
                             componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));

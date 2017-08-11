@@ -19,6 +19,7 @@ import javax.persistence.NoResultException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,7 +40,8 @@ public class HostToInstallEsxiRequestTransformer
     private static final String REPO_SUFFIX           = "/esxi/6.5/";
     private static final String EMPTY_STRING          = "";
     private static final String VERSION               = "6.0";
-    private static final String DEFAULT_ROOT_PASSWORD = "OurRandomString1!";
+    private static final String DEFAULT_ROOT_PASSWORD = "";
+    private static final String DELL_NODE_KARGS       = "netdevice=vmnic0";
     private final DataServiceRepository dataServiceRepository;
 
     public HostToInstallEsxiRequestTransformer(final DataServiceRepository dataServiceRepository)
@@ -79,17 +81,21 @@ public class HostToInstallEsxiRequestTransformer
 
         esxiInstallationInfo.setIdentifier(nodeId);
 
-        transformHostDnsConfig(esxiInstallationInfo, host.getHostDnsConfig());
-
-        // THIS IS ALL STATIC CONFIG DATA FOR NOW ---- WILL CHANGE
-        esxiInstallationInfo.setKargs("netdevice=vmnic2");
+        //Specific to Dell Node
+        esxiInstallationInfo.setKargs(DELL_NODE_KARGS);
         esxiInstallationInfo.setVersion(VERSION);
+        //The default root password as per the document
         esxiInstallationInfo.setRootPassword(DEFAULT_ROOT_PASSWORD);
 
+        // Based on any existing host in the vcenter
+        transformHostDnsConfig(esxiInstallationInfo, host.getHostDnsConfig());
+        // Based on any existing host in the vcenter
         transformNetworkDevices(esxiInstallationInfo, host.getHostIpRouteConfig());
-        transformSwitchDevices(esxiInstallationInfo);
-
+        // Based on any existing host in the vcenter
         esxiInstallationInfo.setNtpServers(host.getNtpServers());
+
+        //As per the documentation
+        transformSwitchDevices(esxiInstallationInfo);
 
         return esxiInstallationInfo;
     }
@@ -101,10 +107,11 @@ public class HostToInstallEsxiRequestTransformer
         {
             esxiInstallationInfo.setHostname(hostDnsConfig.getHostname());
 
-            if (hostDnsConfig.getDomainName().isEmpty())
+            final List<String> searchDomains = hostDnsConfig.getSearchDomains();
+
+            if (searchDomains != null && !searchDomains.isEmpty())
             {
-                //TODO: validate logic about search domains (grab first one for now)
-                esxiInstallationInfo.setDomain(hostDnsConfig.getSearchDomains().get(0));
+                esxiInstallationInfo.setDomain(searchDomains.get(0));
             }
             else
             {
@@ -115,33 +122,15 @@ public class HostToInstallEsxiRequestTransformer
         }
     }
 
+    //TODO: Check if this is correct
     protected void transformNetworkDevices(final EsxiInstallationInfo esxiInstallationInfo, final HostIpRouteConfig hostIpRouteConfig)
 
     {
         if (hostIpRouteConfig != null)
         {
-            /* Example based off of test -> Still flushing out details
-            "networkDevices": [{
-				"device": "vmnic0",
-				"ipv4": {
-					"ipAddr": "10.239.140.82",
-					"gateway": "10.239.140.65",
-					"netmask": "255.255.255.192",
-					"vlanIds": [1639]
-				},
-				"esxSwitchName": "vSwitch0"
-			}, {
-				"device": "vmnic1",
-				"esxSwitchName": "vSwitch1"
-			}, {
-				"device": "vmnic2",
-				"esxSwitchName": "vSwitch2"
-			}],
-             */
-
             // Create the first device with static info
             final BootImageNetworkDevice bootImageNetworkDevice = new BootImageNetworkDevice();
-            bootImageNetworkDevice.setDevice("vmnic0"); // Specific to how RHD parses
+            bootImageNetworkDevice.setDevice("vmnic0");
             bootImageNetworkDevice.setEsxSwitchName("vSwitch0");
 
             final BootImageNetworkAddressV4 bootImageNetworkAddressV4 = new BootImageNetworkAddressV4();
@@ -163,77 +152,28 @@ public class HostToInstallEsxiRequestTransformer
                 }
             }
 
-            // Create the 2nd and 3rd
-            final BootImageNetworkDevice bootImageNetworkDevice1 = new BootImageNetworkDevice();
-            bootImageNetworkDevice1.setDevice("vmnic1");
-            bootImageNetworkDevice1.setEsxSwitchName("vSwitch1");
-
-            final BootImageNetworkDevice bootImageNetworkDevice2 = new BootImageNetworkDevice();
-            bootImageNetworkDevice2.setDevice("vmnic2");
-            bootImageNetworkDevice2.setEsxSwitchName("vSwitch2");
-
-            esxiInstallationInfo.setNetworkDevices(Arrays.asList(bootImageNetworkDevice, bootImageNetworkDevice1, bootImageNetworkDevice2));
+            esxiInstallationInfo.setNetworkDevices(Collections.singletonList(bootImageNetworkDevice));
         }
     }
 
     protected void transformNetworkDeviceVlanId(final BootImageNetworkAddressV4 ipV4Network, String portGroupId)
     {
-        List<PortGroup> portGroups = dataServiceRepository.getPortGroups();
-        PortGroup portGroup = portGroups.stream().filter(Objects::nonNull).filter(portGroup1 -> portGroup1.getId().equals(portGroupId))
-                .findFirst().orElse(null);
+        final List<PortGroup> portGroups = dataServiceRepository.getPortGroups();
+        final PortGroup portGroup = portGroups.stream().filter(Objects::nonNull)
+                .filter(portGroup1 -> portGroup1.getId().equals(portGroupId)).findFirst().orElse(null);
 
         if (portGroup != null)
         {
-            BigDecimal vlanId = new BigDecimal(portGroup.getVlanId());
-            ipV4Network.setVlanIds(Arrays.asList(vlanId));
+            final BigDecimal vlanId = new BigDecimal(portGroup.getVlanId());
+            ipV4Network.setVlanIds(Collections.singletonList(vlanId));
         }
     }
 
     protected void transformSwitchDevices(final EsxiInstallationInfo esxiInstallationInfo)
     {
         // This is all static as well for now
-        NodeWorkflowSwitchDevice switchDevice = new NodeWorkflowSwitchDevice("vSwitch0", "iphash", Arrays.asList("vmnic0", "vmnic3"));
-        NodeWorkflowSwitchDevice switchDevice1 = new NodeWorkflowSwitchDevice().withSwitchName("vSwitch1")
-                .withUplinks(Arrays.asList("vmnic1"));
-        NodeWorkflowSwitchDevice switchDevice2 = new NodeWorkflowSwitchDevice().withSwitchName("vSwitch2")
-                .withUplinks(Arrays.asList("vmnic2"));
+        final NodeWorkflowSwitchDevice switchDevice = new NodeWorkflowSwitchDevice("vSwitch0", "iphash", Arrays.asList("vmnic1", "vmnic5"));
 
-        esxiInstallationInfo.setSwitchDevices(Arrays.asList(switchDevice, switchDevice1, switchDevice2));
-    }
-
-    protected List<BootImageNetworkDevice> transformNetworkDevices(final HostIpRouteConfig hostIpRouteConfig)
-    {
-        if (hostIpRouteConfig != null)
-        {
-            final BootImageNetworkDevice bootImageNetworkDevice = new BootImageNetworkDevice();
-            bootImageNetworkDevice.setDevice(hostIpRouteConfig.getDefaultGatewayDevice());
-
-            final BootImageNetworkAddressV4 bootImageNetworkAddressV4 = new BootImageNetworkAddressV4();
-            bootImageNetworkAddressV4.setGateway(hostIpRouteConfig.getDefaultGateway());
-
-            final BootImageNetworkAddressV6 bootImageNetworkAddressV6 = new BootImageNetworkAddressV6();
-            bootImageNetworkAddressV6.setGateway(hostIpRouteConfig.getIpV6defaultGateway());
-
-            final VirtualNic virtualNicDomain = hostIpRouteConfig.getHost().getVirtualNicList().stream().filter(Objects::nonNull)
-                    .filter(virtualNic -> {
-                        if (hostIpRouteConfig.getDefaultGatewayDevice() != null)
-                        {
-                            return hostIpRouteConfig.getDefaultGatewayDevice().equalsIgnoreCase(virtualNic.getDevice());
-                        }
-                        return false;
-                    }).findFirst().orElse(null);
-            if (virtualNicDomain != null)
-            {
-                bootImageNetworkAddressV4.setNetmask(virtualNicDomain.getSubnetMask());
-                bootImageNetworkAddressV6.setNetmask(virtualNicDomain.getSubnetMask());
-            }
-
-            bootImageNetworkDevice.setBootImageNetworkAddressV4(bootImageNetworkAddressV4);
-            bootImageNetworkDevice.setBootImageNetworkAddressV6(bootImageNetworkAddressV6);
-
-            return new ArrayList<>(Arrays.asList(bootImageNetworkDevice));
-        }
-
-        return null;
+        esxiInstallationInfo.setSwitchDevices(Collections.singletonList(switchDevice));
     }
 }
