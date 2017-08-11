@@ -254,6 +254,7 @@ public class NodeExpansionController
     @RequestMapping(path = "/clusters", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public List<ClusterInfo> listVirtualizationClusters(HttpServletRequest servletRequest) throws ServiceTimeoutException, ServiceExecutionException {
+
         List<ClusterInfo> clusters = nodeService.listClusters();
         if (clusters != null )
         {
