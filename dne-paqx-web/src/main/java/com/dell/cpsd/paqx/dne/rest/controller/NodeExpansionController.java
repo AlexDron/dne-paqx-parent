@@ -253,16 +253,12 @@ public class NodeExpansionController
 
     @RequestMapping(path = "/clusters", method = RequestMethod.GET, produces = "application/json")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public List<ClusterInfo> listVirtualizationClusters(HttpServletRequest servletRequest)  {
-        try {
-            List<ClusterInfo> clusters = nodeService.listClusters();
-            if (clusters != null )
-            {
-                LOGGER.info("Return " + clusters.size() + " clusters information.");
-                return clusters;
-            }
-        } catch (Exception e) {
-            LOGGER.error ( " failed to get cluster");
+    public List<ClusterInfo> listVirtualizationClusters(HttpServletRequest servletRequest) throws ServiceTimeoutException, ServiceExecutionException {
+        List<ClusterInfo> clusters = nodeService.listClusters();
+        if (clusters != null )
+        {
+            LOGGER.info("Return " + clusters.size() + " clusters information.");
+            return clusters;
         }
 
         return new ArrayList<>();

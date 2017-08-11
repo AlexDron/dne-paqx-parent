@@ -41,7 +41,7 @@ public interface NodeService
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
-    List<ClusterInfo> listClusters() throws Exception;
+    List<ClusterInfo> listClusters() throws ServiceTimeoutException, ServiceExecutionException;
 
 
     /**
