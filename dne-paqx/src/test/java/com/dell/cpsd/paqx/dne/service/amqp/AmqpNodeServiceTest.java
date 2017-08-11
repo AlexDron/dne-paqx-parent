@@ -206,7 +206,7 @@ public class AmqpNodeServiceTest
                                 UUID.randomUUID().toString(), "replyToMe");
 
                 DiscoverClusterResponseInfoMessage responseInfoMessage =
-                        new DiscoverClusterResponseInfoMessage(messageProperties, responseInfo);
+                        new DiscoverClusterResponseInfoMessage(messageProperties, responseInfo, DiscoverClusterResponseInfoMessage.Status.SUCCESS);
                 serviceCallback.handleServiceResponse(new ServiceResponse<>(requestId, responseInfoMessage, null));
             }
         };

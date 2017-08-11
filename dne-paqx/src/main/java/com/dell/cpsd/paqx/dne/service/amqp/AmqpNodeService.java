@@ -295,8 +295,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
      * {@inheritDoc}
      */
     @Override
-    public List<ClusterInfo> listClusters() throws ServiceTimeoutException, ServiceExecutionException
-    {
+    public List<ClusterInfo> listClusters() throws Exception {
         com.dell.cpsd.virtualization.capabilities.api.MessageProperties messageProperties = new com.dell.cpsd.virtualization.capabilities.api.MessageProperties();
         messageProperties.setCorrelationId(UUID.randomUUID().toString());
         messageProperties.setTimestamp(Calendar.getInstance().getTime());
@@ -330,13 +329,17 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         });
 
         DiscoverClusterResponseInfoMessage responseInfo = processResponse(response, DiscoverClusterResponseInfoMessage.class);
-        if (responseInfo != null)
+
+        if (responseInfo.getStatus() == DiscoverClusterResponseInfoMessage.Status.SUCCESS)
         {
             DiscoverClusterResponseInfo clusterResponseInfo = responseInfo.getDiscoverClusterResponseInfo();
             return clusterResponseInfo != null? clusterResponseInfo.getClusters(): Collections.emptyList();
         }
-
-        return Collections.emptyList();
+        else
+        {
+            LOGGER.error ( "Failed to get cluster from vcenter");
+            throw new Exception("Failed to get cluster from vcenter");
+        }
     }
 
     @Override

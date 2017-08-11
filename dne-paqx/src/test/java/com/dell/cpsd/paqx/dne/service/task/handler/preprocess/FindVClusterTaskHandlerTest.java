@@ -101,8 +101,7 @@ public class FindVClusterTaskHandlerTest
      * @since 1.0
      */
     @Test
-    public void testExecuteTask_successful_case() throws ServiceTimeoutException, ServiceExecutionException
-    {
+    public void testExecuteTask_successful_case() throws Exception {
         ClusterInfo vCluster = new ClusterInfo("clusterTest1", 2);
         List<ClusterInfo> vClusters = new ArrayList<>();
         vClusters.add(vCluster);
@@ -131,8 +130,7 @@ public class FindVClusterTaskHandlerTest
      * @since 1.0
      */
     @Test
-    public void testExecuteTask_unsuccessful_case() throws ServiceTimeoutException, ServiceExecutionException
-    {
+    public void testExecuteTask_unsuccessful_case() throws Exception {
         ClusterInfo vCluster = new ClusterInfo("clusterTest1", 2);
         List<ClusterInfo> vClusters = new ArrayList<>();
         vClusters.add(vCluster);
