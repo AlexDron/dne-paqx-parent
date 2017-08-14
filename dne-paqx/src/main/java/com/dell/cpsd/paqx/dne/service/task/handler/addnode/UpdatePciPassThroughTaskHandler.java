@@ -4,15 +4,15 @@ import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.model.AddHostToVCenterResponse;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
+import com.dell.cpsd.paqx.dne.service.model.DeployScaleIoVmTaskResponse;
+import com.dell.cpsd.paqx.dne.service.model.EnablePciPassThroughTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.InstallEsxiTaskResponse;
-import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
 import com.dell.cpsd.paqx.dne.service.model.Status;
+import com.dell.cpsd.paqx.dne.service.model.UpdatePciPassThroughTaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
-import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequest;
-import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.Credentials;
+import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMRequestMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
  * @version 1.0
  * @since 1.0
  */
-public class AddHostToVCenterTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler
+public class UpdatePciPassThroughTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler
 {
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(AddHostToVCenterTaskHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdatePciPassThroughTaskHandler.class);
 
     /**
      * The <code>NodeService</code> instance
@@ -38,7 +38,7 @@ public class AddHostToVCenterTaskHandler extends BaseTaskHandler implements IWor
     private final NodeService           nodeService;
     private final DataServiceRepository repository;
 
-    public AddHostToVCenterTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
+    public UpdatePciPassThroughTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
     {
         this.nodeService = nodeService;
         this.repository = repository;
@@ -47,56 +47,53 @@ public class AddHostToVCenterTaskHandler extends BaseTaskHandler implements IWor
     @Override
     public boolean executeTask(final Job job)
     {
-        LOGGER.info("Execute Add Host to VCenter task");
+        LOGGER.info("Execute Update/Set PCI pass through task");
 
-        final AddHostToVCenterResponse response = initializeResponse(job);
+        final UpdatePciPassThroughTaskResponse response = initializeResponse(job);
 
         try
         {
             final Validate validate = new Validate(job).invoke();
-            final ComponentEndpointIds componentEndpointIds = validate.getComponentEndpointIds();
             final String hostname = validate.getHostname();
-            final String clusterId = validate.getClusterId();
+            final String hostPciDeviceId = validate.getHostPciDeviceId();
+            final String newVMName = validate.getNewVMName();
+            final ComponentEndpointIds componentEndpointIds = validate.getComponentEndpointIds();
 
-            final ClusterOperationRequestMessage requestMessage = getClusterOperationRequestMessage(componentEndpointIds, hostname,
-                    clusterId);
+            final UpdatePCIPassthruSVMRequestMessage requestMessage = getUpdatePCIPassthruSVMRequestMessage(hostname, hostPciDeviceId,
+                    newVMName, componentEndpointIds);
 
-            final boolean success = this.nodeService.requestAddHostToVCenter(requestMessage);
+            final boolean success = this.nodeService.requestSetPciPassThrough(requestMessage);
 
             response.setWorkFlowTaskStatus(success ? Status.SUCCEEDED : Status.FAILED);
-            response.setClusterId(clusterId);
 
             return success;
         }
         catch (Exception e)
         {
             LOGGER.error("Exception occurred", e);
-            response.addError(e.toString());
+            response.addError(e.getMessage());
             return false;
         }
     }
 
-    private ClusterOperationRequestMessage getClusterOperationRequestMessage(final ComponentEndpointIds componentEndpointIds,
-            final String hostname, final String clusterId)
+    private UpdatePCIPassthruSVMRequestMessage getUpdatePCIPassthruSVMRequestMessage(final String hostname, final String hostPciDeviceId,
+            final String newVMName, final ComponentEndpointIds componentEndpointIds)
     {
-        final ClusterOperationRequestMessage requestMessage = new ClusterOperationRequestMessage();
-
+        final UpdatePCIPassthruSVMRequestMessage requestMessage = new UpdatePCIPassthruSVMRequestMessage();
+        requestMessage.setHostname(hostname);
+        requestMessage.setHostPciDeviceId(hostPciDeviceId);
+        requestMessage.setVmName(newVMName);
         requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
         requestMessage.setComponentEndpointIds(
                 new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
                         componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
-        final ClusterOperationRequest clusterOperationRequest = new ClusterOperationRequest();
-        clusterOperationRequest.setHostName(hostname);
-        clusterOperationRequest.setClusterOperation(ClusterOperationRequest.ClusterOperation.ADD_HOST);
-        clusterOperationRequest.setClusterID(clusterId);
-        requestMessage.setClusterOperationRequest(clusterOperationRequest);
         return requestMessage;
     }
 
     @Override
-    public AddHostToVCenterResponse initializeResponse(Job job)
+    public UpdatePciPassThroughTaskResponse initializeResponse(Job job)
     {
-        final AddHostToVCenterResponse response = new AddHostToVCenterResponse();
+        final UpdatePciPassThroughTaskResponse response = new UpdatePciPassThroughTaskResponse();
         response.setWorkFlowTaskName(job.getCurrentTask().getTaskName());
         response.setWorkFlowTaskStatus(Status.IN_PROGRESS);
         job.addTaskResponse(job.getStep(), response);
@@ -109,9 +106,10 @@ public class AddHostToVCenterTaskHandler extends BaseTaskHandler implements IWor
         private final Job                  job;
         private       ComponentEndpointIds componentEndpointIds;
         private       String               hostname;
-        private       String               clusterId;
+        private       String               hostPciDeviceId;
+        private       String               newVMName;
 
-        public Validate(final Job job)
+        Validate(final Job job)
         {
             this.job = job;
         }
@@ -139,27 +137,36 @@ public class AddHostToVCenterTaskHandler extends BaseTaskHandler implements IWor
                 throw new IllegalStateException("Host name is null");
             }
 
-            final NodeExpansionRequest inputParams = job.getInputParams();
+            final EnablePciPassThroughTaskResponse enablePciPassThroughTaskResponse = (EnablePciPassThroughTaskResponse) job
+                    .getTaskResponseMap().get("enablePciPassthroughHost");
 
-            if (inputParams == null)
+            if (enablePciPassThroughTaskResponse == null)
             {
-                throw new IllegalStateException("Job Input Params are null");
+                throw new IllegalStateException("Enable PCI Task Response is null");
             }
 
-            final String clusterName = inputParams.getClusterName();
+            hostPciDeviceId = enablePciPassThroughTaskResponse.getHostPciDeviceId();
 
-            if (clusterName == null)
+            if (hostPciDeviceId == null)
             {
-                throw new IllegalStateException("Cluster Name is null");
+                throw new IllegalStateException("Host PCI Device ID is null");
             }
 
-            clusterId = repository.getClusterId(clusterName);
+            final DeployScaleIoVmTaskResponse deployScaleIoVmTaskResponse = (DeployScaleIoVmTaskResponse) job.getTaskResponseMap()
+                    .get("deploySVM");
 
-            // If null, should we refactor the vcenter side to find the cluster id based on the host name?
-            if (clusterId == null)
+            if (deployScaleIoVmTaskResponse == null)
             {
-                throw new IllegalStateException("Cluster ID is null");
+                throw new IllegalStateException("Deploy ScaleIO VM Task Response is null");
             }
+
+            newVMName = deployScaleIoVmTaskResponse.getNewVMName();
+
+            if (newVMName == null)
+            {
+                throw new IllegalStateException("New Virtual Machine name is null");
+            }
+
             return this;
         }
 
@@ -173,9 +180,14 @@ public class AddHostToVCenterTaskHandler extends BaseTaskHandler implements IWor
             return hostname;
         }
 
-        String getClusterId()
+        String getHostPciDeviceId()
         {
-            return clusterId;
+            return hostPciDeviceId;
+        }
+
+        String getNewVMName()
+        {
+            return newVMName;
         }
     }
 }

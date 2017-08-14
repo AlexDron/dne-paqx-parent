@@ -16,6 +16,8 @@ public class DeployScaleIoVmTaskResponse extends TaskResponse
 
     private String status;
 
+    private String newVMName;
+
     public String getMessage()
     {
         return message;
@@ -34,5 +36,15 @@ public class DeployScaleIoVmTaskResponse extends TaskResponse
     public void setStatus(final String status)
     {
         this.status = status;
+    }
+
+    public String getNewVMName()
+    {
+        return newVMName;
+    }
+
+    public void setNewVMName(final String newVMName)
+    {
+        this.newVMName = newVMName;
     }
 }

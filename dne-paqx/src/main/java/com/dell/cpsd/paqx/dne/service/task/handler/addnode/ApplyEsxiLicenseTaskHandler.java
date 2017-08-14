@@ -33,7 +33,7 @@ public class ApplyEsxiLicenseTaskHandler extends BaseTaskHandler implements IWor
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService nodeService;
+    private final NodeService           nodeService;
     private final DataServiceRepository repository;
 
     public ApplyEsxiLicenseTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
@@ -72,12 +72,7 @@ public class ApplyEsxiLicenseTaskHandler extends BaseTaskHandler implements IWor
                 throw new IllegalStateException("Host name is null");
             }
 
-            final AddEsxiHostVSphereLicenseRequest requestMessage = new AddEsxiHostVSphereLicenseRequest();
-            requestMessage.setHostname(hostname);
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
-            requestMessage.setComponentEndpointIds(
-                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
-                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+            final AddEsxiHostVSphereLicenseRequest requestMessage = getLicenseRequest(componentEndpointIds, hostname);
 
             final boolean success = this.nodeService.requestInstallEsxiLicense(requestMessage);
 
@@ -91,6 +86,17 @@ public class ApplyEsxiLicenseTaskHandler extends BaseTaskHandler implements IWor
             response.addError(e.toString());
             return false;
         }
+    }
+
+    private AddEsxiHostVSphereLicenseRequest getLicenseRequest(final ComponentEndpointIds componentEndpointIds, final String hostname)
+    {
+        final AddEsxiHostVSphereLicenseRequest requestMessage = new AddEsxiHostVSphereLicenseRequest();
+        requestMessage.setHostname(hostname);
+        requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        requestMessage.setComponentEndpointIds(
+                new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                        componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+        return requestMessage;
     }
 
     @Override

@@ -30,12 +30,14 @@ public class DeployScaleIoVmTaskHandler extends BaseTaskHandler implements IWork
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeployScaleIoVmTaskHandler.class);
+    private static final Logger LOGGER                   = LoggerFactory.getLogger(DeployScaleIoVmTaskHandler.class);
+    private static final String SCALEIO_VM_PREFIX        = "ScaleIO-";
+    private static final String SCALEIO_TEMPLATE_VM_NAME = "EMC ScaleIO SVM Template.*";
 
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService nodeService;
+    private final NodeService           nodeService;
     private final DataServiceRepository repository;
 
     public DeployScaleIoVmTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
@@ -53,7 +55,76 @@ public class DeployScaleIoVmTaskHandler extends BaseTaskHandler implements IWork
 
         try
         {
-            final ComponentEndpointIds componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
+            final Validate validate = new Validate(job).invoke();
+            final ComponentEndpointIds componentEndpointIds = validate.getComponentEndpointIds();
+            final String hostname = validate.getHostname();
+            final String newScaleIoVmName = validate.getNewScaleIoVmName();
+            final String dataCenterName = validate.getDataCenterName();
+
+            final DeployVMFromTemplateRequestMessage requestMessage = getDeployVMFromTemplateRequestMessage(componentEndpointIds, hostname,
+                    newScaleIoVmName, dataCenterName);
+
+            final boolean success = this.nodeService.requestDeployScaleIoVm(requestMessage);
+
+            response.setWorkFlowTaskStatus(success ? Status.SUCCEEDED : Status.FAILED);
+            response.setNewVMName(newScaleIoVmName);
+
+            return success;
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception occurred", e);
+            response.addError(e.toString());
+            return false;
+        }
+    }
+
+    private DeployVMFromTemplateRequestMessage getDeployVMFromTemplateRequestMessage(final ComponentEndpointIds componentEndpointIds,
+            final String hostname, final String newScaleIoVmName, final String dataCenterName)
+    {
+        final DeployVMFromTemplateRequestMessage requestMessage = new DeployVMFromTemplateRequestMessage();
+        requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        requestMessage.setComponentEndpointIds(
+                new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                        componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+        requestMessage.setHostName(hostname);
+        requestMessage.setTemplateName(SCALEIO_TEMPLATE_VM_NAME);
+        requestMessage.setNewVMName(newScaleIoVmName);
+        requestMessage.setDatacenterName(dataCenterName);
+        final VirtualMachineCloneSpec virtualMachineCloneSpec = new VirtualMachineCloneSpec();
+        virtualMachineCloneSpec.setPoweredOn(true);
+        virtualMachineCloneSpec.setTemplate(false);
+        requestMessage.setVirtualMachineCloneSpec(virtualMachineCloneSpec);
+        return requestMessage;
+    }
+
+    @Override
+    public DeployScaleIoVmTaskResponse initializeResponse(Job job)
+    {
+        final DeployScaleIoVmTaskResponse response = new DeployScaleIoVmTaskResponse();
+        response.setWorkFlowTaskName(job.getCurrentTask().getTaskName());
+        response.setWorkFlowTaskStatus(Status.IN_PROGRESS);
+        job.addTaskResponse(job.getStep(), response);
+
+        return response;
+    }
+
+    private class Validate
+    {
+        private final Job                  job;
+        private       ComponentEndpointIds componentEndpointIds;
+        private       String               hostname;
+        private       String               dataCenterName;
+        private       String               newScaleIoVmName;
+
+        Validate(final Job job)
+        {
+            this.job = job;
+        }
+
+        Validate invoke()
+        {
+            componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
 
             if (componentEndpointIds == null)
             {
@@ -67,7 +138,7 @@ public class DeployScaleIoVmTaskHandler extends BaseTaskHandler implements IWork
                 throw new IllegalStateException("No Install ESXi task response found");
             }
 
-            final String hostname = installEsxiTaskResponse.getHostname();
+            hostname = installEsxiTaskResponse.getHostname();
 
             if (hostname == null)
             {
@@ -81,44 +152,49 @@ public class DeployScaleIoVmTaskHandler extends BaseTaskHandler implements IWork
                 throw new IllegalStateException("Job Input Params are null");
             }
 
-            //TODO: Get the datacenter name
+            final String clusterName = inputParams.getClusterName();
 
-            final DeployVMFromTemplateRequestMessage requestMessage = new DeployVMFromTemplateRequestMessage();
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
-            requestMessage.setComponentEndpointIds(
-                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
-                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
-            requestMessage.setHostName(hostname);
-            requestMessage.setTemplateName("TODO");
-            requestMessage.setNewVMName("TODO");
-            requestMessage.setDatacenterName("TODO");
-            final VirtualMachineCloneSpec virtualMachineCloneSpec = new VirtualMachineCloneSpec();
-            virtualMachineCloneSpec.setPoweredOn(true);
-            virtualMachineCloneSpec.setTemplate(false);
-            requestMessage.setVirtualMachineCloneSpec(virtualMachineCloneSpec);
+            if (clusterName == null)
+            {
+                throw new IllegalStateException("Cluster Name is null");
+            }
 
-            final boolean success = this.nodeService.requestDeployScaleIoVm(requestMessage);
+            dataCenterName = repository.getDataCenterName(clusterName);
 
-            response.setWorkFlowTaskStatus(success ? Status.SUCCEEDED : Status.FAILED);
+            if (dataCenterName == null)
+            {
+                throw new IllegalStateException("DataCenter name is null");
+            }
 
-            return success;
+            final String scaleIOSVMManagementIpAddress = inputParams.getScaleIOSVMManagementIpAddress();
+
+            if (scaleIOSVMManagementIpAddress == null)
+            {
+                throw new IllegalStateException("ScaleIO Management IP Address is null");
+            }
+
+            newScaleIoVmName = SCALEIO_VM_PREFIX + scaleIOSVMManagementIpAddress;
+            return this;
         }
-        catch (Exception e)
+
+        ComponentEndpointIds getComponentEndpointIds()
         {
-            LOGGER.error("Exception occurred", e);
-            response.addError(e.toString());
-            return false;
+            return componentEndpointIds;
         }
-    }
 
-    @Override
-    public DeployScaleIoVmTaskResponse initializeResponse(Job job)
-    {
-        final DeployScaleIoVmTaskResponse response = new DeployScaleIoVmTaskResponse();
-        response.setWorkFlowTaskName(job.getCurrentTask().getTaskName());
-        response.setWorkFlowTaskStatus(Status.IN_PROGRESS);
-        job.addTaskResponse(job.getStep(), response);
+        String getHostname()
+        {
+            return hostname;
+        }
 
-        return response;
+        String getDataCenterName()
+        {
+            return dataCenterName;
+        }
+
+        String getNewScaleIoVmName()
+        {
+            return newScaleIoVmName;
+        }
     }
 }

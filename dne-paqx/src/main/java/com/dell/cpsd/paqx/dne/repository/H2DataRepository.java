@@ -6,6 +6,7 @@ import com.dell.cpsd.paqx.dne.domain.DneJob;
 import com.dell.cpsd.paqx.dne.domain.EndpointDetails;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
+import com.dell.cpsd.paqx.dne.domain.vcenter.PciDevice;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
@@ -264,7 +265,8 @@ public class H2DataRepository implements DataServiceRepository
             }
             else
             {
-                final TypedQuery<DneJob> query = entityManager.createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
+                final TypedQuery<DneJob> query = entityManager
+                        .createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
 
                 DneJob dneJob = null;
 
@@ -328,7 +330,8 @@ public class H2DataRepository implements DataServiceRepository
     @Transactional
     public boolean saveScaleIoData(final String jobId, final ScaleIOData scaleIOData)
     {
-        final TypedQuery<ScaleIOData> scaleIODataTypedQuery = entityManager.createQuery("select s from ScaleIOData as s", ScaleIOData.class);
+        final TypedQuery<ScaleIOData> scaleIODataTypedQuery = entityManager
+                .createQuery("select s from ScaleIOData as s", ScaleIOData.class);
 
         try
         {
@@ -342,7 +345,8 @@ public class H2DataRepository implements DataServiceRepository
             }
             else
             {
-                final TypedQuery<DneJob> query = entityManager.createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
+                final TypedQuery<DneJob> query = entityManager
+                        .createQuery("select dne from DneJob as dne where dne.id = :jobId", DneJob.class);
 
                 DneJob dneJob = null;
 
@@ -418,7 +422,7 @@ public class H2DataRepository implements DataServiceRepository
     }
 
     @Override
-    public ScaleIOData getScaleIoData(final String jobId)
+    public ScaleIOData getScaleIoDataByJobId(final String jobId)
     {
         final TypedQuery<ScaleIOData> query = entityManager
                 .createQuery("SELECT dneJob.scaleIOData FROM DneJob as dneJob WHERE dneJob.id = :jobId", ScaleIOData.class);
@@ -432,5 +436,64 @@ public class H2DataRepository implements DataServiceRepository
         }
 
         return null;
+    }
+
+    @Override
+    public ScaleIOData getScaleIoData()
+    {
+        final TypedQuery<ScaleIOData> query = entityManager
+                .createQuery("SELECT scaleio FROM ScaleIOData as scaleio", ScaleIOData.class);
+
+        final List<ScaleIOData> scaleIODataList = query.getResultList();
+
+        if (scaleIODataList != null && !scaleIODataList.isEmpty())
+        {
+            return scaleIODataList.stream().findFirst().orElseGet(null);
+        }
+
+        return null;
+    }
+
+    @Override
+    public List<PciDevice> getPciDeviceList()
+    {
+        final TypedQuery<PciDevice> typedQuery = entityManager.createQuery("select p from PciDevice as p", PciDevice.class);
+        return typedQuery.getResultList();
+    }
+
+    @Override
+    public String getClusterId(final String clusterName)
+    {
+        final TypedQuery<String> typedQuery = entityManager
+                .createQuery("select c.id from Cluster as c where c.name = :clusterName", String.class);
+        typedQuery.setParameter("clusterName", clusterName);
+
+        try
+        {
+            return typedQuery.getSingleResult();
+        }
+        catch (Exception e)
+        {
+            LOG.error("Exception Occurred [{}]", e);
+            return null;
+        }
+    }
+
+    @Override
+    public String getDataCenterName(final String clusterName)
+    {
+        final TypedQuery<String> typedQuery = entityManager
+                .createQuery("select c.dataCenter.name from Cluster as c where c.name = :clusterName", String.class);
+        typedQuery.setParameter("clusterName", clusterName);
+
+        try
+        {
+            return typedQuery.getSingleResult();
+        }
+        catch (Exception e)
+        {
+            LOG.error("Exception Occurred [{}]", e);
+            return null;
+        }
     }
 }

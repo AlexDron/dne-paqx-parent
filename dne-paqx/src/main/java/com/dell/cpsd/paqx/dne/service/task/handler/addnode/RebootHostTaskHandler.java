@@ -73,14 +73,7 @@ public class RebootHostTaskHandler extends BaseTaskHandler implements IWorkflowT
                 throw new IllegalStateException("Host name is null");
             }
 
-            final HostPowerOperationRequestMessage requestMessage = new HostPowerOperationRequestMessage();
-            final PowerOperationRequest powerOperationRequest = new PowerOperationRequest();
-            powerOperationRequest.setPowerOperation(PowerOperationRequest.PowerOperation.REBOOT);
-            powerOperationRequest.setHostName(hostname);
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
-            requestMessage.setComponentEndpointIds(
-                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
-                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+            final HostPowerOperationRequestMessage requestMessage = getHostPowerOperationRequestMessage(componentEndpointIds, hostname);
 
             final boolean success = this.nodeService.requestHostReboot(requestMessage);
 
@@ -94,6 +87,20 @@ public class RebootHostTaskHandler extends BaseTaskHandler implements IWorkflowT
             response.addError(e.getMessage());
             return false;
         }
+    }
+
+    private HostPowerOperationRequestMessage getHostPowerOperationRequestMessage(final ComponentEndpointIds componentEndpointIds,
+            final String hostname)
+    {
+        final HostPowerOperationRequestMessage requestMessage = new HostPowerOperationRequestMessage();
+        final PowerOperationRequest powerOperationRequest = new PowerOperationRequest();
+        powerOperationRequest.setPowerOperation(PowerOperationRequest.PowerOperation.REBOOT);
+        powerOperationRequest.setHostName(hostname);
+        requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        requestMessage.setComponentEndpointIds(
+                new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                        componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+        return requestMessage;
     }
 
     @Override

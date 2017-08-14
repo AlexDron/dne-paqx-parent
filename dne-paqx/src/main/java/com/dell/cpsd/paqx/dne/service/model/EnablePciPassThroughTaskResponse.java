@@ -16,6 +16,18 @@ public class EnablePciPassThroughTaskResponse extends TaskResponse
 
     private String status;
 
+    private String hostPciDeviceId;
+
+    public String getHostPciDeviceId()
+    {
+        return hostPciDeviceId;
+    }
+
+    public void setHostPciDeviceId(final String hostPciDeviceId)
+    {
+        this.hostPciDeviceId = hostPciDeviceId;
+    }
+
     public String getMessage()
     {
         return message;

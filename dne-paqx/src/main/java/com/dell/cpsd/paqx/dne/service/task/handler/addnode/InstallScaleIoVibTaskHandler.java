@@ -36,7 +36,7 @@ public class InstallScaleIoVibTaskHandler extends BaseTaskHandler implements IWo
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService nodeService;
+    private final NodeService           nodeService;
     private final DataServiceRepository repository;
 
     public InstallScaleIoVibTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
@@ -75,17 +75,7 @@ public class InstallScaleIoVibTaskHandler extends BaseTaskHandler implements IWo
                 throw new IllegalStateException("Host name is null");
             }
 
-            final SoftwareVIBRequestMessage requestMessage = new SoftwareVIBRequestMessage();
-            final SoftwareVIBRequest softwareVIBRequest = new SoftwareVIBRequest();
-            softwareVIBRequest.setVibOperation(SoftwareVIBRequest.VibOperation.INSTALL);
-            softwareVIBRequest.setHostName(hostname);
-            //TODO: From where to get the vib urls
-            softwareVIBRequest.setVibUrls(new ArrayList<>());
-            requestMessage.setSoftwareVibInstallRequest(softwareVIBRequest);
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
-            requestMessage.setComponentEndpointIds(
-                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
-                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+            final SoftwareVIBRequestMessage requestMessage = getSoftwareVIBRequestMessage(componentEndpointIds, hostname);
 
             final boolean success = this.nodeService.requestInstallSoftwareVib(requestMessage);
 
@@ -99,6 +89,22 @@ public class InstallScaleIoVibTaskHandler extends BaseTaskHandler implements IWo
             response.addError(e.getMessage());
             return false;
         }
+    }
+
+    private SoftwareVIBRequestMessage getSoftwareVIBRequestMessage(final ComponentEndpointIds componentEndpointIds, final String hostname)
+    {
+        final SoftwareVIBRequestMessage requestMessage = new SoftwareVIBRequestMessage();
+        final SoftwareVIBRequest softwareVIBRequest = new SoftwareVIBRequest();
+        softwareVIBRequest.setVibOperation(SoftwareVIBRequest.VibOperation.INSTALL);
+        softwareVIBRequest.setHostName(hostname);
+        //TODO: From where to get the vib urls
+        softwareVIBRequest.setVibUrls(new ArrayList<>());
+        requestMessage.setSoftwareVibInstallRequest(softwareVIBRequest);
+        requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        requestMessage.setComponentEndpointIds(
+                new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                        componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+        return requestMessage;
     }
 
     @Override

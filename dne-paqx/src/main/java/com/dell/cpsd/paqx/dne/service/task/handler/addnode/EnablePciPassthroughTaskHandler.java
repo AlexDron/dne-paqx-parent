@@ -3,6 +3,7 @@ package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
+import com.dell.cpsd.paqx.dne.domain.vcenter.PciDevice;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
@@ -14,6 +15,9 @@ import com.dell.cpsd.virtualization.capabilities.api.Credentials;
 import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughRequestMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * TODO: Document Usage
@@ -29,12 +33,14 @@ public class EnablePciPassthroughTaskHandler extends BaseTaskHandler implements 
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(EnablePciPassthroughTaskHandler.class);
+    private static final Logger LOGGER            = LoggerFactory.getLogger(EnablePciPassthroughTaskHandler.class);
+    private static final String DELL_PCI_REGEX    = "Dell.*(H730|HBA330).*Mini*";
+    private static final String PCI_BUS_DEVICE_ID = "0000:02:00.0";
 
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService nodeService;
+    private final NodeService           nodeService;
     private final DataServiceRepository repository;
 
     public EnablePciPassthroughTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
@@ -70,26 +76,25 @@ public class EnablePciPassthroughTaskHandler extends BaseTaskHandler implements 
 
             if (hostname == null)
             {
-                throw new IllegalStateException("Host name is null");
+                throw new IllegalStateException("Hostname is null");
             }
 
-            final Host host = repository.getVCenterHost(hostname);
+            final List<PciDevice> pciDeviceList = repository.getPciDeviceList();
 
-            if (host == null)
+            if (pciDeviceList == null || pciDeviceList.isEmpty())
             {
-                throw new IllegalStateException("No host found");
+                throw new IllegalStateException("PCI Device List is empty");
             }
 
-            final EnablePCIPassthroughRequestMessage requestMessage = new EnablePCIPassthroughRequestMessage();
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
-            requestMessage.setComponentEndpointIds(
-                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
-                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+            final String hostPciDeviceId = filterDellPercPciDeviceId(pciDeviceList);
 
+            final EnablePCIPassthroughRequestMessage requestMessage = getEnablePCIPassthroughRequestMessage(componentEndpointIds, hostname,
+                    hostPciDeviceId);
 
             final boolean success = this.nodeService.requestEnablePciPassThrough(requestMessage);
 
             response.setWorkFlowTaskStatus(success ? Status.SUCCEEDED : Status.FAILED);
+            response.setHostPciDeviceId(hostPciDeviceId);
 
             return success;
         }
@@ -99,6 +104,19 @@ public class EnablePciPassthroughTaskHandler extends BaseTaskHandler implements 
             response.addError(e.toString());
             return false;
         }
+    }
+
+    private EnablePCIPassthroughRequestMessage getEnablePCIPassthroughRequestMessage(final ComponentEndpointIds componentEndpointIds,
+            final String hostname, final String hostPciDeviceId)
+    {
+        final EnablePCIPassthroughRequestMessage requestMessage = new EnablePCIPassthroughRequestMessage();
+        requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        requestMessage.setComponentEndpointIds(
+                new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                        componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+        requestMessage.setHostname(hostname);
+        requestMessage.setHostPciDeviceId(hostPciDeviceId);
+        return requestMessage;
     }
 
     @Override
@@ -111,4 +129,18 @@ public class EnablePciPassthroughTaskHandler extends BaseTaskHandler implements 
 
         return response;
     }
+
+    private String filterDellPercPciDeviceId(final List<PciDevice> pciDeviceList)
+    {
+        final PciDevice requiredPciDevice = pciDeviceList.stream()
+                .filter(obj -> Objects.nonNull(obj) && DELL_PCI_REGEX.matches(obj.getDeviceName())).findFirst().orElseGet(null);
+
+        if (requiredPciDevice == null)
+        {
+            return PCI_BUS_DEVICE_ID;
+        }
+
+        return requiredPciDevice.getDeviceId();
+    }
+
 }

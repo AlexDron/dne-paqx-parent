@@ -16,6 +16,8 @@ public class AddHostToVCenterResponse extends TaskResponse
 
     private String status;
 
+    private String clusterId;
+
     public String getMessage()
     {
         return message;
@@ -34,5 +36,15 @@ public class AddHostToVCenterResponse extends TaskResponse
     public void setStatus(final String status)
     {
         this.status = status;
+    }
+
+    public String getClusterId()
+    {
+        return clusterId;
+    }
+
+    public void setClusterId(final String clusterId)
+    {
+        this.clusterId = clusterId;
     }
 }

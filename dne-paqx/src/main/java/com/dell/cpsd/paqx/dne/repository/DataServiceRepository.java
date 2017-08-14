@@ -3,6 +3,7 @@ package com.dell.cpsd.paqx.dne.repository;
 import com.dell.cpsd.paqx.dne.domain.ComponentDetails;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
+import com.dell.cpsd.paqx.dne.domain.vcenter.PciDevice;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
@@ -51,5 +52,19 @@ public interface DataServiceRepository
 
     List<PortGroup> getPortGroups();
 
-    ScaleIOData getScaleIoData(final String jobId);
+    ScaleIOData getScaleIoDataByJobId(final String jobId);
+
+    /**
+     * The MVP Approach, later can be integrated with the Job,
+     * when multiple discoveries will be supported.
+     *
+     * @return ScaleIO Data
+     */
+    ScaleIOData getScaleIoData();
+
+    List<PciDevice> getPciDeviceList();
+
+    String getClusterId(final String clusterName);
+
+    String getDataCenterName(final String clusterName);
 }

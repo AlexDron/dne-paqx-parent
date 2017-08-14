@@ -21,7 +21,7 @@ import com.dell.cpsd.paqx.dne.service.task.handler.addnode.EnablePciPassthroughT
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.InstallEsxiTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.InstallScaleIoVibTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.RebootHostTaskHandler;
-import com.dell.cpsd.paqx.dne.service.task.handler.addnode.UpdatePciPassthroughTaskHandler;
+import com.dell.cpsd.paqx.dne.service.task.handler.addnode.UpdatePciPassThroughTaskHandler;
 import com.dell.cpsd.paqx.dne.transformers.HostToInstallEsxiRequestTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,16 +78,16 @@ public class AddNodeService extends BaseService implements IAddNodeService
         final Map<String, WorkflowTask> workflowTasks = new HashMap<>();
 
 		workflowTasks.put("changeIdracCredentials", changeIdracCredentialsTask());
-        workflowTasks.put("installEsxi", installEsxiTask());//Should work fine, hostname not an issue
-        workflowTasks.put("addHostToVcenter", addHostToVcenterTask());//Issues due to invalid hostname, we have hostname, vcenter needs cluster id as of now
-        workflowTasks.put("installScaleIoVib", installScaleIoVibTask());//If above step works, this works fine
-        workflowTasks.put("configureScaleIoVib", configureScaleIoVibTask());//Module options can change
-        workflowTasks.put("addHostToDvSwitch", addHostToDvSwitchTask());//Requires dvs names and pnic names - from host (don't have yet)
-        workflowTasks.put("deploySVM", deploySVMTask());//Datacenter name not required to be sent from the paqx, update the adapter, Get the vm name from the UI or hardcoded. New vm name add to the task response, required by the setPciPassthroughSioVm, update the vcenter adapter
-        workflowTasks.put("enablePciPassthroughHost", enablePciPassthroughHostTask());//Requires hostname, hostPciDeviceId figure it out
-        workflowTasks.put("rebootHost", rebootHostTask());//Simply requires the hostname
-        workflowTasks.put("setPciPassthroughSioVm", setPciPassthroughSioVmTask());//PCI device Id and vmid required (can be vmname itself in the deploySVM task response)
-        workflowTasks.put("applyEsxiLicense", applyEsxiLicenseTask());// hostname is required, we have it
+        workflowTasks.put("installEsxi", installEsxiTask());//WIP
+        workflowTasks.put("addHostToVcenter", addHostToVcenterTask());//CODING DONE, TESTING PENDING
+        workflowTasks.put("installScaleIoVib", installScaleIoVibTask());//VIB URL's SOURCE IS NOT KNOWN
+        workflowTasks.put("configureScaleIoVib", configureScaleIoVibTask());//CODING DONE, TESTING PENDING
+        workflowTasks.put("addHostToDvSwitch", addHostToDvSwitchTask());//WIP
+        workflowTasks.put("deploySVM", deploySVMTask());//CODING DONE, TESTING PENDING
+        workflowTasks.put("enablePciPassthroughHost", enablePciPassthroughHostTask());//CODING DONE, TESTING PENDING
+        workflowTasks.put("rebootHost", rebootHostTask());//CODING DONE, TESTING DONE
+        workflowTasks.put("setPciPassthroughSioVm", setPciPassthroughSioVmTask());//CODING DONE, TESTING PENDING
+        workflowTasks.put("applyEsxiLicense", applyEsxiLicenseTask());//CODING DONE, TESTING DONE
         /*workflowTasks.put("installScaleIOSDC", null);
         workflowTasks.put("addNewHostToScaleIO", null);*/
         workflowTasks.put("updateSystemDefinition", updateSystemDefinitionTask());
@@ -158,7 +158,7 @@ public class AddNodeService extends BaseService implements IAddNodeService
     @Bean("setPciPassthroughSioVmTask")
     private WorkflowTask setPciPassthroughSioVmTask()
     {
-        return createTask("Set PCI Pass through ScaleIO VM", new UpdatePciPassthroughTaskHandler(this.nodeService, repository));
+        return createTask("Set PCI Pass through ScaleIO VM", new UpdatePciPassThroughTaskHandler(this.nodeService, repository));
     }
 
     @Bean("applyEsxiLicenseTask")
