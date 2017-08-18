@@ -82,7 +82,7 @@ public class ChangeIdracCredentialsTaskHandlerTest
     {
 
         NodeExpansionRequest request = new NodeExpansionRequest();
-        request.setNodeId("1234");
+        request.setComponentUuid("1234");
         this.job.setInputParams(request);
 
         ChangeIdracCredentialsResponse responseMessage = new ChangeIdracCredentialsResponse();
@@ -107,7 +107,7 @@ public class ChangeIdracCredentialsTaskHandlerTest
     public void testExecuteTask__null_node() throws ServiceTimeoutException, ServiceExecutionException
     {
         NodeExpansionRequest request = new NodeExpansionRequest();
-        request.setNodeId(null);
+        request.setComponentUuid(null);
         this.job.setInputParams(request);
 
 
@@ -120,7 +120,7 @@ public class ChangeIdracCredentialsTaskHandlerTest
     public void testExecuteTask__empty_node() throws ServiceTimeoutException, ServiceExecutionException
     {
         NodeExpansionRequest request = new NodeExpansionRequest();
-        request.setNodeId("");
+        request.setComponentUuid("");
         this.job.setInputParams(request);
 
 
@@ -133,7 +133,7 @@ public class ChangeIdracCredentialsTaskHandlerTest
     public void testExecuteTask__error_response() throws ServiceTimeoutException, ServiceExecutionException
     {
         NodeExpansionRequest request = new NodeExpansionRequest();
-        request.setNodeId("1234");
+        request.setComponentUuid("1234");
         this.job.setInputParams(request);
 
         ChangeIdracCredentialsResponse responseMessage = new ChangeIdracCredentialsResponse();

@@ -1,10 +1,9 @@
 package com.dell.cpsd.paqx.dne.transformers;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.BootImageNetworkAddressV4;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.BootImageNetworkAddressV6;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.BootImageNetworkDevice;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.NodeWorkflowSwitchDevice;
+import com.dell.cpsd.BootImageNetworkAddressV4;
+import com.dell.cpsd.BootImageNetworkDevice;
+import com.dell.cpsd.EsxiInstallationInfo;
+import com.dell.cpsd.NodeWorkflowSwitchDevice;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
 import com.dell.cpsd.paqx.dne.domain.vcenter.HostDnsConfig;
 import com.dell.cpsd.paqx.dne.domain.vcenter.HostIpRouteConfig;

@@ -120,7 +120,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
     {
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.nodeId).when(this.request).getComponentUuid();
         doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
         doReturn(this.systems).when(this.client).getConvergedSystems();
         doReturn(this.systems).when(this.client).getComponents(any(ComponentsFilter.class));
@@ -190,7 +190,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
         doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
-        doReturn(emptyNodeId).when(this.request).getNodeId();
+        doReturn(emptyNodeId).when(this.request).getComponentUuid();
 
         assertEquals(false, this.spy.executeTask(this.job));
         verify(this.client, never()).addComponent(any(), any(), any(), any());
@@ -208,7 +208,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
     {
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.nodeId).when(this.request).getComponentUuid();
         doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
         doReturn(Collections.emptyList()).when(this.client).getConvergedSystems();
 
@@ -228,7 +228,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
     {
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.nodeId).when(this.request).getComponentUuid();
         doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
         doReturn(this.systems).when(this.client).getConvergedSystems();
         doReturn(Collections.emptyList()).when(this.client).getComponents(any(ComponentsFilter.class));
@@ -251,7 +251,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
 
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.nodeId).when(this.request).getComponentUuid();
         doReturn(this.symphonyUuid).when(this.request).getSymphonyUuid();
         doReturn(this.systems).when(this.client).getConvergedSystems();
         doReturn(this.systems).when(this.client).getComponents(any(ComponentsFilter.class));

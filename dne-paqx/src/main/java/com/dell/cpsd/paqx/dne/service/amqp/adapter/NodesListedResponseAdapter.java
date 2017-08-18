@@ -4,7 +4,7 @@
  */
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.NodesListed;
+import com.dell.cpsd.NodesListed;
 import com.dell.cpsd.service.common.client.callback.IServiceCallback;
 import com.dell.cpsd.service.common.client.callback.ServiceResponse;
 import com.dell.cpsd.service.common.client.rpc.ServiceCallbackAdapter;

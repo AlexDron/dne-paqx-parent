@@ -118,7 +118,7 @@ public class NodeExpansionController
         if (discoveredNodes != null)
         {
             return discoveredNodes.stream().map(n -> new NodeInfo(
-                    n.getConvergedUuid(), n.getNodeId(), NodeStatus.valueOf(
+                    n.getConvergedUuid(), NodeStatus.valueOf(
                             n.getNodeStatus().toString()))).collect(Collectors.toList());
         }
         return new ArrayList<>();

@@ -1,6 +1,6 @@
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
+import com.dell.cpsd.EsxiInstallationInfo;
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
@@ -57,7 +57,7 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
                 throw new IllegalStateException("Job input parameters are null");
             }
 
-            final String nodeId = inputParams.getNodeId();
+            final String nodeId = inputParams.getComponentUuid();
 
             if (StringUtils.isEmpty(nodeId))
             {

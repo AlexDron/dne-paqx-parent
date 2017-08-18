@@ -6,7 +6,7 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
+import com.dell.cpsd.EsxiInstallationInfo;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.domain.WorkflowTask;
 import com.dell.cpsd.paqx.dne.service.NodeService;
@@ -91,7 +91,7 @@ public class InstallEsxiTaskHandlerTest
     {
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.nodeId).when(this.request).getComponentUuid();
         doReturn(this.esxiManagementIpAddress).when(this.request).getEsxiManagementIpAddress();
         doReturn(this.esxiManagementHostname).when(this.request).getEsxiManagementHostname();
         doReturn(this.esxiInstallInfo).when(this.transformer).transformInstallEsxiData(anyString(), anyString());
@@ -133,7 +133,7 @@ public class InstallEsxiTaskHandlerTest
 
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(nullINodeId).when(this.request).getNodeId();
+        doReturn(nullINodeId).when(this.request).getComponentUuid();
 
         assertEquals(false, this.spy.executeTask(this.job));
         verify(this.transformer, never()).transformInstallEsxiData(anyString(), anyString());
@@ -152,7 +152,7 @@ public class InstallEsxiTaskHandlerTest
 
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.nodeId).when(this.request).getComponentUuid();
         doReturn(nullEsxiManagementIpAddress).when(this.request).getEsxiManagementIpAddress();
 
         assertEquals(false, this.spy.executeTask(this.job));
@@ -173,7 +173,7 @@ public class InstallEsxiTaskHandlerTest
 
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.request).when(this.job).getInputParams();
-        doReturn(this.nodeId).when(this.request).getNodeId();
+        doReturn(this.nodeId).when(this.request).getComponentUuid();
         doReturn(this.esxiManagementIpAddress).when(this.request).getEsxiManagementIpAddress();
         doReturn(nullEsxiManagementHostname).when(this.request).getEsxiManagementHostname();
         doReturn(this.esxiInstallInfo).when(this.transformer).transformInstallEsxiData(anyString(), anyString());

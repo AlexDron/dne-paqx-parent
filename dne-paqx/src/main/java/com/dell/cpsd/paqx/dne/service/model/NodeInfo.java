@@ -22,16 +22,14 @@ import com.dell.cpsd.service.system.definition.api.Identity;
 public class NodeInfo
 {
     private String       symphonyUuid;
-    private String       nodeId;
     private NodeStatus   nodeStatus;
     private Identity     identity;
     private Definition   definition;
     private List<String> parentGroups;
     private List<String> endpoints;
 
-    public NodeInfo(String symphonyUuid, String nodeId, NodeStatus nodeStatus)
+    public NodeInfo(String symphonyUuid, NodeStatus nodeStatus)
     {
-        this.nodeId = nodeId;
         this.nodeStatus = nodeStatus;
         this.symphonyUuid = symphonyUuid;
 
@@ -39,8 +37,7 @@ public class NodeInfo
         // Specifically, need to get the MAC address from somewhere...
         // for now will use the symphonyUuid.
         // What about the IP address and the serial number??
-        this.identity = new Identity("SERVER", this.symphonyUuid, /* TODO change this */this.nodeId, /* TODO change this */this.nodeId,
-                null/* businessKeys */);
+        this.identity = new Identity("SERVER", this.symphonyUuid, null, null, null/* businessKeys */);
         this.definition = new Definition("POWEREDGE", "POWEREDGE", "630", "R630");
         this.parentGroups = new ArrayList<>();
         this.parentGroups.add("SystemCompute");
@@ -55,11 +52,6 @@ public class NodeInfo
     public String getSymphonyUuid()
     {
         return symphonyUuid;
-    }
-
-    public String getNodeId()
-    {
-        return nodeId;
     }
 
     public NodeStatus getNodeStatus()
@@ -98,7 +90,6 @@ public class NodeInfo
         builder.append("NodeInfo {");
 
         builder.append("symphonyUuid=").append(this.symphonyUuid);
-        builder.append(", nodeId=").append(this.nodeId);
         builder.append(", nodeStatus=").append(this.nodeStatus);
 
         builder.append("}");

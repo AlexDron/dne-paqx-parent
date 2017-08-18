@@ -20,7 +20,7 @@ public class NodeExpansionRequest
     private String scaleIOSVMDataIpAddress2;
     private String scaleIOSVMManagementIpAddress;
     private String hostname;
-    private String nodeId;
+    private String componentUuid;
     private String clusterName;
     private String symphonyUuid;
 
@@ -42,7 +42,7 @@ public class NodeExpansionRequest
         this.scaleIOSVMDataIpAddress1 = scaleIOSVMDataIpAddress1;
         this.scaleIOSVMDataIpAddress2 = scaleIOSVMDataIpAddress2;
         this.scaleIOSVMManagementIpAddress = scaleIOSVMManagementIpAddress;
-        this.nodeId = nodeId;
+        this.componentUuid = nodeId;
         this.symphonyUuid = symphonyUuid;
         this.clusterName = clusterName;
 
@@ -150,12 +150,12 @@ public class NodeExpansionRequest
         this.hostname = hostname;
     }
 
-    public String getNodeId() {
-        return nodeId;
+    public String getComponentUuid() {
+        return componentUuid;
     }
 
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
+    public void setComponentUuid(String componentUuid) {
+        this.componentUuid = componentUuid;
     }
 
     public String getClusterName() {
@@ -188,7 +188,7 @@ public class NodeExpansionRequest
                 + ", scaleIOSVMDataIpAddress1='" + scaleIOSVMDataIpAddress1 + '\''
                 + ", scaleIOSVMDataIpAddress2='" + scaleIOSVMDataIpAddress2 + '\''
                 + ", scaleIOSVMManagementIpAddress='" + scaleIOSVMManagementIpAddress + '\''
-                + ", nodeId='" + nodeId + '\''
+                + ", componentUuid='" + componentUuid + '\''
                 + ", clusterName='" + clusterName + '\''
                 + ", symphonyUuid='" + symphonyUuid + '\''
                 + ", hostname='" + hostname + '\'' + '}';

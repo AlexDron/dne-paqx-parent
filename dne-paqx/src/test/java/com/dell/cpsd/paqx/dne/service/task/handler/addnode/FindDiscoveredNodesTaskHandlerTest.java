@@ -6,13 +6,15 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus;
+
+import com.dell.cpsd.*;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.WorkflowService;
 import com.dell.cpsd.paqx.dne.service.WorkflowServiceImpl;
 import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeService;
 import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeTaskConfig;
 import com.dell.cpsd.paqx.dne.service.workflow.preprocess.PreProcessService;
@@ -74,7 +76,7 @@ public class FindDiscoveredNodesTaskHandlerTest
                 "scaleIOSVMDataIpAddress2", "scaleIOSVMManagementIpAddress", "nodeId", "symphonyUuid", "clausterName"));
 
         FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();
-        response.setNodeInfo(new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED));
+        response.setNodeInfo(new NodeInfo("symphonyUuid", NodeStatus.DISCOVERED));
         this.job.addTaskResponse("findAvailableNodes", response);
 
         this.job.changeToNextStep("findAvailableNodes");
@@ -92,7 +94,7 @@ public class FindDiscoveredNodesTaskHandlerTest
     public void testExecuteTask_successful_case() throws ServiceTimeoutException, ServiceExecutionException
     {
         when(this.nodeService.listDiscoveredNodes())
-                .thenReturn(Arrays.asList(new DiscoveredNode("convergedUuid", "nodeId", AllocationStatus.DISCOVERED)));
+                .thenReturn(Arrays.asList(new DiscoveredNode("convergedUuid", com.dell.cpsd.DiscoveredNode.AllocationStatus.DISCOVERED)));
 
         FindDiscoveredNodesTaskHandler instance = new FindDiscoveredNodesTaskHandler(this.nodeService);
         boolean expectedResult = true;

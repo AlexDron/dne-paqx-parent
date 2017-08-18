@@ -8,7 +8,6 @@ package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.dell.cpsd.paqx.dne.service.model.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -81,7 +80,7 @@ public class AddNodeToSystemDefinitionTaskHandler extends BaseTaskHandler implem
 
         try
         {
-            if (StringUtils.isEmpty(job.getInputParams().getSymphonyUuid()) || StringUtils.isEmpty(job.getInputParams().getNodeId()))
+            if (StringUtils.isEmpty(job.getInputParams().getSymphonyUuid()) || StringUtils.isEmpty(job.getInputParams().getComponentUuid()))
             {
                 throw new IllegalStateException("No discovered node info found.");
             }
@@ -105,7 +104,7 @@ public class AddNodeToSystemDefinitionTaskHandler extends BaseTaskHandler implem
 
             ConvergedSystem systemToBeUpdated = systemDetails.get(0);
 
-            NodeInfo nodeInfo = new NodeInfo(job.getInputParams().getSymphonyUuid(), job.getInputParams().getNodeId(), NodeStatus.DISCOVERED);
+            NodeInfo nodeInfo = new NodeInfo(job.getInputParams().getSymphonyUuid(), NodeStatus.DISCOVERED);
             Component newNode = new Component();
             newNode.setUuid(nodeInfo.getSymphonyUuid());
             newNode.setIdentity(nodeInfo.getIdentity());
