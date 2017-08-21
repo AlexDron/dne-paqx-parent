@@ -21,19 +21,8 @@ def load_test_data():
 #####################################################################
 @pytest.mark.dne_paqx_parent
 @pytest.mark.dne_paqx_parent_mvp
-@pytest.mark.parametrize("container_name,expected", [
-	("symphony-credential-service",'Up'),
-	("symphony-identity-service",'Up'),
-	("symphony-hal-orchestrator-service",'Up'),
-	("symphony-system-definition-service",'Up'),
-	("symphony-node-discovery-paqx",'Up'),
-	("symphony-dne-paqx",'Up'),
-	("symphony-capability-registry-service",'Up'),
-	("symphony-endpoint-registration-service", 'Up'),
-	("symphony-rackhd-adapter-service",'Up'),
-	("symphony-coprhd-adapter-service",'Up'),
-	("symphony-vcenter-adapter-service",'Up'),
-])
+@pytest.mark.dne_paqx_parent_mvp_extended
+@pytest.mark.parametrize("container_name,expected", [("cpsd-credentials-service",'Up'), ("symphony-identity-service",'Up'), ("symphony-hal-orchestrator-service",'Up'), ("symphony-system-definition-service",'Up'), ("symphony-node-discovery-paqx",'Up'), ("symphony-dne-paqx",'Up'), ("symphony-capability-registry-service",'Up'), ("symphony-endpoint-registration-service", 'Up'), ("symphony-rackhd-adapter-service",'Up'), ("cpsd-coprhd-adapter-service",'Up'), ("symphony-vcenter-adapter-service",'Up'),])
 
 def test_generic_container_up(container_name, expected):
     """
