@@ -60,6 +60,11 @@ public class PreProcessService extends BaseService implements IPreProcessService
         return createTask("Configuring Out of Band Management", new ConfigIdracTaskHandler(nodeService));
     }
 
+    @Bean("pingIdracTask")
+    private WorkflowTask pingIdracTask(){
+        return createTask("Ping iDRAC IP Address", new PingIdracTaskHandler(120000));
+    }
+
     @Bean("configureBootDeviceIdrac")
     private WorkflowTask configureBootDeviceIdrac(){
         return createTask("Configure Boot Device Idrac", new ConfigureBootDeviceIdracTaskHandler(nodeService));
@@ -124,6 +129,7 @@ public class PreProcessService extends BaseService implements IPreProcessService
         workflowTasks.put("discoverScaleIo", discoverScaleIoTask());
         workflowTasks.put("discoverVCenter", discoverVCenterTask());
         workflowTasks.put("configIdrac", configIdracTask());
+        workflowTasks.put("pingIdrac", pingIdracTask());
         workflowTasks.put("configureBootDeviceIdrac", configureBootDeviceIdrac());
         workflowTasks.put("findVCluster", createVClusterTask());
         //workflowTasks.put("findProtectionDomain", findProtectionDomainTask());

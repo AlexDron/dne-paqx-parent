@@ -37,14 +37,11 @@ def verify_docker_network(container_name):
     Returns             :       0 or 1 (Boolean)
     """
     test_status = "pass"
-    cmd = 'docker network inspect consul_default |  grep ' + str(container_name)
+    cmd = 'docker network inspect bridge |  grep ' + str(container_name)
     output = af_support_tools.send_ssh_command(host=ipaddress, username=username, password=password, command=cmd, return_output=True).strip()
     if (container_name not in output):
         test_status = "fail"
-    cmd = 'docker network inspect host |  grep ' + str(container_name)
-    output = af_support_tools.send_ssh_command(host=ipaddress, username=username, password=password, command=cmd, return_output=True).strip()
-    if (container_name in output):
-        test_status = "fail"
+
     if (test_status == "fail"):
         return 0
     else:

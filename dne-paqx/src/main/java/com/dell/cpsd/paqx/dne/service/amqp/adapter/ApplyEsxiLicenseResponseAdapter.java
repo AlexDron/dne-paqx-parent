@@ -1,13 +1,20 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.InstallESXiResponseMessage;
 import com.dell.cpsd.service.common.client.callback.IServiceCallback;
 import com.dell.cpsd.service.common.client.callback.ServiceResponse;
 import com.dell.cpsd.service.common.client.rpc.ServiceCallbackAdapter;
 import com.dell.cpsd.service.common.client.rpc.ServiceCallbackRegistry;
+import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseResponse;
 
 /**
  * TODO: Document Usage
+ *
  * <p/>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * <p/>
@@ -16,7 +23,7 @@ import com.dell.cpsd.service.common.client.rpc.ServiceCallbackRegistry;
  * @since 1.0
  */
 public class ApplyEsxiLicenseResponseAdapter
-        implements ServiceCallbackAdapter<InstallESXiResponseMessage, ServiceResponse<InstallESXiResponseMessage>>
+        implements ServiceCallbackAdapter<AddEsxiHostVSphereLicenseResponse, ServiceResponse<AddEsxiHostVSphereLicenseResponse>>
 {
     private final ServiceCallbackRegistry serviceCallbackRegistry;
 
@@ -26,26 +33,26 @@ public class ApplyEsxiLicenseResponseAdapter
     }
 
     @Override
-    public ServiceResponse<InstallESXiResponseMessage> transform(final InstallESXiResponseMessage responseMessage)
+    public ServiceResponse<AddEsxiHostVSphereLicenseResponse> transform(final AddEsxiHostVSphereLicenseResponse responseMessage)
     {
         return new ServiceResponse<>(responseMessage.getMessageProperties().getCorrelationId(), responseMessage, null);
     }
 
     @Override
-    public void consume(final IServiceCallback callback, final ServiceResponse<InstallESXiResponseMessage> responseMessage)
+    public void consume(final IServiceCallback callback, final ServiceResponse<AddEsxiHostVSphereLicenseResponse> responseMessage)
     {
         callback.handleServiceResponse(responseMessage);
     }
 
     @Override
-    public IServiceCallback take(final InstallESXiResponseMessage installESXiResponseMessage)
+    public IServiceCallback take(final AddEsxiHostVSphereLicenseResponse addEsxiHostVSphereLicenseResponse)
     {
-        return serviceCallbackRegistry.removeServiceCallback(installESXiResponseMessage.getMessageProperties().getCorrelationId());
+        return serviceCallbackRegistry.removeServiceCallback(addEsxiHostVSphereLicenseResponse.getMessageProperties().getCorrelationId());
     }
 
     @Override
-    public Class<InstallESXiResponseMessage> getSourceClass()
+    public Class<AddEsxiHostVSphereLicenseResponse> getSourceClass()
     {
-        return InstallESXiResponseMessage.class;
+        return AddEsxiHostVSphereLicenseResponse.class;
     }
 }

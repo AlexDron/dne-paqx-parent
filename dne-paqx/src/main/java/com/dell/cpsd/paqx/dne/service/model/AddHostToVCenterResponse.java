@@ -12,27 +12,15 @@ package com.dell.cpsd.paqx.dne.service.model;
  */
 public class AddHostToVCenterResponse extends TaskResponse
 {
-    private String message;
+    private String clusterId;
 
-    private String status;
-
-    public String getMessage()
+    public String getClusterId()
     {
-        return message;
+        return clusterId;
     }
 
-    public void setMessage(final String message)
+    public void setClusterId(final String clusterId)
     {
-        this.message = message;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(final String status)
-    {
-        this.status = status;
+        this.clusterId = clusterId;
     }
 }

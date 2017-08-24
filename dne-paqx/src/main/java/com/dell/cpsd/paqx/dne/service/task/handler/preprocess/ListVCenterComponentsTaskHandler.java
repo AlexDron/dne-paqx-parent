@@ -1,3 +1,9 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
@@ -12,8 +18,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Document Usage
+ *
  * <p>
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * </p>
  *
  * @version 1.0
@@ -43,24 +50,29 @@ public class ListVCenterComponentsTaskHandler extends BaseTaskHandler implements
     {
         LOGGER.info("Execute List VCenter Components task");
 
-        final TaskResponse response = initializeResponse(job);
+        final ListVCenterComponentsTaskResponse response = initializeResponse(job);
 
         try
         {
-            final boolean status = this.nodeService.requestVCenterComponents();
+            final boolean succeeded = this.nodeService.requestVCenterComponents();
 
-            response.setWorkFlowTaskStatus(status? Status.SUCCEEDED : Status.FAILED);
+            if (!succeeded)
+            {
+                throw new IllegalStateException("Request for VCenter components failed");
+            }
 
-            return status;
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+            return true;
 
         }
         catch (Exception e)
         {
             LOGGER.error("Error while listing the VCenter components", e);
             response.addError(e.toString());
-            response.setWorkFlowTaskStatus(Status.FAILED);
-            return false;
         }
+
+        response.setWorkFlowTaskStatus(Status.FAILED);
+        return false;
     }
 
     /**

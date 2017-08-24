@@ -1,10 +1,15 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOMdmCluster;
-import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
@@ -25,9 +30,10 @@ import java.util.UUID;
 
 /**
  * TODO: Document Usage
- * <p/>
+ *
+ * <p>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
- * <p/>
+ * </p>
  *
  * @version 1.0
  * @since 1.0
@@ -37,18 +43,18 @@ public class ConfigureScaleIoVibTaskHandler extends BaseTaskHandler implements I
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigureScaleIoVibTaskHandler.class);
+    private static final Logger LOGGER                = LoggerFactory.getLogger(ConfigureScaleIoVibTaskHandler.class);
     private static final String IOCTL_INI_GUID_STRING = "IoctlIniGuidStr";
     private static final String IOCTL_MDM_IP_STRING   = "IoctlMdmIPStr";
     private static final String EQUALS_STRING         = "=";
     private static final String SPACE_STRING          = " ";
     private static final String COMMA_DELIMITER       = ",";
-    private static final String SOFTWARE_VIB_MODULE = "scini";
+    private static final String SOFTWARE_VIB_MODULE   = "scini";
 
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService nodeService;
+    private final NodeService           nodeService;
     private final DataServiceRepository repository;
 
     public ConfigureScaleIoVibTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
@@ -65,7 +71,7 @@ public class ConfigureScaleIoVibTaskHandler extends BaseTaskHandler implements I
 
         try
         {
-            final ComponentEndpointIds componentEndpointIds = repository.getComponentEndpointIds("VCENTER");
+            final ComponentEndpointIds componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
 
             if (componentEndpointIds == null)
             {
@@ -86,29 +92,44 @@ public class ConfigureScaleIoVibTaskHandler extends BaseTaskHandler implements I
                 throw new IllegalStateException("Host name is null");
             }
 
-            final SoftwareVIBConfigureRequestMessage requestMessage = new SoftwareVIBConfigureRequestMessage();
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
-            requestMessage.setComponentEndpointIds(
-                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
-                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
-
-            final SoftwareVIBConfigureRequest softwareVIBConfigureRequest = new SoftwareVIBConfigureRequest();
-            softwareVIBConfigureRequest.setHostName(hostname);
-            softwareVIBConfigureRequest.setModuleName(SOFTWARE_VIB_MODULE);
-            //softwareVIBConfigureRequest.setModuleOptions(buildModuleOptions(jobId));
-            requestMessage.setSoftwareVIBConfigureRequest(softwareVIBConfigureRequest);
+            final SoftwareVIBConfigureRequestMessage requestMessage = getSoftwareVIBConfigureRequestMessage(componentEndpointIds, hostname);
 
             final boolean success = this.nodeService.requestConfigureScaleIoVib(requestMessage);
 
-            response.setWorkFlowTaskStatus(success ? Status.SUCCEEDED : Status.FAILED);
+            if (!success)
+            {
+                throw new IllegalStateException("Unable to Configure Software VIB");
+            }
 
-            return success;
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+
+            return true;
         }
         catch (Exception e)
         {
             LOGGER.error("Exception occurred", e);
-            return false;
+            response.addError(e.getMessage());
         }
+
+        response.setWorkFlowTaskStatus(Status.FAILED);
+        return false;
+    }
+
+    private SoftwareVIBConfigureRequestMessage getSoftwareVIBConfigureRequestMessage(final ComponentEndpointIds componentEndpointIds,
+            final String hostname) throws Exception
+    {
+        final SoftwareVIBConfigureRequestMessage requestMessage = new SoftwareVIBConfigureRequestMessage();
+        requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        requestMessage.setComponentEndpointIds(
+                new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                        componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+
+        final SoftwareVIBConfigureRequest softwareVIBConfigureRequest = new SoftwareVIBConfigureRequest();
+        softwareVIBConfigureRequest.setHostName(hostname);
+        softwareVIBConfigureRequest.setModuleName(SOFTWARE_VIB_MODULE);
+        softwareVIBConfigureRequest.setModuleOptions(buildModuleOptions());
+        requestMessage.setSoftwareVIBConfigureRequest(softwareVIBConfigureRequest);
+        return requestMessage;
     }
 
     @Override
@@ -122,17 +143,16 @@ public class ConfigureScaleIoVibTaskHandler extends BaseTaskHandler implements I
         return response;
     }
 
-    //TODO: This will change
-    private String buildModuleOptions(final String jobId) throws Exception
+    private String buildModuleOptions() throws Exception
     {
-        if (jobId == null)
-        {
-            throw new Exception("Job Id is null");
-        }
-
         try
         {
-            final ScaleIOData scaleIOData = repository.getScaleIoData(jobId);
+            final ScaleIOData scaleIOData = repository.getScaleIoData();
+
+            if (scaleIOData == null)
+            {
+                throw new Exception("ScaleIO Data is null");
+            }
 
             final Set<String> mdmIpList = new HashSet<>();
 
@@ -153,7 +173,7 @@ public class ConfigureScaleIoVibTaskHandler extends BaseTaskHandler implements I
             builder.append(EQUALS_STRING);
             final String randomGuidString = UUID.randomUUID().toString();
 
-            LOGGER.info("IoctlIniGuidStr for jobId [{}] is [{}]", jobId, randomGuidString);
+            LOGGER.info("IoctlIniGuidStr is [{}]", randomGuidString);
 
             builder.append(randomGuidString);
             builder.append(SPACE_STRING);

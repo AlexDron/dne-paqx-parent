@@ -93,7 +93,12 @@ pipeline {
                 sh 'rm -rf .repo'
                 doNexbScanning()
             }
-        }        
+        }
+        stage('Run pytest Scanner') {
+          steps {
+            runPyTestScanner()
+          }
+    	}
     }
     post {
         always {

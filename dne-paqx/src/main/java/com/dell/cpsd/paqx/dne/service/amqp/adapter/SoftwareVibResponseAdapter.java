@@ -1,3 +1,7 @@
+/**
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ */
+
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
 import com.dell.cpsd.service.common.client.callback.IServiceCallback;
@@ -8,6 +12,7 @@ import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBResponseMessage;
 
 /**
  * TODO: Document Usage
+ *
  * <p/>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * <p/>

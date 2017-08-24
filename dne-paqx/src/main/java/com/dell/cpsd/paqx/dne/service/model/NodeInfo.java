@@ -39,7 +39,7 @@ public class NodeInfo
         // Specifically, need to get the MAC address from somewhere...
         // for now will use the symphonyUuid.
         // What about the IP address and the serial number??
-        this.identity = new Identity("SERVER", this.symphonyUuid, /* TODO change this */this.nodeId, /* TODO change this */this.nodeId,
+        this.identity = new Identity("computeServer", this.symphonyUuid, /* TODO change this */this.nodeId, /* TODO change this */this.nodeId,
                 null/* businessKeys */);
         this.definition = new Definition("POWEREDGE", "POWEREDGE", "630", "R630");
         this.parentGroups = new ArrayList<>();

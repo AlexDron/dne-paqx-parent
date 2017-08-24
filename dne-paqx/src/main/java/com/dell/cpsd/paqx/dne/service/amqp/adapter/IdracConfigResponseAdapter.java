@@ -3,6 +3,12 @@
  * Dell EMC Confidential/Proprietary Information
  */
 
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponseMessage;
@@ -13,8 +19,7 @@ import com.dell.cpsd.service.common.client.rpc.ServiceCallbackRegistry;
 
 /**
  * <p>
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
- * Dell EMC Confidential/Proprietary Information
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * </p>
  *
  * @since 1.0

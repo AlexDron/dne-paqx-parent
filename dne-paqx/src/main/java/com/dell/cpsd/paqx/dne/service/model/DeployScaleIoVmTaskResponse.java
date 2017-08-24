@@ -12,27 +12,15 @@ package com.dell.cpsd.paqx.dne.service.model;
  */
 public class DeployScaleIoVmTaskResponse extends TaskResponse
 {
-    private String message;
+    private String newVMName;
 
-    private String status;
-
-    public String getMessage()
+    public String getNewVMName()
     {
-        return message;
+        return newVMName;
     }
 
-    public void setMessage(final String message)
+    public void setNewVMName(final String newVMName)
     {
-        this.message = message;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(final String status)
-    {
-        this.status = status;
+        this.newVMName = newVMName;
     }
 }

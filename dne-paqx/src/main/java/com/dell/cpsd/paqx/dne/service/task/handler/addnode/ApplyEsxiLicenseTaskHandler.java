@@ -1,3 +1,9 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
@@ -8,7 +14,6 @@ import com.dell.cpsd.paqx.dne.service.model.ApplyEsxiLicenseTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
 import com.dell.cpsd.paqx.dne.service.model.InstallEsxiTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.Status;
-import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
 import com.dell.cpsd.virtualization.capabilities.api.Credentials;
@@ -17,9 +22,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Document Usage
- * <p/>
+ *
+ * <p>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
- * <p/>
+ * </p>
  *
  * @version 1.0
  * @since 1.0
@@ -34,7 +40,7 @@ public class ApplyEsxiLicenseTaskHandler extends BaseTaskHandler implements IWor
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService nodeService;
+    private final NodeService           nodeService;
     private final DataServiceRepository repository;
 
     public ApplyEsxiLicenseTaskHandler(final NodeService nodeService, final DataServiceRepository repository)
@@ -46,13 +52,13 @@ public class ApplyEsxiLicenseTaskHandler extends BaseTaskHandler implements IWor
     @Override
     public boolean executeTask(final Job job)
     {
-        LOGGER.info("Execute Add Host to VCenter task");
+        LOGGER.info("Execute Apply Esxi License task");
 
         final ApplyEsxiLicenseTaskResponse response = initializeResponse(job);
 
         try
         {
-            final ComponentEndpointIds componentEndpointIds = repository.getComponentEndpointIds("VCENTER");
+            final ComponentEndpointIds componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
 
             if (componentEndpointIds == null)
             {
@@ -73,24 +79,39 @@ public class ApplyEsxiLicenseTaskHandler extends BaseTaskHandler implements IWor
                 throw new IllegalStateException("Host name is null");
             }
 
-            final AddEsxiHostVSphereLicenseRequest requestMessage = new AddEsxiHostVSphereLicenseRequest();
-            requestMessage.setHostname(hostname);
-            requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
-            requestMessage.setComponentEndpointIds(
-                    new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
-                            componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+            final AddEsxiHostVSphereLicenseRequest requestMessage = getLicenseRequest(componentEndpointIds, hostname);
 
             final boolean success = this.nodeService.requestInstallEsxiLicense(requestMessage);
 
-            response.setWorkFlowTaskStatus(success ? Status.SUCCEEDED : Status.FAILED);
+            if (!success)
+            {
+                throw new IllegalStateException("Apply ESXi Host License Failed");
+            }
 
-            return success;
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+
+            return true;
         }
         catch (Exception e)
         {
             LOGGER.error("Exception occurred", e);
-            return false;
+            response.addError(e.toString());
         }
+
+        response.setWorkFlowTaskStatus(Status.FAILED);
+
+        return false;
+    }
+
+    private AddEsxiHostVSphereLicenseRequest getLicenseRequest(final ComponentEndpointIds componentEndpointIds, final String hostname)
+    {
+        final AddEsxiHostVSphereLicenseRequest requestMessage = new AddEsxiHostVSphereLicenseRequest();
+        requestMessage.setHostname(hostname);
+        requestMessage.setCredentials(new Credentials(componentEndpointIds.getEndpointUrl(), null, null));
+        requestMessage.setComponentEndpointIds(
+                new com.dell.cpsd.virtualization.capabilities.api.ComponentEndpointIds(componentEndpointIds.getComponentUuid(),
+                        componentEndpointIds.getEndpointUuid(), componentEndpointIds.getCredentialUuid()));
+        return requestMessage;
     }
 
     @Override

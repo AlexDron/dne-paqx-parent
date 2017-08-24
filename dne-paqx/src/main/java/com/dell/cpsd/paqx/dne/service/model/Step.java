@@ -121,7 +121,7 @@ public class Step
             return true;
         }
         
-        if ((other instanceof Step) == false)
+        if (!(other instanceof Step))
         {
             return false;
         }

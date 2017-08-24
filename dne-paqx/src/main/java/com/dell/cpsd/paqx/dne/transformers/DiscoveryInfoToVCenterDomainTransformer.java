@@ -27,8 +27,11 @@ import com.dell.cpsd.virtualization.capabilities.api.DiscoveryResponseInfoMessag
 import com.dell.cpsd.virtualization.capabilities.api.DistributedVirtualSwicthPortConnection;
 import com.dell.cpsd.virtualization.capabilities.api.DvSwitch;
 import com.dell.cpsd.virtualization.capabilities.api.GuestNicInfo;
+import com.dell.cpsd.virtualization.capabilities.api.HostHardwareInfo;
 import com.dell.cpsd.virtualization.capabilities.api.HostPciDevice;
 import com.dell.cpsd.virtualization.capabilities.api.HostSystem;
+import com.dell.cpsd.virtualization.capabilities.api.HostSystemIdentificationInfo;
+import com.dell.cpsd.virtualization.capabilities.api.HostSystemInfo;
 import com.dell.cpsd.virtualization.capabilities.api.HostVirtualNic;
 import com.dell.cpsd.virtualization.capabilities.api.HostVirtualSwitch;
 import org.springframework.stereotype.Component;
@@ -320,20 +323,28 @@ public class DiscoveryInfoToVCenterDomainTransformer
             }
 
         }
-        if (hostSystem.getHostHardwareInfo() != null)
+
+        final HostHardwareInfo hostHardwareInfo = hostSystem.getHostHardwareInfo();
+
+        if (hostHardwareInfo != null)
         {
-            if (hostSystem.getHostHardwareInfo().getPciDevice() != null)
+            final List<HostPciDevice> hostPciDevices = hostHardwareInfo.getPciDevice();
+            if (hostPciDevices != null)
             {
                 // Transform and link VirtualNics
-                final List<PciDevice> pciDevices = hostSystem.getHostHardwareInfo().getPciDevice().stream().filter(Objects::nonNull)
-                        .map(pciDevice -> transformHostPciDevice(pciDevice, returnVal)).collect(Collectors.toList());
-                returnVal.setPciDevices(pciDevices);
+                hostPciDevices.stream().filter(Objects::nonNull).forEach(pciDevice -> returnVal.getPciDevices().add(transformHostPciDevice(pciDevice, returnVal)));
             }
-        }
 
-        if (hostSystem.getHostHardwareInfo() != null)
-        {
-            returnVal.setServiceTag(hostSystem.getHostHardwareInfo().getHostSystemInfo().getHostSystemIdentificationInfo().getServiceTag());
+            final HostSystemInfo hostSystemInfo = hostHardwareInfo.getHostSystemInfo();
+            if (hostSystemInfo != null)
+            {
+                final HostSystemIdentificationInfo hostSystemVerificationInfo = hostSystemInfo.getHostSystemIdentificationInfo();
+
+                if (hostSystemVerificationInfo != null)
+                {
+                    returnVal.setServiceTag(hostSystemVerificationInfo.getServiceTag());
+                }
+            }
         }
 
         // One to Many Link to VMs

@@ -1,3 +1,9 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
@@ -12,8 +18,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Document Usage
+ *
  * <p>
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * </p>
  *
  * @version 1.0
@@ -42,24 +49,29 @@ public class ListScaleIoComponentsTaskHandler extends BaseTaskHandler implements
     {
         LOGGER.info("Execute List ScaleIO Components task");
 
-        final TaskResponse response = initializeResponse(job);
+        final ListScaleIoComponentsTaskResponse response = initializeResponse(job);
 
         try
         {
-            final boolean status = this.nodeService.requestScaleIoComponents();
+            final boolean succeeded = this.nodeService.requestScaleIoComponents();
 
-            response.setWorkFlowTaskStatus(status? Status.SUCCEEDED : Status.FAILED);
+            if (!succeeded)
+            {
+                throw new IllegalStateException("Request for ScaleIO components failed");
+            }
 
-            return status;
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+            return true;
 
         }
         catch (Exception e)
         {
             LOGGER.error("Error while listing the ScaleIO components", e);
             response.addError(e.toString());
-            response.setWorkFlowTaskStatus(Status.FAILED);
-            return false;
         }
+
+        response.setWorkFlowTaskStatus(Status.FAILED);
+        return false;
     }
 
     /**

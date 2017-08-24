@@ -23,7 +23,8 @@ public class AddNodeTaskConfig
     {
         final Map<String, Step> workflowSteps = new HashMap<>();
 
-        workflowSteps.put("startAddNodeWorkflow", new Step("changeIdracCredentials"));
+        workflowSteps.put("startAddNodeWorkflow", new Step("retrieveEsxiDefaultCredentialDetails"));
+        workflowSteps.put("retrieveEsxiDefaultCredentialDetails", new Step("changeIdracCredentials"));
         workflowSteps.put("changeIdracCredentials", new Step("updateSystemDefinition"));
         //TODO: Add all the steps here once tested
         workflowSteps.put("updateSystemDefinition", new Step("notifyNodeDiscoveryToUpdateStatus"));

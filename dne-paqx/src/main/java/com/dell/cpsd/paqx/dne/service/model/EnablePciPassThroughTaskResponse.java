@@ -12,27 +12,15 @@ package com.dell.cpsd.paqx.dne.service.model;
  */
 public class EnablePciPassThroughTaskResponse extends TaskResponse
 {
-    private String message;
+    private String hostPciDeviceId;
 
-    private String status;
-
-    public String getMessage()
+    public String getHostPciDeviceId()
     {
-        return message;
+        return hostPciDeviceId;
     }
 
-    public void setMessage(final String message)
+    public void setHostPciDeviceId(final String hostPciDeviceId)
     {
-        this.message = message;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(final String status)
-    {
-        this.status = status;
+        this.hostPciDeviceId = hostPciDeviceId;
     }
 }

@@ -42,6 +42,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * The tests for the AddNodeToSystemDefinitionTaskHandler class.
+ *
  * <p>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * </p>
@@ -80,7 +81,7 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
 
     private String taskName = "addNodeTosystemDefinitionTask";
     private String stepName = "addNodeTosystemDefinitionStep";
-    private String nodeId       = "nodeId";
+    private String nodeId = "nodeId";
     private String symphonyUuid = "symphonyUuid";
 
     private AddNodeToSystemDefinitionTaskHandler handler;

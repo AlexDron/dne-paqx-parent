@@ -18,6 +18,8 @@ import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMes
 import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoveryRequestInfoMessage;
 import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughRequestMessage;
@@ -135,4 +137,8 @@ public interface DneProducer
     void publishSetPciPassthrough(final UpdatePCIPassthruSVMRequestMessage request);
 
     void publishApplyEsxiLicense(final AddEsxiHostVSphereLicenseRequest request);
+
+    void publishListExsiCredentialDetails(final ListEsxiCredentialDetailsRequestMessage requestMessage);
+
+    void publishEsxiHostExitMaintenanceMode(final HostMaintenanceModeRequestMessage requestMessage);
 }

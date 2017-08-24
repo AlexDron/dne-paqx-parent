@@ -260,7 +260,7 @@ public class Job
             return true;
         }
         
-        if ((other instanceof Job) == false)
+        if (!(other instanceof Job))
         {
             return false;
         }

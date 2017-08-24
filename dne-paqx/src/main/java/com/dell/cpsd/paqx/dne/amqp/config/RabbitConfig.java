@@ -16,8 +16,29 @@ import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentResponseMessage;
 import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListStorageResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
+import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseResponse;
+import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBConfigureRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
 import org.springframework.amqp.core.*;
@@ -39,7 +60,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.*;
@@ -224,6 +244,40 @@ public class RabbitConfig
         messageClasses.add(ListStorageResponseMessage.class);
         messageClasses.add(DiscoveryRequestInfoMessage.class);
         messageClasses.add(DiscoveryResponseInfoMessage.class);
+
+        messageClasses.add(AddEsxiHostVSphereLicenseRequest.class);
+        messageClasses.add(AddEsxiHostVSphereLicenseResponse.class);
+
+        messageClasses.add(ClusterOperationRequestMessage.class);
+        messageClasses.add(ClusterOperationResponseMessage.class);
+
+        messageClasses.add(InstallESXiRequestMessage.class);
+        messageClasses.add(InstallESXiResponseMessage.class);
+
+        messageClasses.add(AddHostToDvSwitchRequestMessage.class);
+        messageClasses.add(AddHostToDvSwitchResponseMessage.class);
+
+        messageClasses.add(SoftwareVIBConfigureRequestMessage.class);
+        messageClasses.add(SoftwareVIBRequestMessage.class);
+        messageClasses.add(SoftwareVIBResponseMessage.class);
+
+        messageClasses.add(DeployVMFromTemplateRequestMessage.class);
+        messageClasses.add(DeployVMFromTemplateResponseMessage.class);
+
+        messageClasses.add(EnablePCIPassthroughRequestMessage.class);
+        messageClasses.add(EnablePCIPassthroughResponseMessage.class);
+
+        messageClasses.add(HostPowerOperationRequestMessage.class);
+        messageClasses.add(HostPowerOperationResponseMessage.class);
+
+        messageClasses.add(UpdatePCIPassthruSVMRequestMessage.class);
+        messageClasses.add(UpdatePCIPassthruSVMResponseMessage.class);
+
+        messageClasses.add(ListEsxiCredentialDetailsRequestMessage.class);
+        messageClasses.add(ListEsxiCredentialDetailsResponseMessage.class);
+
+        messageClasses.add(HostMaintenanceModeRequestMessage.class);
+        messageClasses.add(HostMaintenanceModeResponseMessage.class);
 
         MessageAnnotationProcessor messageAnnotationProcessor = new MessageAnnotationProcessor();
         messageAnnotationProcessor.process(classMappings::put, messageClasses);

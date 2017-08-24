@@ -32,22 +32,9 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-/**
- * The tests for FindVClusterTaskHandler.
- * <p>
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
- * </p>
- *
- * @since 1.0
- */
 @RunWith(MockitoJUnitRunner.class)
 public class FindVClusterTaskHandlerTest
 {
-
-    /*
-     * The <code>NodeService</code> instance.
-     * @since 1.0
-     */
     @Mock
     private NodeService nodeService = null;
 
@@ -101,8 +88,7 @@ public class FindVClusterTaskHandlerTest
      * @since 1.0
      */
     @Test
-    public void testExecuteTask_successful_case() throws ServiceTimeoutException, ServiceExecutionException
-    {
+    public void testExecuteTask_successful_case() throws ServiceTimeoutException, ServiceExecutionException {
         ClusterInfo vCluster = new ClusterInfo("clusterTest1", 2);
         List<ClusterInfo> vClusters = new ArrayList<>();
         vClusters.add(vCluster);
@@ -131,8 +117,7 @@ public class FindVClusterTaskHandlerTest
      * @since 1.0
      */
     @Test
-    public void testExecuteTask_unsuccessful_case() throws ServiceTimeoutException, ServiceExecutionException
-    {
+    public void testExecuteTask_unsuccessful_case() throws ServiceTimeoutException, ServiceExecutionException {
         ClusterInfo vCluster = new ClusterInfo("clusterTest1", 2);
         List<ClusterInfo> vClusters = new ArrayList<>();
         vClusters.add(vCluster);

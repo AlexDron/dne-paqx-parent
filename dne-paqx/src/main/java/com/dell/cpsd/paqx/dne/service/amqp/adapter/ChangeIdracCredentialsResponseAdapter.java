@@ -1,7 +1,7 @@
 /**
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
- * Dell EMC Confidential/Proprietary Information
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  */
+
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
 import com.dell.converged.capabilities.compute.discovered.nodes.api.ChangeIdracCredentialsResponseMessage;

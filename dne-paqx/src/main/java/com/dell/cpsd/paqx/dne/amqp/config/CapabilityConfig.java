@@ -94,7 +94,11 @@ public class CapabilityConfig
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("vcenter-setPCIpassthrough"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
-                        .withProfile("vcenter-addhostlicense")
+                        .withProfile("vcenter-addhostlicense"),
+               new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
+                        .withProfile("esxi-credential-details"),
+               new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
+                        .withProfile("vcenter-enterMaintenance")
 
         );
 

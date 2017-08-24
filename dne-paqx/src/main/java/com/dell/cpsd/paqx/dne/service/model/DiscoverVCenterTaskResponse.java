@@ -13,10 +13,6 @@ public class DiscoverVCenterTaskResponse extends TaskResponse
 {
     private String jobId;
 
-    private String message;
-
-    private String status;
-
     public String getJobId()
     {
         return jobId;
@@ -25,25 +21,5 @@ public class DiscoverVCenterTaskResponse extends TaskResponse
     public void setJobId(final String jobId)
     {
         this.jobId = jobId;
-    }
-
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage(final String message)
-    {
-        this.message = message;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(final String status)
-    {
-        this.status = status;
     }
 }

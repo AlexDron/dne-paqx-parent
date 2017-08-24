@@ -5,7 +5,6 @@
 
 package com.dell.cpsd.paqx.dne.rest.exception;
 
-import org.springframework.http.HttpStatus;
 
 public class WorkflowNotFoundException extends Exception {
     /*

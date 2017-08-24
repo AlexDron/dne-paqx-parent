@@ -1,3 +1,9 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
@@ -14,9 +20,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Document Usage
- * <p/>
+ *
+ * <p>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
- * <p/>
+ * </p>
  *
  * @version 1.0
  * @since 1.0
@@ -45,7 +52,7 @@ public class DiscoverScaleIoTaskHandler extends BaseTaskHandler implements IWork
     {
         LOGGER.info("Execute Discover ScaleIO task");
 
-        final TaskResponse response = initializeResponse(job);
+        final DiscoverScaleIoTaskResponse response = initializeResponse(job);
 
         try
         {
@@ -58,16 +65,25 @@ public class DiscoverScaleIoTaskHandler extends BaseTaskHandler implements IWork
 
             final boolean success = this.nodeService.requestDiscoverScaleIo(componentEndpointIds, job.getId().toString());
 
-            response.setWorkFlowTaskStatus(success? Status.SUCCEEDED : Status.FAILED);
+            if (!success)
+            {
+                throw new IllegalStateException("Request for Discover ScaleIO failed");
+            }
 
-            return success;
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+
+            return true;
 
         }
         catch (Exception e)
         {
             LOGGER.error("Exception occurred", e);
-            return false;
+            response.addError(e.getMessage());
         }
+
+        response.setWorkFlowTaskStatus(Status.FAILED);
+
+        return false;
     }
 
     @Override

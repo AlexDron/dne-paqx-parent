@@ -1,6 +1,11 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import java.util.Map;
 
 /**
  * Task responsible for changing the idrac credentials.

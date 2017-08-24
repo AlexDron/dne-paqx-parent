@@ -1,9 +1,9 @@
 /**
  * <p>
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
- * Dell EMC Confidential/Proprietary Information
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * </p>
  */
+
 package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
@@ -27,7 +27,6 @@ import java.util.Map;
  *
  * @since 1.0
  */
-
 @Component
 public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler {
     /**

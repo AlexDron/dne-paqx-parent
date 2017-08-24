@@ -11,31 +11,7 @@ package com.dell.cpsd.paqx.dne.service.model;
  */
 public class InstallEsxiTaskResponse extends TaskResponse
 {
-    private String message;
-
-    private String status;
-
     private String hostname;
-
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage(final String message)
-    {
-        this.message = message;
-    }
-
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus(final String status)
-    {
-        this.status = status;
-    }
 
     public String getHostname()
     {

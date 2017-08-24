@@ -5,10 +5,14 @@
 
 package com.dell.cpsd.paqx.dne.service;
 
-import java.util.List;
-
 import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
-import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
+import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
+import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
+import com.dell.cpsd.paqx.dne.service.model.ConfigureBootDeviceIdracRequest;
+import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
+import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
+import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
@@ -17,11 +21,15 @@ import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
 import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBConfigureRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
+
+import java.util.List;
 
 public interface NodeService
 {
@@ -51,7 +59,7 @@ public interface NodeService
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
-    ValidateVcenterClusterResponseMessage validateClusters(List<ClusterInfo> clusterInfoList ) throws ServiceTimeoutException, ServiceExecutionException;
+    ValidateVcenterClusterResponseMessage validateClusters(List<ClusterInfo> clusterInfoList) throws ServiceTimeoutException, ServiceExecutionException;
 
 
     /**
@@ -131,4 +139,7 @@ public interface NodeService
 
     boolean requestInstallEsxiLicense(final AddEsxiHostVSphereLicenseRequest requestMessage);
 
+    ComponentEndpointIds listDefaultCredentials(final ListEsxiCredentialDetailsRequestMessage requestMessage);
+
+    boolean requestExitHostMaintenanceMode(final HostMaintenanceModeRequestMessage requestMessage);
 }
