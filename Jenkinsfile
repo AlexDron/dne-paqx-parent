@@ -27,6 +27,11 @@ pipeline {
                 sh "mvn test"
             }
         }
+        stage('PasswordScan') {
+            steps {
+                doPwScan()
+            }
+        }
         stage('Deploy') {
             when {
                 expression {
