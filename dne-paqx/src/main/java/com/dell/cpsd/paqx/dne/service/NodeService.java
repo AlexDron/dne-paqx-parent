@@ -5,7 +5,9 @@
 
 package com.dell.cpsd.paqx.dne.service;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
+import com.dell.cpsd.EsxiInstallationInfo;
+import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
+import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOStoragePool;
 import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
 import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
@@ -15,6 +17,7 @@ import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
 import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
+import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
 import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
@@ -28,6 +31,7 @@ import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBConfigureRequest
 import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
+
 
 import java.util.List;
 
@@ -51,6 +55,14 @@ public interface NodeService
      */
     List<ClusterInfo> listClusters() throws ServiceTimeoutException, ServiceExecutionException;
 
+    /**
+     * List the virtualisation scaleio data
+     *
+     * @return
+     * @throws ServiceTimeoutException
+     * @throws ServiceExecutionException
+     */
+    List<ScaleIOData> listScaleIOData() throws ServiceTimeoutException, ServiceExecutionException;
 
     /**
      * List the validated cluster names
@@ -59,12 +71,23 @@ public interface NodeService
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
-    ValidateVcenterClusterResponseMessage validateClusters(List<ClusterInfo> clusterInfoList) throws ServiceTimeoutException, ServiceExecutionException;
+    ValidateVcenterClusterResponseMessage validateClusters(List<ClusterInfo> clusterInfoList)
+            throws ServiceTimeoutException, ServiceExecutionException;
 
+    /**
+     * Validated Storage pool names
+     *
+     * @param scaleIOStoragePools
+     *
+     * @return
+     * @throws ServiceTimeoutException
+     * @throws ServiceExecutionException
+     */
+    EssValidateStoragePoolResponseMessage validateStoragePools(List<ScaleIOStoragePool> scaleIOStoragePools) throws ServiceTimeoutException, ServiceExecutionException;
 
     /**
      * Notify the Node Discovery Service that node allocation is complete
-     * 
+     *
      * @param elementIdentifier - The node identifier
      * @return true if the node allocation completed successfully, false otherwise.
      * @throws ServiceTimeoutException
@@ -74,23 +97,20 @@ public interface NodeService
 
     /**
      * Configure the iDRAC network settings.
-     * 
+     *
      * @param idracNetworkSettingsRequest - The <code>IdracNetworkSettingsRequest</code> instance.
-     * 
      * @return
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
     IdracInfo idracNetworkSettings(IdracNetworkSettingsRequest idracNetworkSettingsRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
-    
+
     /**
      * Change Idrac credentials
-     * 
+     *
      * @param configureBootDeviceIdracRequest - The <code>ChangeIdracCredentialsRequest</code> instance.
-     * 
      * @return
-     * 
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
@@ -100,13 +120,12 @@ public interface NodeService
      * Configure the Boot Device Idrac.
      *
      * @param configureBootDeviceIdracRequest - The <code>ConfigureBootDeviceIdracRequest</code> instance.
-     *
      * @return
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
 
-    BootDeviceIdracStatus bootDeviceIdracStatus (ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
+    BootDeviceIdracStatus bootDeviceIdracStatus(ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
 
     boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
@@ -142,4 +161,5 @@ public interface NodeService
     ComponentEndpointIds listDefaultCredentials(final ListEsxiCredentialDetailsRequestMessage requestMessage);
 
     boolean requestExitHostMaintenanceMode(final HostMaintenanceModeRequestMessage requestMessage);
+
 }

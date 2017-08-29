@@ -75,8 +75,8 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
 
             if (discoveredNodesResponse != null)
             {
-                final List<NodeInfo> nodeInfoList = discoveredNodesResponse.stream().filter(node -> com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus.DISCOVERED.equals(node.getNodeStatus()))
-                        .map(n -> new NodeInfo(n.getConvergedUuid(), n.getNodeId(), NodeStatus.valueOf(n.getNodeStatus().toString())))
+                final List<NodeInfo> nodeInfoList = discoveredNodesResponse.stream().filter(node -> com.dell.cpsd.DiscoveredNode.AllocationStatus.DISCOVERED.equals(node.getNodeStatus()))
+                        .map(n -> new NodeInfo(n.getConvergedUuid(),  NodeStatus.valueOf(n.getNodeStatus().toString())))
                         .collect(Collectors.toList());
 
                 if (!CollectionUtils.isEmpty(nodeInfoList))
@@ -120,11 +120,6 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
         if (nodeInfo.getSymphonyUuid() != null)
         {
             result.put("symphonyUUID", nodeInfo.getSymphonyUuid());
-        }
-
-        if (nodeInfo.getNodeId() != null)
-        {
-            result.put("nodeID", nodeInfo.getNodeId());
         }
 
         if (nodeInfo.getNodeStatus() != null)

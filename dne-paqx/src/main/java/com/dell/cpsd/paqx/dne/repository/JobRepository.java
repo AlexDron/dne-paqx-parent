@@ -1,6 +1,8 @@
 /**
+ * <p>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
- * VCE Confidential/Proprietary Information
+ * Dell EMC Confidential/Proprietary Information
+ * </p>
  */
 
 package com.dell.cpsd.paqx.dne.repository;

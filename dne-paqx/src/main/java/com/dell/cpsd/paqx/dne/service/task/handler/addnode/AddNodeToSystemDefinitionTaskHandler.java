@@ -104,7 +104,7 @@ public class AddNodeToSystemDefinitionTaskHandler extends BaseTaskHandler implem
 
             ConvergedSystem systemToBeUpdated = systemDetails.get(0);
 
-            NodeInfo nodeInfo = new NodeInfo(job.getInputParams().getSymphonyUuid(), job.getInputParams().getNodeId(), NodeStatus.DISCOVERED);
+            NodeInfo nodeInfo = new NodeInfo(job.getInputParams().getSymphonyUuid(),  NodeStatus.DISCOVERED);
             Component newNode = new Component();
             newNode.setUuid(nodeInfo.getSymphonyUuid());
             newNode.setIdentity(nodeInfo.getIdentity());

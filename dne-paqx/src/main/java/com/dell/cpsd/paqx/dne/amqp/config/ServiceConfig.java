@@ -12,6 +12,7 @@ import com.dell.cpsd.paqx.dne.repository.H2DataRepository;
 import com.dell.cpsd.paqx.dne.transformers.DiscoveryInfoToVCenterDomainTransformer;
 import com.dell.cpsd.paqx.dne.transformers.HostToInstallEsxiRequestTransformer;
 import com.dell.cpsd.paqx.dne.transformers.ScaleIORestToScaleIODomainTransformer;
+import com.dell.cpsd.paqx.dne.transformers.StoragePoolEssRequestTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -66,7 +67,8 @@ import com.google.common.base.Splitter;
     PersistenceConfig.class,
     DiscoveryInfoToVCenterDomainTransformer.class,
     ScaleIORestToScaleIODomainTransformer.class,
-    HostToInstallEsxiRequestTransformer.class
+    HostToInstallEsxiRequestTransformer.class,
+    StoragePoolEssRequestTransformer.class
 })
 public class ServiceConfig
 {
@@ -81,13 +83,16 @@ public class ServiceConfig
     @Autowired
     private HostToInstallEsxiRequestTransformer hostToInstallEsxiRequestTransformer;
 
+    @Autowired
+    private StoragePoolEssRequestTransformer storagePoolEssRequestTransformer;
+
     @Bean
     public NodeService nodeServiceClient(@Autowired DelegatingMessageConsumer delegatingMessageConsumer,
             @Autowired DneProducer dneProducer,
             @Autowired String replyTo)
     {
         return new AmqpNodeService(LOGGER, delegatingMessageConsumer, dneProducer, replyTo, repository(),
-                discoveryInfoToVCenterDomainTransformer, scaleIORestToScaleIODomainTransformer);
+                discoveryInfoToVCenterDomainTransformer, scaleIORestToScaleIODomainTransformer, storagePoolEssRequestTransformer);
     }
 
     @Bean

@@ -1,3 +1,10 @@
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
+ * Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
 package com.dell.cpsd.paqx.dne.repository;
 
 import com.dell.cpsd.paqx.dne.domain.ComponentDetails;
@@ -13,6 +20,7 @@ import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -147,7 +155,7 @@ public class H2DataRepository implements DataServiceRepository
 
         final List<ComponentDetails> componentDetailsList = typedQuery.getResultList();
 
-        if (componentDetailsList != null && !componentDetailsList.isEmpty())
+        if (!CollectionUtils.isEmpty(componentDetailsList))
         {
             //For MVP, fetching the first component, 1st endpoint, 1st credential
             final ComponentDetails componentDetails = componentDetailsList.get(0);
@@ -159,7 +167,7 @@ public class H2DataRepository implements DataServiceRepository
 
             final List<EndpointDetails> endpointDetailsList = componentDetails.getEndpointDetails();
 
-            if (endpointDetailsList == null || endpointDetailsList.isEmpty())
+            if (CollectionUtils.isEmpty(endpointDetailsList))
             {
                 return null;
             }
@@ -173,7 +181,7 @@ public class H2DataRepository implements DataServiceRepository
 
             final List<CredentialDetails> credentialDetailsList = endpointDetails.getCredentialDetailsList();
 
-            if (credentialDetailsList == null || credentialDetailsList.isEmpty())
+            if (CollectionUtils.isEmpty(credentialDetailsList))
             {
                 return null;
             }
@@ -210,7 +218,7 @@ public class H2DataRepository implements DataServiceRepository
 
             final List<EndpointDetails> endpointDetailsList = componentDetails.getEndpointDetails();
 
-            if (endpointDetailsList == null || endpointDetailsList.isEmpty())
+            if (CollectionUtils.isEmpty(endpointDetailsList))
             {
                 return null;
             }
@@ -224,7 +232,7 @@ public class H2DataRepository implements DataServiceRepository
 
             final List<CredentialDetails> credentialDetailsList = endpointDetails.getCredentialDetailsList();
 
-            if (credentialDetailsList == null || credentialDetailsList.isEmpty())
+            if (CollectionUtils.isEmpty(credentialDetailsList))
             {
                 return null;
             }
@@ -258,7 +266,7 @@ public class H2DataRepository implements DataServiceRepository
             final List<VCenter> vCenterList = vCenterTypedQuery.getResultList();
 
             //Don't allow multiple discoveries for now
-            if (vCenterList != null && !vCenterList.isEmpty())
+            if (!CollectionUtils.isEmpty(vCenterList))
             {
                 LOG.info("Found vcenter data doing nothing");
                 return true;
@@ -338,7 +346,7 @@ public class H2DataRepository implements DataServiceRepository
             final List<ScaleIOData> scaleIODataResultList = scaleIODataTypedQuery.getResultList();
 
             // Multiple discoveries not supported yet
-            if (scaleIODataResultList != null && !scaleIODataResultList.isEmpty())
+            if (!CollectionUtils.isEmpty(scaleIODataResultList))
             {
                 LOG.info("Found ScaleIO Data doing nothing");
                 return true;
@@ -386,7 +394,7 @@ public class H2DataRepository implements DataServiceRepository
                     }
                     catch (Exception e)
                     {
-                        LOG.error("No VCenter data exist");
+                        LOG.error("No ScaleIOData data exist");
                     }
 
                     LOG.info("DneJob != null for scaleio save");
@@ -430,7 +438,7 @@ public class H2DataRepository implements DataServiceRepository
 
         final List<ScaleIOData> scaleIODataList = query.getResultList();
 
-        if (scaleIODataList != null && !scaleIODataList.isEmpty())
+        if (!CollectionUtils.isEmpty(scaleIODataList))
         {
             return scaleIODataList.stream().findFirst().orElseGet(null);
         }
@@ -446,7 +454,7 @@ public class H2DataRepository implements DataServiceRepository
 
         final List<ScaleIOData> scaleIODataList = query.getResultList();
 
-        if (scaleIODataList != null && !scaleIODataList.isEmpty())
+        if (!CollectionUtils.isEmpty(scaleIODataList))
         {
             return scaleIODataList.stream().findFirst().orElseGet(null);
         }

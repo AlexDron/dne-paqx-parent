@@ -5,8 +5,8 @@
 
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.InstallESXiResponseMessage;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties;
+import com.dell.cpsd.InstallESXiResponseMessage;
+import com.dell.cpsd.MessageProperties;
 import com.dell.cpsd.service.common.client.callback.ServiceResponse;
 import com.dell.cpsd.service.common.client.rpc.ServiceCallbackAdapter;
 

@@ -13,8 +13,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.InstallESXiResponseMessage;
+import com.dell.cpsd.EsxiInstallationInfo;
+import com.dell.cpsd.InstallESXiResponseMessage;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
@@ -59,13 +59,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.ChangeIdracCredentialsResponseMessage;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.CompleteNodeAllocationResponseMessage;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracError;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracResponseMessage;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.NodeAllocationInfo;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.NodeAllocationInfo.AllocationStatus;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.NodesListed;
+import com.dell.cpsd.ChangeIdracCredentialsResponseMessage;
+import com.dell.cpsd.CompleteNodeAllocationResponseMessage;
+import com.dell.cpsd.ConfigureBootDeviceIdracError;
+import com.dell.cpsd.ConfigureBootDeviceIdracResponseMessage;
+import com.dell.cpsd.NodeAllocationInfo;
+import com.dell.cpsd.NodeAllocationInfo.AllocationStatus;
+import com.dell.cpsd.NodesListed;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
 import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
 import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
@@ -116,7 +116,7 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -144,19 +144,19 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
                     long timeout) throws ServiceTimeoutException
             {
                 // default status of discovered
-                com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode node =
-                        new com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode(nodeId, convergedUuid, 
-                                com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus.DISCOVERED);
+                com.dell.cpsd.DiscoveredNode node =
+                        new com.dell.cpsd.DiscoveredNode(convergedUuid,
+                                com.dell.cpsd.DiscoveredNode.AllocationStatus.DISCOVERED);
 
-                com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties messageProperties =
-                        new com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties(Calendar.getInstance().getTime(),
+                com.dell.cpsd.MessageProperties messageProperties =
+                        new com.dell.cpsd.MessageProperties(Calendar.getInstance().getTime(),
                                 UUID.randomUUID().toString(), "replyToMe");
 
                 NodesListed listed = new NodesListed(messageProperties, Arrays.asList(node));
@@ -169,7 +169,6 @@ public class AmqpNodeServiceTest
 
         DiscoveredNode discovered = discovereds.get(0);
         Assert.assertEquals(convergedUuid, discovered.getConvergedUuid());
-        Assert.assertEquals(nodeId, discovered.getNodeId());
 
         Mockito.verify(dneProducer, Mockito.times(1)).publishListNodes(any());
     }
@@ -185,7 +184,7 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -210,7 +209,7 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe",
-                Mockito.mock(DataServiceRepository.class), null, null)
+                Mockito.mock(DataServiceRepository.class), null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -240,7 +239,7 @@ public class AmqpNodeServiceTest
 
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe",
-                Mockito.mock(DataServiceRepository.class), null, null)
+                Mockito.mock(DataServiceRepository.class), null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -282,7 +281,7 @@ public class AmqpNodeServiceTest
         DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -310,7 +309,7 @@ public class AmqpNodeServiceTest
                 "idracGatewayIpAddress", "idracSubnetMask");
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -349,7 +348,7 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
         IdracNetworkSettingsRequest idracNetworkSettingsRequest = new IdracNetworkSettingsRequest("nodeId", "idracIpAddress", "idracGatewayIpAddress", "idracSubnetMask");
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -376,14 +375,14 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
                     throws ServiceTimeoutException
             {
-                com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties messageProperties = 
-                        new com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties();
+                com.dell.cpsd.MessageProperties messageProperties =
+                        new com.dell.cpsd.MessageProperties();
                 messageProperties.setCorrelationId(UUID.randomUUID().toString());
 
                 NodeAllocationInfo nodeAllocationInfo = new NodeAllocationInfo("elementIdentifier", "nodeIdentifier", AllocationStatus.ADDED);
@@ -413,7 +412,7 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -441,14 +440,14 @@ public class AmqpNodeServiceTest
         ConfigureBootDeviceIdracRequest bootOrderSequenceRequest = new ConfigureBootDeviceIdracRequest("nodeId", "idracIpAddress");
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
                     throws ServiceTimeoutException
             {
-                com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties messageProperties =
-                        new com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties(Calendar.getInstance().getTime(),
+                com.dell.cpsd.MessageProperties messageProperties =
+                        new com.dell.cpsd.MessageProperties(Calendar.getInstance().getTime(),
                                 UUID.randomUUID().toString(), "replyToMe");
 
                 List<ConfigureBootDeviceIdracError> configureBootDeviceIdracErrors = new ArrayList<ConfigureBootDeviceIdracError>();
@@ -479,7 +478,7 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
         ConfigureBootDeviceIdracRequest bootOrderSequenceRequest = new ConfigureBootDeviceIdracRequest("nodeId", "idracIpAddress");
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -506,14 +505,14 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
                     throws ServiceTimeoutException
             {
-                com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties messageProperties = 
-                        new com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties();
+                com.dell.cpsd.MessageProperties messageProperties =
+                        new com.dell.cpsd.MessageProperties();
                 messageProperties.setCorrelationId(UUID.randomUUID().toString());
 
                 ChangeIdracCredentialsResponse changeCredentialsResponse = new ChangeIdracCredentialsResponse();
@@ -545,7 +544,7 @@ public class AmqpNodeServiceTest
         DneProducer dneProducer = Mockito.mock(DneProducer.class);
 
         AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null,
-                null, null)
+                null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId,
@@ -566,7 +565,7 @@ public class AmqpNodeServiceTest
         final DneProducer dneProducer = Mockito.mock(DneProducer.class);
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -597,7 +596,7 @@ public class AmqpNodeServiceTest
         when(scaleIOComponentDetails.getEndpoints()).thenReturn(Arrays.asList(scaleIoEndpointDetails));
         when(scaleIoEndpointDetails.getCredentialUuids()).thenReturn(Arrays.asList("cred-uuid"));
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -624,7 +623,7 @@ public class AmqpNodeServiceTest
         final DneProducer dneProducer = Mockito.mock(DneProducer.class);
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -655,7 +654,7 @@ public class AmqpNodeServiceTest
         when(vCenterComponentDetails.getEndpoints()).thenReturn(Arrays.asList(vCenterEndpointDetails));
         when(vCenterEndpointDetails.getCredentialDetails()).thenReturn(Arrays.asList(credentialDetail));
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -685,7 +684,7 @@ public class AmqpNodeServiceTest
         final com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds componentEndpointIds = Mockito
                 .mock(com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, transformer, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, transformer, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -709,7 +708,7 @@ public class AmqpNodeServiceTest
         final com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds componentEndpointIds = Mockito
                 .mock(com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, transformer, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, transformer, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -744,7 +743,7 @@ public class AmqpNodeServiceTest
         final com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds componentEndpointIds = Mockito
                 .mock(com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, transformer)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, transformer,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -768,7 +767,7 @@ public class AmqpNodeServiceTest
         final com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds componentEndpointIds = Mockito
                 .mock(com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, transformer)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, transformer,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -802,7 +801,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
         final AddEsxiHostVSphereLicenseRequest request = Mockito.mock(AddEsxiHostVSphereLicenseRequest.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -824,7 +823,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
         final AddEsxiHostVSphereLicenseRequest request = Mockito.mock(AddEsxiHostVSphereLicenseRequest.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -855,7 +854,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final HostMaintenanceModeRequestMessage request = mock(HostMaintenanceModeRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -877,7 +876,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
         final HostMaintenanceModeRequestMessage request = Mockito.mock(HostMaintenanceModeRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -907,7 +906,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final EsxiInstallationInfo info = mock(EsxiInstallationInfo.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -928,13 +927,13 @@ public class AmqpNodeServiceTest
         final DneProducer dneProducer = Mockito.mock(DneProducer.class);
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
         final InstallESXiResponseMessage responseMessage = mock(InstallESXiResponseMessage.class);
-        final com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties messageProperties = new com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties(
+        final com.dell.cpsd.MessageProperties messageProperties = new com.dell.cpsd.MessageProperties(
                 new Date(), UUID.randomUUID().toString(), "test");
 
         when(responseMessage.getMessageProperties()).thenReturn(messageProperties);
         when(responseMessage.getStatus()).thenReturn("FINISHED");
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -959,7 +958,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final ClusterOperationRequestMessage request = mock(ClusterOperationRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -981,7 +980,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
         final ClusterOperationRequestMessage request = Mockito.mock(ClusterOperationRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1011,7 +1010,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final AddHostToDvSwitchRequestMessage request = mock(AddHostToDvSwitchRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1033,7 +1032,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
         final AddHostToDvSwitchRequestMessage request = Mockito.mock(AddHostToDvSwitchRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1063,7 +1062,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final DeployVMFromTemplateRequestMessage request = mock(DeployVMFromTemplateRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1085,7 +1084,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = Mockito.mock(DataServiceRepository.class);
         final DeployVMFromTemplateRequestMessage request = Mockito.mock(DeployVMFromTemplateRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1115,7 +1114,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final EnablePCIPassthroughRequestMessage request = mock(EnablePCIPassthroughRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1140,7 +1139,7 @@ public class AmqpNodeServiceTest
 
         final EnablePCIPassthroughResponseMessage responseMessage = mock(EnablePCIPassthroughResponseMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1168,7 +1167,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final HostPowerOperationRequestMessage request = mock(HostPowerOperationRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1193,7 +1192,7 @@ public class AmqpNodeServiceTest
 
         final HostPowerOperationResponseMessage responseMessage = mock(HostPowerOperationResponseMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1221,7 +1220,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final UpdatePCIPassthruSVMRequestMessage request = mock(UpdatePCIPassthruSVMRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1246,7 +1245,7 @@ public class AmqpNodeServiceTest
 
         final UpdatePCIPassthruSVMResponseMessage responseMessage = mock(UpdatePCIPassthruSVMResponseMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1274,7 +1273,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final SoftwareVIBConfigureRequestMessage request = mock(SoftwareVIBConfigureRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1299,7 +1298,7 @@ public class AmqpNodeServiceTest
 
         final SoftwareVIBResponseMessage responseMessage = mock(SoftwareVIBResponseMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1327,7 +1326,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final SoftwareVIBRequestMessage request = mock(SoftwareVIBRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1352,7 +1351,7 @@ public class AmqpNodeServiceTest
 
         final SoftwareVIBResponseMessage responseMessage = mock(SoftwareVIBResponseMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1380,7 +1379,7 @@ public class AmqpNodeServiceTest
         final DataServiceRepository repository = mock(DataServiceRepository.class);
         final ListEsxiCredentialDetailsRequestMessage request = mock(ListEsxiCredentialDetailsRequestMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
@@ -1405,7 +1404,7 @@ public class AmqpNodeServiceTest
 
         final ListEsxiCredentialDetailsResponseMessage responseMessage = mock(ListEsxiCredentialDetailsResponseMessage.class);
 
-        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null)
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
         {
             @Override
             protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)

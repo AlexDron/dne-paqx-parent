@@ -77,19 +77,19 @@ public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler impleme
                 throw new IllegalStateException("No results found.");
             }
 
-            if (findNodeTask.getResults().get("nodeID") == null)
+            if (findNodeTask.getResults().get("symphonyUUID") == null)
             {
                 throw new IllegalStateException("No discovered node info found.");
             }
 
-            String nodeId = findNodeTask.getResults().get("nodeID");
+            String uuid = findNodeTask.getResults().get("symphonyUUID");
             String ipAddress = job.getInputParams().getIdracIpAddress();
 
-            LOGGER.info("NodeId:" + nodeId);
+            LOGGER.info("uuid:" + uuid);
             LOGGER.info("ipAddress:" + ipAddress);
 
             ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest = new ConfigureBootDeviceIdracRequest();
-            configureBootDeviceIdracRequest.setNodeId(nodeId);
+            configureBootDeviceIdracRequest.setUuid(uuid);
             configureBootDeviceIdracRequest.setIdracIpAddress(ipAddress);
 
             BootDeviceIdracStatus bootDeviceIdracStatus = nodeService.bootDeviceIdracStatus(configureBootDeviceIdracRequest);

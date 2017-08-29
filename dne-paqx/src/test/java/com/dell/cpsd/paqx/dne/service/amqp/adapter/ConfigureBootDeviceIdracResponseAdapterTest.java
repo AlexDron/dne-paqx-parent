@@ -5,8 +5,8 @@
 
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracResponseMessage;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties;
+import com.dell.cpsd.ConfigureBootDeviceIdracResponseMessage;
+import com.dell.cpsd.MessageProperties;
 import com.dell.cpsd.service.common.client.callback.ServiceResponse;
 import com.dell.cpsd.service.common.client.rpc.ServiceCallbackAdapter;
 

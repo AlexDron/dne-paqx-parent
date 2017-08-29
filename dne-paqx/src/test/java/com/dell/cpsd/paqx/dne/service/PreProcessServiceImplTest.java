@@ -75,7 +75,7 @@ public class PreProcessServiceImplTest {
     public void testPreProcessWorkFlowTask_setup() 
     {
         Assert.assertNotNull(workFlowTasks);
-        Assert.assertEquals(9, workFlowTasks.size());
+        Assert.assertEquals(10, workFlowTasks.size());
     }
     
     @Test
@@ -93,6 +93,11 @@ public class PreProcessServiceImplTest {
     @Test
     public void testTaskName_findVCluster() {
     	Assert.assertEquals("Find VCluster", workFlowTasks.get("findVCluster").getTaskName());
+    }
+
+    @Test
+    public void testTaskName_findScaleIO() {
+        Assert.assertEquals("Find ScaleIO", workFlowTasks.get("findScaleIO").getTaskName());
     }
 
     @Ignore

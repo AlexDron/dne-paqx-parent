@@ -6,7 +6,7 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus;
+import com.dell.cpsd.DiscoveredNode.AllocationStatus;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.repository.InMemoryJobRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
@@ -74,7 +74,7 @@ public class FindDiscoveredNodesTaskHandlerTest
                 "scaleIOSVMDataIpAddress2", "scaleIOSVMManagementIpAddress", "nodeId", "symphonyUuid", "clausterName"));
 
         FirstAvailableDiscoveredNodeResponse response = new FirstAvailableDiscoveredNodeResponse();
-        response.setNodeInfo(new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED));
+        response.setNodeInfo(new NodeInfo("symphonyUuid", NodeStatus.DISCOVERED));
         this.job.addTaskResponse("findAvailableNodes", response);
 
         this.job.changeToNextStep("findAvailableNodes");
@@ -92,7 +92,7 @@ public class FindDiscoveredNodesTaskHandlerTest
     public void testExecuteTask_successful_case() throws ServiceTimeoutException, ServiceExecutionException
     {
         when(this.nodeService.listDiscoveredNodes())
-                .thenReturn(Arrays.asList(new DiscoveredNode("convergedUuid", "nodeId", AllocationStatus.DISCOVERED)));
+                .thenReturn(Arrays.asList(new DiscoveredNode("convergedUuid",  AllocationStatus.DISCOVERED)));
 
         FindDiscoveredNodesTaskHandler instance = new FindDiscoveredNodesTaskHandler(this.nodeService);
         boolean expectedResult = true;

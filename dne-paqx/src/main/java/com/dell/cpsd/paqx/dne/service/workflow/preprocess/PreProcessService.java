@@ -75,6 +75,11 @@ public class PreProcessService extends BaseService implements IPreProcessService
         return createTask("Find VCluster", new FindVClusterTaskHandler(nodeService));
     }
 
+    @Bean("findScaleIO")
+    public WorkflowTask createFindScaleIOTask(){
+        return createTask("Find ScaleIO", new FindScaleIOTaskHandler(nodeService));
+    }
+
     @Bean("findProtectionDomainTask")
     public WorkflowTask findProtectionDomainTask(){
         return createTask("Find ProtectionDomain", new FindProtectionDomainTaskHandler(workflowService));
@@ -131,6 +136,7 @@ public class PreProcessService extends BaseService implements IPreProcessService
         workflowTasks.put("configIdrac", configIdracTask());
         workflowTasks.put("pingIdrac", pingIdracTask());
         workflowTasks.put("configureBootDeviceIdrac", configureBootDeviceIdrac());
+        workflowTasks.put("findScaleIO", createFindScaleIOTask());
         workflowTasks.put("findVCluster", createVClusterTask());
         //workflowTasks.put("findProtectionDomain", findProtectionDomainTask());
         //workflowTasks.put("findSystemData", findSystemDataTask());

@@ -16,22 +16,22 @@ package com.dell.cpsd.paqx.dne.service.model;
  */
 
 public class ConfigureBootDeviceIdracRequest {
-    private String nodeId;
+    private String uuid;
     private String idracIpAddress;
 
     public ConfigureBootDeviceIdracRequest(){}
 
     public ConfigureBootDeviceIdracRequest(String nodeId, String idracIpAddress){
-        this.nodeId = nodeId;
+        this.uuid = nodeId;
         this.idracIpAddress = idracIpAddress;
     }
 
-    public String getNodeId() {
-        return nodeId;
+    public String getUuid() {
+        return uuid;
     }
 
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getIdracIpAddress() {
@@ -47,7 +47,7 @@ public class ConfigureBootDeviceIdracRequest {
         final StringBuilder builder = new StringBuilder();
 
         builder.append("BootOrderSequence {");
-        builder.append("nodeId=").append(this.nodeId);
+        builder.append("uuid=").append(this.uuid);
         builder.append("idracIpAddress=").append(this.idracIpAddress);
         builder.append("}");
 

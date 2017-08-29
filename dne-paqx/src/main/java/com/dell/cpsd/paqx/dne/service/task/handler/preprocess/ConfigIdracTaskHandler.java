@@ -80,22 +80,22 @@ public class ConfigIdracTaskHandler extends BaseTaskHandler implements IWorkflow
                 throw new IllegalStateException("No results found.");
             }
 
-            if (findNodeTask.getResults().get("nodeID") == null)
+            if (findNodeTask.getResults().get("symphonyUUID") == null)
             {
                 throw new IllegalStateException("No discovered node info found.");
             }
 
-            String nodeId = findNodeTask.getResults().get("nodeID");
+            String uuid = findNodeTask.getResults().get("symphonyUUID");
 
             String ipAddress = job.getInputParams().getIdracIpAddress();
             String gatewayIpAddress = job.getInputParams().getIdracGatewayIpAddress();
             String subnetMask = job.getInputParams().getIdracSubnetMask();
 
-            LOGGER.info("NodeId:" + nodeId);
+            LOGGER.info("uuid:" + uuid);
             LOGGER.info("Idrac input request parameters: " + job.getInputParams().toString());
 
             IdracNetworkSettingsRequest idracNetworkSettingsRequest = new IdracNetworkSettingsRequest();
-            idracNetworkSettingsRequest.setNodeId(nodeId);
+            idracNetworkSettingsRequest.setUuid(uuid);
             idracNetworkSettingsRequest.setIdracIpAddress(ipAddress);
             idracNetworkSettingsRequest.setIdracGatewayIpAddress(gatewayIpAddress);
             idracNetworkSettingsRequest.setIdracSubnetMask(subnetMask);

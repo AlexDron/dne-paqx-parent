@@ -211,7 +211,7 @@ public class ScaleIORestToScaleIODomainTransformer
             {
                 deviceList.stream().filter(Objects::nonNull).forEach(device -> {
                     final ScaleIODevice domainDevice = new ScaleIODevice(device.getId(), device.getName(),
-                            device.getDeviceCurrentPathName());
+                            device.getDeviceCurrentPathName(), device.getDeviceState());
                     domainDevice.setSds(domainSDS);
                     domainSDS.addDevice(domainDevice);
 

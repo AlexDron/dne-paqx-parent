@@ -8,13 +8,11 @@ package com.dell.cpsd.paqx.dne.service.model;
 public class DiscoveredNode
 {
     private final String convergedUuid;
-    private final String nodeId;
-    private final com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus nodeStatus;
+    private final com.dell.cpsd.DiscoveredNode.AllocationStatus nodeStatus;
 
-    public DiscoveredNode(String convergedUuid, String nodeId, com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus nodeStatus)
+    public DiscoveredNode(String convergedUuid, com.dell.cpsd.DiscoveredNode.AllocationStatus nodeStatus)
     {
         this.convergedUuid = convergedUuid;
-        this.nodeId = nodeId;
         this.nodeStatus = nodeStatus;
     }
 
@@ -23,12 +21,7 @@ public class DiscoveredNode
         return convergedUuid;
     }
 
-    public String getNodeId()
-    {
-        return nodeId;
-    }
-
-    public com.dell.converged.capabilities.compute.discovered.nodes.api.DiscoveredNode.AllocationStatus getNodeStatus() {
+    public com.dell.cpsd.DiscoveredNode.AllocationStatus getNodeStatus() {
         return nodeStatus;
     }
 }

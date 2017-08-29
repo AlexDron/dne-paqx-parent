@@ -39,6 +39,9 @@ public class ScaleIODevice
     @Column(name = "DEVICE_CURRENT_PATH_NAME")
     private String deviceCurrentPathName;
 
+    @Column(name = "DEVICE_STATE")
+    private String deviceState;
+
     @ManyToOne(cascade = CascadeType.ALL)
     private ScaleIOStoragePool storagePool;
 
@@ -50,11 +53,12 @@ public class ScaleIODevice
 
     }
 
-    public ScaleIODevice(final String id, final String scaleIOName, final String deviceCurrentPathName)
+    public ScaleIODevice(final String id, final String scaleIOName, final String deviceCurrentPathName, String deviceState)
     {
         this.id = id;
         this.name = scaleIOName;
         this.deviceCurrentPathName = deviceCurrentPathName;
+        this.deviceState = deviceState;
     }
 
     public Long getUuid()
@@ -95,6 +99,16 @@ public class ScaleIODevice
     public void setDeviceCurrentPathName(final String deviceCurrentPathName)
     {
         this.deviceCurrentPathName = deviceCurrentPathName;
+    }
+
+    public String getDeviceState()
+    {
+        return deviceState;
+    }
+
+    public void setDeviceState(final String deviceState)
+    {
+        this.deviceState = deviceState;
     }
 
     public void setStoragePool(final ScaleIOStoragePool storagePool)

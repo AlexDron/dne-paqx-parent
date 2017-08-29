@@ -61,6 +61,7 @@ public class ScaleIOProtectionDomain
     private ScaleIOData scaleIOData;
 
     public ScaleIOProtectionDomain()
+
     {
 
     }
@@ -135,6 +136,10 @@ public class ScaleIOProtectionDomain
     public void addStoragePool(final ScaleIOStoragePool storagePool)
     {
         storagePools.add(storagePool);
+    }
+
+    public List<ScaleIOStoragePool> getStoragePools() {
+        return storagePools;
     }
 
     @Override

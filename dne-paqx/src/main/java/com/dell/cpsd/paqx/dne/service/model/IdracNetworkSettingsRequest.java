@@ -20,7 +20,7 @@ public class IdracNetworkSettingsRequest {
     private String idracIpAddress           ;
     private String idracGatewayIpAddress    ;
     private String idracSubnetMask          ;
-    private String nodeId                   ;
+    private String uuid;
 
     public IdracNetworkSettingsRequest(){}
 
@@ -28,7 +28,7 @@ public class IdracNetworkSettingsRequest {
         this.idracIpAddress         = idracIpAddress;
         this.idracGatewayIpAddress  = idracGatewayIpAddress;
         this.idracSubnetMask        = idracSubnetMask;
-        this.nodeId                 = nodeId;
+        this.uuid = nodeId;
     }
     public void setIdracIpAddress(String idracIpAddress) {
         this.idracIpAddress = idracIpAddress;
@@ -37,8 +37,8 @@ public class IdracNetworkSettingsRequest {
     public void setIdracSubnetMask(String idracSubnetMask) {
         this.idracSubnetMask = idracSubnetMask;
     }
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getIdracIpAddress() {
@@ -50,8 +50,8 @@ public class IdracNetworkSettingsRequest {
     public String getIdracSubnetMask() {
         return idracSubnetMask;
     }
-    public String getNodeId() {
-        return nodeId;
+    public String getUuid() {
+        return uuid;
     }
 
 

@@ -34,11 +34,13 @@ public class PreProcessTaskConfig {
         workflowSteps.put("listScaleIoComponents", new Step("listVCenterComponents"));
         workflowSteps.put("listVCenterComponents", new Step("discoverVCenter"));
         //TODO: Re-enable the discover scaleio when mdm is up and running
-        //workflowSteps.put("discoverScaleIo", new Step("discoverVCenter"));
+//        workflowSteps.put("discoverScaleIo", new Step("discoverVCenter"));
         workflowSteps.put("discoverVCenter", new Step("configIdrac"));
         workflowSteps.put("configIdrac", new Step("pingIdrac"));
         workflowSteps.put("pingIdrac", new Step("findVCluster"));
         //workflowSteps.put("configureBootDeviceIdrac", new Step("findVCluster"));
+        //TODO: Re-enable the find scaleio when mdm is up and running
+//        workflowSteps.put("findScaleIO", new Step("findVCluster"));
         workflowSteps.put("findVCluster", new Step("findProtectionDomain"));
         workflowSteps.put("findProtectionDomain", new Step("findSystemData"));
         workflowSteps.put("findSystemData", new Step("assignDefaultHostName"));

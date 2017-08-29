@@ -6,7 +6,7 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.EsxiInstallationInfo;
+import com.dell.cpsd.EsxiInstallationInfo;
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;

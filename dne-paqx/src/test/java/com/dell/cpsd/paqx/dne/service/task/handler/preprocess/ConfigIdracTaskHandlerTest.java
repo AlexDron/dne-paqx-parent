@@ -75,11 +75,10 @@ public class ConfigIdracTaskHandlerTest
         this.job.setInputParams(nodeExpansionRequest);
 
         TaskResponse response = new TaskResponse();
-        NodeInfo nodeInfo = new NodeInfo("symphonyUuid", "nodeId", NodeStatus.DISCOVERED);
+        NodeInfo nodeInfo = new NodeInfo("symphonyUuid",  NodeStatus.DISCOVERED);
         Map<String, String> results = new HashMap<>();
 
         results.put("symphonyUUID", nodeInfo.getSymphonyUuid());
-        results.put("nodeID", nodeInfo.getNodeId());
         results.put("nodeStatus", nodeInfo.getNodeStatus().toString());
 
         response.setResults(results);

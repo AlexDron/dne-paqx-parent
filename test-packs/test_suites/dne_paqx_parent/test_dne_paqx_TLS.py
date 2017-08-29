@@ -82,34 +82,39 @@ def test_dnePAQX_container_using_AMQP_over_TLS():
         raise Exception(err)
 
 
-@pytest.mark.skip(reason="Failing. Need David R to investigate")
 @pytest.mark.dne_paqx_parent_mvp
 @pytest.mark.dne_paqx_parent_mvp_extended
 def test_DNEpaqx_AMQP_data_is_encrypted():
-    """ Verify DNE-PAQX network status reads amqps.
+    """ Verify DNE-PAQX to Rabbitmq data is encrypted.
 
-    1. get the processId associated with the DNE paqx
-    2. use the returned processId to filter the output of the 'lsof' utility
-    3. check that the listed AMQP connection is secure by checking for the phrase 'amqps' in the listing"""
+    1. get the DNE containerID and associated IP address
+    2. Get the Rabbitmq ContainerID and associated IP Address
+    3. Install the tcpdump utility if not already installed
+    4. Run tcpdump against DNE -> rabbitmq messaging and check if data is marked as amqps (ie. encrypted)"""
+
+    # get the containerID of the DNE container
+    DNEcontainerID = getContainerId('symphony-dne-paqx')
+    # get the ipaddress of the DNE container
+    DNEipAddressText = getContainerIPAddress(DNEcontainerID)
+
+    # get the containerID of the rabbitmq container
+    RMQcontainerID = getContainerId('symphony-dne-paqx')
+    # get the ipaddress of the rabbitmq container
+    RMQipAddressText = getContainerIPAddress(RMQcontainerID)
+
+    # The 'tcpdump' tool is used to inspect the format of the data on the rabbitmq channel (ie. is it encrypted).
+    check_for_and_install_tcpdump()
+
+    # using tcpdump, we inspect the data associated with the DNE to Rabbitmq IP Address's and expect to see output
+    # similar to below. We are particularly interested in the 'amqps' text which indicates secure
+    # amqp encryption. The data capture will complete after 50 packets have been read (-c 50).
     #
+    #   tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+    #   listening on docker0, link-type EN10MB (Ethernet), capture size 65535 bytes
+    #   09:44:36.382264 IP 172.17.0.16.37054 > 172.17.0.13.amqps: Flags [P.], seq 2415798712:24158 ....
+    #   09:44:36.382405 IP 172.17.0.16.37054 > 172.17.0.13.amqps: Flags [P.], seq 1893:1978, ack 1,  ....
 
-    # use the getDockerNetworkConnectionPorts fucntion , with the 'processId' flag, to indicate the
-    # processID should be returned.
-    processId = getDockerNetworkConnectionPorts('symphony-dne-paqx', "processId")
-    assert processId, "There was no PID found for the DNE PAQX"
-    # use the getDockerNetworkConnectionPorts function , without a specific flag, to indicate the
-    # connection ports should be returned. This is returned in the form :
-    # tcp6       0      0 172.17.0.1:5671         172.21.0.2:47338        ESTABLISHED 987/beam.smp
-    connectionPortText = getDockerNetworkConnectionPorts('symphony-dne-paqx')
-    assert connectionPortText, "There was no rabbitmq connection found for the DNE PAQX"
-
-    # split the dne-port out of the returned text, to be used in the follwoing 'lsof' command
-    peerPort = getPeerPortFromNetstatOutput(connectionPortText)
-    assert peerPort, "The peer port for the rabbitmq connection could not be obtained"
-
-    # using lsof, we expect to see output similar to below and are particularly interested in the 'amqps' text
-    #    java    4969 root   21u  IPv6    57839    0t0    TCP localhost:48786->localhost:amqps (ESTABLISHED)
-    commandCheckEncryption = "lsof -p " + processId.rstrip() + " | grep [E]STABLISHED | grep amqps" + " | grep " + peerPort.rstrip()
+    commandCheckEncryption = "tcpdump -c 50 dst " + RMQipAddressText.rstrip() + " | grep " + DNEipAddressText.rstrip()
 
     return_text = af_support_tools.send_ssh_command(
         host=ipaddress,
@@ -118,7 +123,7 @@ def test_DNEpaqx_AMQP_data_is_encrypted():
         command=commandCheckEncryption,
         return_output=True)
 
-    assert return_text, "Error : no amqps connection was discovered for the dne paqx"
+    assert "amqps" in return_text, "Error : no amqps connection was discovered for the dne paqx"
 
 #####################################################################################################
 
@@ -176,21 +181,8 @@ def getDockerNetworkConnectionPorts(containerName, label="ports"):
     Eg. from the sample data below, the process ID = 987 would be returned
     tcp6       0      0 172.17.0.1:5671         172.21.0.2:47338        ESTABLISHED 987/beam.smp"""
 
-    commandGetContainerId = "docker ps | grep " + containerName + " | awk '{print $1}' "
-    containerId = af_support_tools.send_ssh_command(
-                host=ipaddress,
-                username=cli_username,
-                password=cli_password,
-                command=commandGetContainerId,
-                return_output=True)
-
-    commandGetIPAddress = "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' " + containerId.rstrip()
-    ipAddressText = af_support_tools.send_ssh_command(
-                host=ipaddress,
-                username=cli_username,
-                password=cli_password,
-                command=commandGetIPAddress,
-                return_output=True)
+    containerId = getContainerId(containerName)
+    ipAddressText = getContainerIPAddress(containerId)
 
     commandGetContainerConnectionPort = "docker exec -i "+containerId.rstrip()+" netstat -tupn | grep " + ipAddressText.rstrip() + ": | grep -v 8500 | grep -v 8071"
     connectionPorts = af_support_tools.send_ssh_command(
@@ -208,5 +200,57 @@ def getDockerNetworkConnectionPorts(containerName, label="ports"):
     else:
         return connectionPorts
 
-#####################################################################################################
+#####################################################################################
 
+def getContainerId(containerName):
+    """ A function to return the docker container ID, given the name of the container"""
+
+    commandGetContainerId = "docker ps | grep " + containerName + " | awk '{print $1}' "
+    containerId = af_support_tools.send_ssh_command(
+        host=ipaddress,
+        username=cli_username,
+        password=cli_password,
+        command=commandGetContainerId,
+        return_output=True)
+    return  containerId
+
+#####################################################################################
+
+def  getContainerIPAddress(containerId):
+    """ A function to return the docker IP Address, given the container Id"""
+
+    commandGetIPAddress = "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' " + containerId.rstrip()
+    ipAddressText = af_support_tools.send_ssh_command(
+        host=ipaddress,
+        username=cli_username,
+        password=cli_password,
+        command=commandGetIPAddress,
+        return_output=True)
+
+    return ipAddressText
+
+
+#####################################################################################
+
+def check_for_and_install_tcpdump():
+    """ A function to install the tcpdump tool, via yum, if it is not already installed"""
+
+    # check if the tcpdump is installed. this tool is used to inspect the data on the rabbitmq channel
+    commandCheckForTCPDUMP = "yum list installed | grep tcpdump"
+
+    tcpdump_Installed=af_support_tools.send_ssh_command(
+        host=ipaddress,
+        username=cli_username,
+        password=cli_password,
+        command=commandCheckForTCPDUMP,
+        return_output=True)
+
+    # install the tcpdump if it is not already installed
+    if not tcpdump_Installed :
+        commandInstallTCPDUMP = "yum -y install tcpdump"
+        ipmitool_Installed=af_support_tools.send_ssh_command(
+            host=ipaddress,
+            username=cli_username,
+            password=cli_password,
+            command=commandInstallTCPDUMP,
+            return_output=True)
