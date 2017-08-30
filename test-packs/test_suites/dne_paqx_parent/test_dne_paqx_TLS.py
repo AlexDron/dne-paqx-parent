@@ -98,7 +98,7 @@ def test_DNEpaqx_AMQP_data_is_encrypted():
     DNEipAddressText = getContainerIPAddress(DNEcontainerID)
 
     # get the containerID of the rabbitmq container
-    RMQcontainerID = getContainerId('symphony-dne-paqx')
+    RMQcontainerID = getContainerId('amqp')
     # get the ipaddress of the rabbitmq container
     RMQipAddressText = getContainerIPAddress(RMQcontainerID)
 
@@ -107,14 +107,14 @@ def test_DNEpaqx_AMQP_data_is_encrypted():
 
     # using tcpdump, we inspect the data associated with the DNE to Rabbitmq IP Address's and expect to see output
     # similar to below. We are particularly interested in the 'amqps' text which indicates secure
-    # amqp encryption. The data capture will complete after 50 packets have been read (-c 50).
+    # amqp encryption. The data capture will timeout after 60 seconds.
     #
     #   tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
     #   listening on docker0, link-type EN10MB (Ethernet), capture size 65535 bytes
     #   09:44:36.382264 IP 172.17.0.16.37054 > 172.17.0.13.amqps: Flags [P.], seq 2415798712:24158 ....
     #   09:44:36.382405 IP 172.17.0.16.37054 > 172.17.0.13.amqps: Flags [P.], seq 1893:1978, ack 1,  ....
 
-    commandCheckEncryption = "tcpdump -c 50 dst " + RMQipAddressText.rstrip() + " | grep " + DNEipAddressText.rstrip()
+    commandCheckEncryption = "timeout 60 tcpdump src " + DNEipAddressText.rstrip() + " and dst " + RMQipAddressText.rstrip() + " and dst port amqps"
 
     return_text = af_support_tools.send_ssh_command(
         host=ipaddress,
@@ -123,7 +123,7 @@ def test_DNEpaqx_AMQP_data_is_encrypted():
         command=commandCheckEncryption,
         return_output=True)
 
-    assert "amqps" in return_text, "Error : no amqps connection was discovered for the dne paqx"
+    assert 'amqps' in return_text, "Error : no amqps connection was discovered for the dne paqx"
 
 #####################################################################################################
 
