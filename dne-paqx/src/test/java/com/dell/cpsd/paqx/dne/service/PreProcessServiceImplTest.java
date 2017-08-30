@@ -44,7 +44,7 @@ public class PreProcessServiceImplTest {
 
         this.preProcessServiceUnderTest = new PreProcessService();
         preProcessServiceUnderTest.setWorkflowService(workflowServiceUnderTest);
-        
+
         workFlowTasks = preProcessServiceUnderTest.preProcessWorkflowTasks();
     }
 
@@ -70,26 +70,32 @@ public class PreProcessServiceImplTest {
         assertNotNull(foundJob);
         assertEquals(initialJob, foundJob);
     }
-    
+
     @Test
-    public void testPreProcessWorkFlowTask_setup() 
+    public void testPreProcessWorkFlowTask_setup()
     {
         Assert.assertNotNull(workFlowTasks);
-        Assert.assertEquals(10, workFlowTasks.size());
+        Assert.assertEquals(11, workFlowTasks.size());
     }
-    
+
     @Test
     public void testTaskName_findAvailableNodes()
     {
         Assert.assertEquals("Finding discovered Nodes", workFlowTasks.get("findAvailableNodes").getTaskName());
     }
-    
+
     @Test
-    public void testTaskName_configIdrac() 
+    public void testTaskName_configIdrac()
     {
     	Assert.assertEquals("Configuring Out of Band Management", workFlowTasks.get("configIdrac").getTaskName());
     }
-    
+
+    @Test
+    public void testTaskName_configureObmSettings()
+    {
+        Assert.assertEquals("Configuring Obm Settings", workFlowTasks.get("configureObmSettings").getTaskName());
+    }
+
     @Test
     public void testTaskName_findVCluster() {
     	Assert.assertEquals("Find VCluster", workFlowTasks.get("findVCluster").getTaskName());

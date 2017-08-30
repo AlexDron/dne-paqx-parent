@@ -5,75 +5,19 @@
 
 package com.dell.cpsd.paqx.dne.service.amqp;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import com.dell.cpsd.EsxiInstallationInfo;
-import com.dell.cpsd.InstallESXiResponseMessage;
+import com.dell.cpsd.*;
+import com.dell.cpsd.NodeAllocationInfo.AllocationStatus;
+import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
+import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
+import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
 import com.dell.cpsd.paqx.dne.transformers.DiscoveryInfoToVCenterDomainTransformer;
 import com.dell.cpsd.paqx.dne.transformers.ScaleIORestToScaleIODomainTransformer;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponse;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponseMessage;
-import com.dell.cpsd.storage.capabilities.api.ListComponentResponseMessage;
-import com.dell.cpsd.storage.capabilities.api.ListStorageResponseMessage;
-import com.dell.cpsd.storage.capabilities.api.ScaleIOComponentDetails;
-import com.dell.cpsd.storage.capabilities.api.ScaleIOSystemDataRestRep;
-import com.dell.cpsd.storage.capabilities.api.ScaleIoEndpointDetails;
-import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
-import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseResponse;
-import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.Datacenter;
-import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoveryResponseInfoMessage;
-import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ListComponentsResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBConfigureRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.VCenterComponentDetails;
-import com.dell.cpsd.virtualization.capabilities.api.VCenterCredentialDetails;
-import com.dell.cpsd.virtualization.capabilities.api.VCenterEndpointDetails;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import com.dell.cpsd.ChangeIdracCredentialsResponseMessage;
-import com.dell.cpsd.CompleteNodeAllocationResponseMessage;
-import com.dell.cpsd.ConfigureBootDeviceIdracError;
-import com.dell.cpsd.ConfigureBootDeviceIdracResponseMessage;
-import com.dell.cpsd.NodeAllocationInfo;
-import com.dell.cpsd.NodeAllocationInfo.AllocationStatus;
-import com.dell.cpsd.NodesListed;
-import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
-import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
-import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
-import com.dell.cpsd.paqx.dne.service.model.ConfigureBootDeviceIdracRequest;
-import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
-import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
-import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
-
 import com.dell.cpsd.service.common.client.callback.ServiceCallback;
 import com.dell.cpsd.service.common.client.callback.ServiceError;
 import com.dell.cpsd.service.common.client.callback.ServiceResponse;
@@ -81,16 +25,19 @@ import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 import com.dell.cpsd.service.common.client.rpc.DefaultMessageConsumer;
 import com.dell.cpsd.service.common.client.rpc.DelegatingMessageConsumer;
-import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfo;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfoMessage;
+import com.dell.cpsd.storage.capabilities.api.ListComponentResponseMessage;
+import com.dell.cpsd.storage.capabilities.api.*;
+import com.dell.cpsd.virtualization.capabilities.api.*;
 import com.dell.cpsd.virtualization.capabilities.api.MessageProperties;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -106,7 +53,7 @@ public class AmqpNodeServiceTest
 {
     /**
      * Test that the listDiscoveredNodes method can hadle a timeout.
-     * 
+     *
      * @throws Exception
      */
     @Test(expected = ServiceTimeoutException.class)
@@ -131,7 +78,7 @@ public class AmqpNodeServiceTest
 
     /**
      * Test that the listDiscoveredNodes method can execute successfully.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -175,7 +122,7 @@ public class AmqpNodeServiceTest
 
     /**
      * Test that the listDiscoveredNodes method can handle any errors.
-     * 
+     *
      * @throws Exception
      */
     @Test(expected = ServiceExecutionException.class)
@@ -199,7 +146,7 @@ public class AmqpNodeServiceTest
 
     /**
      * Test that the the listClusters method can handle a timeout.
-     * 
+     *
      * @throws Exception
      */
     @Test(expected = ServiceTimeoutException.class)
@@ -224,7 +171,7 @@ public class AmqpNodeServiceTest
 
     /**
      * Test that the listClusters method can execute successfully.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -272,7 +219,7 @@ public class AmqpNodeServiceTest
 
     /**
      * Test that the listClusters method can handle any errors.
-     * 
+     *
      * @throws Exception
      */
     @Test(expected = ServiceExecutionException.class)
@@ -293,10 +240,10 @@ public class AmqpNodeServiceTest
 
         nodeService.listDiscoveredNodes();// ???
     }
-    
+
     /**
      * Test that the idracNetworkSettings method can execute successfully.
-     * 
+     *
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
@@ -335,10 +282,10 @@ public class AmqpNodeServiceTest
 
         Mockito.verify(dneProducer, Mockito.times(1)).publishIdracNetwokSettings(any());
     }
-    
+
     /**
      * Test that the idracNetworkSettings method can handle any errors.
-     * 
+     *
      * @throws ServiceTimeoutException
      */
     @Test
@@ -357,14 +304,14 @@ public class AmqpNodeServiceTest
                 serviceCallback.handleServiceError(new ServiceError(requestId, "network", "network"));
             }
         };
-        
+
        	nodeService.idracNetworkSettings(idracNetworkSettingsRequest);
        	Mockito.verify(dneProducer, Mockito.times(1)).publishIdracNetwokSettings(any());
     }
-    
+
     /**
      * Test that the notifyNodeAllocationComplete method executes successfully.
-     * 
+     *
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
@@ -387,7 +334,7 @@ public class AmqpNodeServiceTest
 
                 NodeAllocationInfo nodeAllocationInfo = new NodeAllocationInfo("elementIdentifier", "nodeIdentifier", AllocationStatus.ADDED);
 
-                CompleteNodeAllocationResponseMessage responseMessage = new CompleteNodeAllocationResponseMessage(messageProperties, 
+                CompleteNodeAllocationResponseMessage responseMessage = new CompleteNodeAllocationResponseMessage(messageProperties,
                         CompleteNodeAllocationResponseMessage.Status.SUCCESS, nodeAllocationInfo, Collections.emptyList());
 
                 serviceCallback.handleServiceResponse(new ServiceResponse<>(requestId, responseMessage, null));
@@ -399,10 +346,10 @@ public class AmqpNodeServiceTest
         Assert.assertEquals(true, responseInfo);
         Mockito.verify(dneProducer, Mockito.times(1)).publishCompleteNodeAllocation(any());
     }
-    
+
     /**
      * Test that the notifyNodeAllocationComplete method can handle any errors.
-     * 
+     *
      * @throws ServiceTimeoutException
      */
     @Test(expected = ServiceExecutionException.class)
@@ -421,7 +368,7 @@ public class AmqpNodeServiceTest
                 serviceCallback.handleServiceError(new ServiceError(requestId, "network", "network"));
             }
         };
-        
+
         nodeService.notifyNodeAllocationComplete("elementIdentifier");
         Mockito.verify(dneProducer, Mockito.times(1)).publishCompleteNodeAllocation(any());
     }
@@ -494,7 +441,7 @@ public class AmqpNodeServiceTest
 
     /**
      * Test that the changeIdracCredentialsComplete method executes successfully.
-     * 
+     *
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
@@ -519,7 +466,7 @@ public class AmqpNodeServiceTest
                 changeCredentialsResponse.setNodeId("dummyNodeId");
                 changeCredentialsResponse.setMessage("SUCCESS");
 
-                ChangeIdracCredentialsResponseMessage responseMessage = new ChangeIdracCredentialsResponseMessage(messageProperties, 
+                ChangeIdracCredentialsResponseMessage responseMessage = new ChangeIdracCredentialsResponseMessage(messageProperties,
                         ChangeIdracCredentialsResponseMessage.Status.SUCCESS, Collections.emptyList());
 
                 serviceCallback.handleServiceResponse(new ServiceResponse<>(requestId, responseMessage, null));
@@ -531,10 +478,10 @@ public class AmqpNodeServiceTest
         Assert.assertEquals("SUCCESS", responseInfo.getMessage());
         Mockito.verify(dneProducer, Mockito.times(1)).publishChangeIdracCredentials(any());
     }
-    
+
     /**
      * Test that the changeIdracCredentialsComplete method can handle any errors.
-     * 
+     *
      * @throws ServiceTimeoutException
      */
     @Test
@@ -553,7 +500,7 @@ public class AmqpNodeServiceTest
                 serviceCallback.handleServiceError(new ServiceError(requestId, "network", "network"));
             }
         };
-        
+
         nodeService.changeIdracCredentials("dummyNodeId");
         Mockito.verify(dneProducer, Mockito.times(1)).publishChangeIdracCredentials(any());
     }
