@@ -504,4 +504,24 @@ public class H2DataRepository implements DataServiceRepository
             return null;
         }
     }
+
+    @Override
+    public String getVlanIdVmk0()
+    {
+        final TypedQuery<String> typedQuery = entityManager.createQuery(
+                "select p.vlanId from PortGroup as p join VirtualNicDVPortGroup vnpg on p.id = vnpg.portGroupId join VirtualNic vnic on vnic.uuid = vnpg.virtualNic.uuid where vnic.device = :vNicDevice",
+                String.class);
+
+        typedQuery.setParameter("vNicDevice", "vmk0");
+
+        try
+        {
+            return typedQuery.getSingleResult();
+        }
+        catch (Exception e)
+        {
+            LOG.error("Exception Occurred [{}]", e);
+            return null;
+        }
+    }
 }

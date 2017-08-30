@@ -132,6 +132,7 @@ public class H2DataRepositoryTest
     private Long uuid;
     private String hostName;
     private String clusterName;
+    private String vNicDevice;
 
     /**
      * The test setup.
@@ -178,6 +179,7 @@ public class H2DataRepositoryTest
         this.uuid = 123456789L;
         this.hostName = "the_host_name";
         this.clusterName = "the_cluster_name";
+        this.vNicDevice = "vmk0";
     }
 
     @Test
@@ -705,5 +707,23 @@ public class H2DataRepositoryTest
         doThrow(new IllegalStateException(("aaaaaaah"))).when(this.stringTypedQuery).getSingleResult();
 
         assertNull(this.repository.getDataCenterName(this.clusterName));
+    }
+
+    @Test
+    public void getVlanIdSuccess() throws Exception
+    {
+        doReturn(this.stringTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(UUID.randomUUID().toString()).when(this.stringTypedQuery).getSingleResult();
+
+        assertNotNull(this.repository.getVlanIdVmk0());
+    }
+
+    @Test
+    public void getVlanIdExceptionThrown() throws Exception
+    {
+        doReturn(this.stringTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doThrow(new NoResultException("Exception exception")).when(this.stringTypedQuery).getSingleResult();
+
+        assertNull(this.repository.getVlanIdVmk0());
     }
 }

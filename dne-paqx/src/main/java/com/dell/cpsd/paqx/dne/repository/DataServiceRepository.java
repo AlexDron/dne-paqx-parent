@@ -74,4 +74,6 @@ public interface DataServiceRepository
     String getClusterId(final String clusterName);
 
     String getDataCenterName(final String clusterName);
+
+    String getVlanIdVmk0();
 }

@@ -11,6 +11,7 @@ import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.InstallEsxiTaskResponse;
+import com.dell.cpsd.paqx.dne.service.model.IpV4Configuration;
 import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
 import com.dell.cpsd.paqx.dne.service.model.Status;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
@@ -78,6 +79,20 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
                 throw new IllegalStateException("ESXi Management IP Address is null");
             }
 
+            final String esxiManagementGatewayIpAddress = inputParams.getEsxiManagementGatewayIpAddress();
+
+            if (StringUtils.isEmpty(esxiManagementGatewayIpAddress))
+            {
+                throw new IllegalStateException("ESXi Management Gateway IP Address is null");
+            }
+
+            final String esxiManagementSubnetMask = inputParams.getEsxiManagementSubnetMask();
+
+            if (StringUtils.isEmpty(esxiManagementSubnetMask))
+            {
+                throw new IllegalStateException("ESXi Management Subnet Mask is null");
+            }
+
             String esxiManagementHostname = inputParams.getEsxiManagementHostname();
 
             if (StringUtils.isEmpty(esxiManagementHostname))
@@ -91,8 +106,13 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
 
             response.setHostname(esxiManagementHostname);
 
+            final IpV4Configuration ipV4Configuration = new IpV4Configuration();
+            ipV4Configuration.setEsxiManagementIpAddress(esxiManagementIpAddress);
+            ipV4Configuration.setEsxiManagementGateway(esxiManagementGatewayIpAddress);
+            ipV4Configuration.setEsxiManagementNetworkMask(esxiManagementSubnetMask);
+
             final EsxiInstallationInfo esxiInstallationInfo = hostToInstallEsxiRequestTransformer
-                    .transformInstallEsxiData(esxiManagementHostname, nodeId);
+                    .transformInstallEsxiData(esxiManagementHostname, nodeId, ipV4Configuration);
 
             final boolean success = this.nodeService.requestInstallEsxi(esxiInstallationInfo);
 
