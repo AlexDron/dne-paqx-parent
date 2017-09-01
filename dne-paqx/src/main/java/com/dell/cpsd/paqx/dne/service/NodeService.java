@@ -132,6 +132,10 @@ public interface NodeService
     BootDeviceIdracStatus bootDeviceIdracStatus(ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
 
+
+    public BootDeviceIdracStatus configurePxeBoot(String uuid, String ipAddress)
+            throws ServiceTimeoutException, ServiceExecutionException;
+
     boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
 
     boolean requestVCenterComponents() throws ServiceTimeoutException, ServiceExecutionException;

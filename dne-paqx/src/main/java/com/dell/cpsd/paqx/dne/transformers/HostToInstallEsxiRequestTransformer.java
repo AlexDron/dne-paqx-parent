@@ -40,8 +40,7 @@ public class HostToInstallEsxiRequestTransformer
 {
     private static final Logger LOG                   = LoggerFactory.getLogger(HostToInstallEsxiRequestTransformer.class);
     private static final String VERSION               = "6.0";
-    private static final String DEFAULT_ROOT_PASSWORD = "";
-    private static final String DELL_NODE_KARGS       = "netdevice=vmnic0";
+    private static final String DELL_NODE_KARGS       = "netdevice=vmnic2";
     private final DataServiceRepository dataServiceRepository;
 
     public HostToInstallEsxiRequestTransformer(final DataServiceRepository dataServiceRepository)
@@ -88,8 +87,6 @@ public class HostToInstallEsxiRequestTransformer
         //Specific to Dell Node
         esxiInstallationInfo.setKargs(DELL_NODE_KARGS);
         esxiInstallationInfo.setVersion(VERSION);
-        //The default root password as per the document
-        esxiInstallationInfo.setRootPassword(DEFAULT_ROOT_PASSWORD);
 
         // Based on any existing host in the vcenter
         transformHostDnsConfig(esxiInstallationInfo, host.getHostDnsConfig());
@@ -132,10 +129,16 @@ public class HostToInstallEsxiRequestTransformer
     {
         if (hostIpRouteConfig != null)
         {
-            // Create the first device with static info
             final BootImageNetworkDevice bootImageNetworkDevice_1 = new BootImageNetworkDevice();
             bootImageNetworkDevice_1.setDevice("vmnic0");
             bootImageNetworkDevice_1.setEsxSwitchName("vSwitch0");
+
+            final BootImageNetworkAddressV4 bootImageNetworkAddressV4 = new BootImageNetworkAddressV4();
+            bootImageNetworkAddressV4.setIpAddr(ipv4Configuration.getEsxiManagementIpAddress());
+            bootImageNetworkAddressV4.setGateway(ipv4Configuration.getEsxiManagementGateway());
+            bootImageNetworkAddressV4.setNetmask(ipv4Configuration.getEsxiManagementNetworkMask());
+            bootImageNetworkAddressV4.setVlanIds(transformNetworkDeviceVlanId());
+            bootImageNetworkDevice_1.setBootImageNetworkAddressV4(bootImageNetworkAddressV4);
 
             final BootImageNetworkDevice bootImageNetworkDevice_2 = new BootImageNetworkDevice();
             bootImageNetworkDevice_2.setDevice("vmnic1");
@@ -144,14 +147,6 @@ public class HostToInstallEsxiRequestTransformer
             final BootImageNetworkDevice bootImageNetworkDevice_3 = new BootImageNetworkDevice();
             bootImageNetworkDevice_3.setDevice("vmnic2");
             bootImageNetworkDevice_3.setEsxSwitchName("vSwitch2");
-
-            final BootImageNetworkAddressV4 bootImageNetworkAddressV4 = new BootImageNetworkAddressV4();
-            bootImageNetworkAddressV4.setIpAddr(ipv4Configuration.getEsxiManagementIpAddress());
-            bootImageNetworkAddressV4.setGateway(ipv4Configuration.getEsxiManagementGateway());
-            bootImageNetworkAddressV4.setNetmask(ipv4Configuration.getEsxiManagementNetworkMask());
-            bootImageNetworkAddressV4.setVlanIds(transformNetworkDeviceVlanId());
-
-            bootImageNetworkDevice_1.setBootImageNetworkAddressV4(bootImageNetworkAddressV4);
 
             esxiInstallationInfo
                     .setNetworkDevices(Arrays.asList(bootImageNetworkDevice_1, bootImageNetworkDevice_2, bootImageNetworkDevice_3));

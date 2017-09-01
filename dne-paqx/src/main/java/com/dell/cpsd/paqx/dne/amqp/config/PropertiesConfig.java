@@ -24,7 +24,7 @@ import org.springframework.context.annotation.PropertySources;
         @PropertySource(value = "classpath:META-INF/spring/dne-paqx/application.properties"),
         @PropertySource(value = "file:/etc/rabbitmq/client/rabbitmq-config.properties", ignoreResourceNotFound = true),
         @PropertySource(value = "file:${CREDENTIALS}", ignoreResourceNotFound = true),
-        @PropertySource(value = "file:${PASSPHRASES}", ignoreResourceNotFound = true)})
+        @PropertySource(value = "file:${PASSPHRASES}", ignoreResourceNotFound = true),})
 @Qualifier("rabbitPropertiesConfig")
 public class PropertiesConfig extends RabbitMQPropertiesConfig {
 }

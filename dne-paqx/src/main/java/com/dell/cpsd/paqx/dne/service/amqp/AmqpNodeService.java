@@ -5,19 +5,8 @@
 
 package com.dell.cpsd.paqx.dne.service.amqp;
 
+import com.dell.cpsd.*;
 import com.dell.cpsd.MessageProperties;
-import com.dell.cpsd.ChangeIdracCredentialsRequestMessage;
-import com.dell.cpsd.ChangeIdracCredentialsResponseMessage;
-import com.dell.cpsd.CompleteNodeAllocationRequestMessage;
-import com.dell.cpsd.CompleteNodeAllocationResponseMessage;
-import com.dell.cpsd.ConfigureBootDeviceIdracError;
-import com.dell.cpsd.ConfigureBootDeviceIdracRequestMessage;
-import com.dell.cpsd.ConfigureBootDeviceIdracResponseMessage;
-import com.dell.cpsd.EsxiInstallationInfo;
-import com.dell.cpsd.InstallESXiRequestMessage;
-import com.dell.cpsd.InstallESXiResponseMessage;
-import com.dell.cpsd.ListNodes;
-import com.dell.cpsd.NodesListed;
 import com.dell.cpsd.common.logging.ILogger;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
 import com.dell.cpsd.paqx.dne.domain.ComponentDetails;
@@ -66,10 +55,12 @@ import com.dell.cpsd.virtualization.capabilities.api.DiscoveryRequestInfoMessage
 import com.dell.cpsd.virtualization.capabilities.api.DiscoveryResponseInfoMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ListComponentsRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ListComponentsResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.MessageProperties;
 import com.dell.cpsd.virtualization.capabilities.api.VCenterComponentDetails;
 import com.dell.cpsd.virtualization.capabilities.api.VCenterEndpointDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -117,6 +108,51 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     private final DiscoveryInfoToVCenterDomainTransformer discoveryInfoToVCenterDomainTransformer;
     private final ScaleIORestToScaleIODomainTransformer   scaleIORestToScaleIODomainTransformer;
     private final StoragePoolEssRequestTransformer        storagePoolEssRequestTransformer;
+
+    @Value("${rackhd.wsman.obm.service}")
+    private String                                 wsmanObmService;
+
+    @Value("${rackhd.systemscomponent.graph.name}")
+    private String                                 updateGraphName;
+
+    @Value("${rackhd.share.name}")
+    private String                                 shareName;
+
+    @Value("${rackhd.share.type}")
+    private Integer                                shareType;
+
+    @Value("${rackhd.bios.fqdd}")
+    private String                                 biosFqdd;
+
+    @Value("${rackhd.boot.seq.name}")
+    private String                                 biosBootSeqName;
+
+    @Value("${rackhd.boot.seq.value}")
+    private String                                 biosBootSeqValue;
+
+    @Value("${rackhd.hdd.seq.name}")
+    private String                                 hddSeqName;
+
+    @Value("${rackhd.hdd.seq.value}")
+    private String                                 hddSeqValue;
+
+    @Value("${rackhd.nic111.fqdd}")
+    private String                                 nic111Fqdd;
+
+    @Value("${rackhd.nic121.fqdd}")
+    private String                                 nic121Fqdd;
+
+    @Value("${rackhd.nic131.fqdd}")
+    private String                                 nic131Fqdd;
+
+    @Value("${rackhd.nic141.fqdd}")
+    private String                                 nic141Fqdd;
+
+    @Value("${rackhd.boot.proto.name}")
+    private String                                 bootProtoName;
+
+    @Value("${rackhd.boot.proto.value}")
+    private String                                 bootProtoValue;
 
     /**
      * AmqpNodeService constructor.
@@ -644,6 +680,75 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         }
         return bootDeviceIdracStatus;
     }
+
+
+    @Override
+    public BootDeviceIdracStatus configurePxeBoot(String uuid, String ipAddress)
+            throws ServiceTimeoutException, ServiceExecutionException
+    {
+
+        BootDeviceIdracStatus bootDeviceIdracStatus = new BootDeviceIdracStatus();
+
+        try
+        {
+            ConfigurePxeBootRequestMessage configurePxeBootRequestMessage = new ConfigurePxeBootRequestMessage();
+
+            com.dell.cpsd.MessageProperties messageProperties = new com.dell.cpsd.MessageProperties();
+            messageProperties.setCorrelationId(UUID.randomUUID().toString());
+            messageProperties.setTimestamp(Calendar.getInstance().getTime());
+            messageProperties.setReplyTo(replyTo);
+            configurePxeBootRequestMessage.setMessageProperties(messageProperties);
+
+            configurePxeBootRequestMessage.setUuid(uuid);
+            configurePxeBootRequestMessage.setIpAddress(ipAddress);
+
+            ServiceResponse<?> response = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return messageProperties.getCorrelationId();
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishConfigurePxeBoot(configurePxeBootRequestMessage);
+                }
+            });
+
+            ConfigureBootDeviceIdracResponseMessage resp = processResponse(response, ConfigureBootDeviceIdracResponseMessage.class);
+            if (resp != null)
+            {
+                if (resp.getMessageProperties() != null)
+                {
+                    if (resp.getStatus() != null)
+                    {
+                        LOGGER.info("Response message is: " + resp.getStatus().toString());
+
+                        bootDeviceIdracStatus.setStatus(resp.getStatus().toString());
+                        List<ConfigureBootDeviceIdracError> errors = resp.getConfigureBootDeviceIdracErrors();
+                        if (!CollectionUtils.isEmpty(errors))
+                        {
+                            List<String> errorMsgs = new ArrayList<String>();
+                            for (ConfigureBootDeviceIdracError error : errors)
+                            {
+                                errorMsgs.add(error.getMessage());
+                            }
+                            bootDeviceIdracStatus.setErrors(errorMsgs);
+                        }
+                    }
+                }
+
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception in boot order sequence: ", e);
+        }
+        return bootDeviceIdracStatus;
+    }
+
 
     @Override
     public boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException

@@ -509,7 +509,10 @@ public class H2DataRepository implements DataServiceRepository
     public String getVlanIdVmk0()
     {
         final TypedQuery<String> typedQuery = entityManager.createQuery(
-                "select p.vlanId from PortGroup as p join VirtualNicDVPortGroup vnpg on p.id = vnpg.portGroupId join VirtualNic vnic on vnic.uuid = vnpg.virtualNic.uuid where vnic.device = :vNicDevice",
+                "select p.vlanId from PortGroup as p "
+                        + "join VirtualNicDVPortGroup vnpg on p.id = vnpg.portGroupId "
+                        + "join VirtualNic vnic on vnic.uuid = vnpg.virtualNic.uuid "
+                        + "where vnic.device = :vNicDevice",
                 String.class);
 
         typedQuery.setParameter("vNicDevice", "vmk0");

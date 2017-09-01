@@ -5,11 +5,7 @@
 
 package com.dell.cpsd.paqx.dne.amqp.producer;
 
-import com.dell.cpsd.ChangeIdracCredentialsRequestMessage;
-import com.dell.cpsd.CompleteNodeAllocationRequestMessage;
-import com.dell.cpsd.ConfigureBootDeviceIdracRequestMessage;
-import com.dell.cpsd.InstallESXiRequestMessage;
-import com.dell.cpsd.ListNodes;
+import com.dell.cpsd.*;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
 import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
@@ -89,6 +85,8 @@ public interface DneProducer
      * @param request
      */
     void publishConfigureBootDeviceIdrac(ConfigureBootDeviceIdracRequestMessage request);
+
+    void publishConfigurePxeBoot(ConfigurePxeBootRequestMessage request);
 
     /**
      * List ScaleIO Components
