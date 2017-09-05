@@ -6,7 +6,6 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
-import com.dell.cpsd.ConfigurePxeBootRequestMessage;
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;

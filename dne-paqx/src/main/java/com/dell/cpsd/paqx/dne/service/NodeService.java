@@ -110,7 +110,7 @@ public interface NodeService
     /**
      * Change Idrac credentials
      *
-     * @param configureBootDeviceIdracRequest - The <code>ChangeIdracCredentialsRequest</code> instance.
+     * @param nodeId - The <code>ChangeIdracCredentialsRequest</code> instance.
      * @return
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException

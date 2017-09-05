@@ -6,7 +6,6 @@
 package com.dell.cpsd.paqx.dne.service.amqp;
 
 import com.dell.cpsd.*;
-import com.dell.cpsd.MessageProperties;
 import com.dell.cpsd.common.logging.ILogger;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
 import com.dell.cpsd.paqx.dne.domain.ComponentDetails;
@@ -109,44 +108,15 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     private final ScaleIORestToScaleIODomainTransformer   scaleIORestToScaleIODomainTransformer;
     private final StoragePoolEssRequestTransformer        storagePoolEssRequestTransformer;
 
-    @Value("${rackhd.wsman.obm.service}")
-    private String                                 wsmanObmService;
 
-    @Value("${rackhd.systemscomponent.graph.name}")
-    private String                                 updateGraphName;
-
-    @Value("${rackhd.share.name}")
+    @Value("${rackhd.boot.proto.share.name}")
     private String                                 shareName;
 
-    @Value("${rackhd.share.type}")
+    @Value("${rackhd.boot.proto.share.type}")
     private Integer                                shareType;
 
-    @Value("${rackhd.bios.fqdd}")
-    private String                                 biosFqdd;
-
-    @Value("${rackhd.boot.seq.name}")
-    private String                                 biosBootSeqName;
-
-    @Value("${rackhd.boot.seq.value}")
-    private String                                 biosBootSeqValue;
-
-    @Value("${rackhd.hdd.seq.name}")
-    private String                                 hddSeqName;
-
-    @Value("${rackhd.hdd.seq.value}")
-    private String                                 hddSeqValue;
-
-    @Value("${rackhd.nic111.fqdd}")
-    private String                                 nic111Fqdd;
-
-    @Value("${rackhd.nic121.fqdd}")
-    private String                                 nic121Fqdd;
-
-    @Value("${rackhd.nic131.fqdd}")
-    private String                                 nic131Fqdd;
-
-    @Value("${rackhd.nic141.fqdd}")
-    private String                                 nic141Fqdd;
+    @Value("${rackhd.boot.proto.fqdds}")
+    private String[]                                 fqdds;
 
     @Value("${rackhd.boot.proto.name}")
     private String                                 bootProtoName;
@@ -196,6 +166,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         this.consumer.addAdapter(new IdracConfigResponseAdapter(this));
         this.consumer.addAdapter(new ChangeIdracCredentialsResponseAdapter(this));
         this.consumer.addAdapter(new ConfigureBootDeviceIdracResponseAdapter(this));
+        this.consumer.addAdapter(new ConfigurePxeBootResponseAdapter(this));
         this.consumer.addAdapter(new ValidateClusterResponseAdapter(this));
         this.consumer.addAdapter(new ValidateStoragePoolResponseAdapter(this));
         this.consumer.addAdapter(new ListScaleIoComponentsResponseAdapter(this));
@@ -302,7 +273,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     @Override
     public List<DiscoveredNode> listDiscoveredNodes() throws ServiceTimeoutException, ServiceExecutionException
     {
-        MessageProperties messageProperties = new MessageProperties();
+        com.dell.cpsd.MessageProperties messageProperties = new com.dell.cpsd.MessageProperties();
         messageProperties.setCorrelationId(UUID.randomUUID().toString());
         messageProperties.setTimestamp(Calendar.getInstance().getTime());
         messageProperties.setReplyTo(replyTo);
@@ -487,7 +458,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     @Override
     public boolean notifyNodeAllocationComplete(String elementIdentifier) throws ServiceTimeoutException, ServiceExecutionException
     {
-        MessageProperties messageProperties = new MessageProperties();
+        com.dell.cpsd.MessageProperties messageProperties = new com.dell.cpsd.MessageProperties();
         messageProperties.setCorrelationId(UUID.randomUUID().toString());
         messageProperties.setTimestamp(Calendar.getInstance().getTime());
         messageProperties.setReplyTo(replyTo);
@@ -557,7 +528,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         try
         {
             ChangeIdracCredentialsRequestMessage changeIdracCredentialsRequestMessage = new ChangeIdracCredentialsRequestMessage();
-            MessageProperties messageProperties = new MessageProperties();
+            com.dell.cpsd.MessageProperties messageProperties = new com.dell.cpsd.MessageProperties();
             messageProperties.setCorrelationId(UUID.randomUUID().toString());
             messageProperties.setTimestamp(Calendar.getInstance().getTime());
             messageProperties.setReplyTo(replyTo);
@@ -615,6 +586,11 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     }
 
     @Override
+    public BootDeviceIdracStatus bootDeviceIdracStatus(SetObmSettingsRequestMessage setObmSettingsRequestMessage) throws ServiceTimeoutException, ServiceExecutionException {
+        return null;
+    }
+
+    @Override
     public BootDeviceIdracStatus bootDeviceIdracStatus(ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
             throws ServiceTimeoutException, ServiceExecutionException
     {
@@ -625,7 +601,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         {
             ConfigureBootDeviceIdracRequestMessage configureBootDeviceIdracRequestMessage = new ConfigureBootDeviceIdracRequestMessage();
 
-            MessageProperties messageProperties = new MessageProperties();
+            com.dell.cpsd.MessageProperties messageProperties = new com.dell.cpsd.MessageProperties();
             messageProperties.setCorrelationId(UUID.randomUUID().toString());
             messageProperties.setTimestamp(Calendar.getInstance().getTime());
             messageProperties.setReplyTo(replyTo);
@@ -701,6 +677,15 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
 
             configurePxeBootRequestMessage.setUuid(uuid);
             configurePxeBootRequestMessage.setIpAddress(ipAddress);
+
+            PxeBootConfig pxeBootConfig = new PxeBootConfig();
+            pxeBootConfig.setProtoValue(bootProtoValue);
+            pxeBootConfig.setShareType(shareType);
+            pxeBootConfig.setShareName(shareName);
+            pxeBootConfig.setProtoName(bootProtoName);
+            pxeBootConfig.setNicFqdds(Arrays.asList(fqdds));
+
+            configurePxeBootRequestMessage.setPxeBootConfig(pxeBootConfig);
 
             ServiceResponse<?> response = processRequest(timeout, new ServiceRequestCallback()
             {
@@ -1036,7 +1021,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         {
             final InstallESXiRequestMessage requestMessage = new InstallESXiRequestMessage();
             final String correlationId = UUID.randomUUID().toString();
-            requestMessage.setMessageProperties(new MessageProperties(new Date(), correlationId, replyTo));
+            requestMessage.setMessageProperties(new com.dell.cpsd.MessageProperties(new Date(), correlationId, replyTo));
             requestMessage.setEsxiInstallationInfo(esxiInstallationInfo);
 
             ServiceResponse<?> callbackResponse = processRequest(timeout, new ServiceRequestCallback()

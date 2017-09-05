@@ -5,11 +5,7 @@
 
 package com.dell.cpsd.paqx.dne.amqp.producer;
 
-import com.dell.cpsd.ChangeIdracCredentialsRequestMessage;
-import com.dell.cpsd.CompleteNodeAllocationRequestMessage;
-import com.dell.cpsd.ConfigureBootDeviceIdracRequestMessage;
-import com.dell.cpsd.InstallESXiRequestMessage;
-import com.dell.cpsd.ListNodes;
+import com.dell.cpsd.*;
 import com.dell.cpsd.common.rabbitmq.annotation.Message;
 import com.dell.cpsd.hdp.capability.registry.api.ProviderEndpoint;
 import com.dell.cpsd.hdp.capability.registry.client.binder.CapabilityBinder;
@@ -114,6 +110,30 @@ public class AmqpDneProducer implements DneProducer
             if (messageType(ConfigureBootDeviceIdracRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
             {
                 LOGGER.info("Publish configure boot device idrac request message from DNE paqx.");
+                rabbitTemplate.convertAndSend(endpointHelper.getRequestExchange(), endpointHelper.getRequestRoutingKey(), request);
+            }
+        }
+    }
+
+    @Override
+    public void publishConfigurePxeBoot(ConfigurePxeBootRequestMessage request) {
+        Collection<CapabilityData> capabilities = capabilityBinder.getCurrentCapabilities();
+
+        if (capabilities == null)
+        {
+            LOGGER.error("No Capabilities found for publishConfigurePxeboot");
+            return;
+        }
+
+        LOGGER.info("publishConfigurePxeBoot: found list of capablities with size {}", capabilities.size());
+
+        for (CapabilityData capabilityData : capabilities)
+        {
+            ProviderEndpoint endpoint = capabilityData.getCapability().getProviderEndpoint();
+            AmqpProviderEndpointHelper endpointHelper = new AmqpProviderEndpointHelper(endpoint);
+            if (messageType(ConfigurePxeBootRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
+            {
+                LOGGER.info("Publish configure Pxe Boot request message from DNE paqx.");
                 rabbitTemplate.convertAndSend(endpointHelper.getRequestExchange(), endpointHelper.getRequestRoutingKey(), request);
             }
         }
