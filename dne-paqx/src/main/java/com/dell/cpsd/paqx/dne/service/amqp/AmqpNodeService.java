@@ -116,7 +116,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     private Integer                                shareType;
 
     @Value("${rackhd.boot.proto.fqdds}")
-    private String[]                                 fqdds;
+    private String[]                               fqdds;
 
     @Value("${rackhd.boot.proto.name}")
     private String                                 bootProtoName;

@@ -111,7 +111,7 @@ public class RabbitConfig
      */
     @Autowired
     private PropertiesConfig propertiesConfig;
-    
+
     /*
      * The support system-integration-sdk class mappings
      */

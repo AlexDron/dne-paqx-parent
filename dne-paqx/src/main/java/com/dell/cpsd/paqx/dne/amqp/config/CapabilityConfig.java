@@ -67,6 +67,8 @@ public class CapabilityConfig
                         .withProfile("rackhd-set-idrac-credentials"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("rackhd-configure-boot-device-idrac"),
+                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
+                        .withProfile("rackhd-configure-pxe-boot"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("scaleio-list-components"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
