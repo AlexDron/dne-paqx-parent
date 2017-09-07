@@ -702,7 +702,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                 }
             });
 
-            ConfigureBootDeviceIdracResponseMessage resp = processResponse(response, ConfigureBootDeviceIdracResponseMessage.class);
+            ConfigurePxeBootResponseMessage resp = processResponse(response, ConfigurePxeBootResponseMessage.class);
             if (resp != null)
             {
                 if (resp.getMessageProperties() != null)
@@ -712,11 +712,11 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                         LOGGER.info("Response message is: " + resp.getStatus().toString());
 
                         bootDeviceIdracStatus.setStatus(resp.getStatus().toString());
-                        List<ConfigureBootDeviceIdracError> errors = resp.getConfigureBootDeviceIdracErrors();
+                        List<ConfigurePxeBootError> errors = resp.getConfigurePxeBootErrors();
                         if (!CollectionUtils.isEmpty(errors))
                         {
                             List<String> errorMsgs = new ArrayList<String>();
-                            for (ConfigureBootDeviceIdracError error : errors)
+                            for (ConfigurePxeBootError error : errors)
                             {
                                 errorMsgs.add(error.getMessage());
                             }
