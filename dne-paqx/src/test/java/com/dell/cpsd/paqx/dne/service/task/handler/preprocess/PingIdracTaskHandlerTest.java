@@ -11,7 +11,6 @@ import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
 import com.dell.cpsd.paqx.dne.service.model.Status;
 import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -67,7 +66,6 @@ public class PingIdracTaskHandlerTest
      *
      * @since 1.0
      */
-    @Ignore
     @Test
     public void executeTask_successful_case() throws Exception
     {
