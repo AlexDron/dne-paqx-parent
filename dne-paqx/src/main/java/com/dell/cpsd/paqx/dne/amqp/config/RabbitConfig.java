@@ -235,6 +235,9 @@ public class RabbitConfig
         messageClasses.add(IdracNetworkSettingsResponse.class);
         messageClasses.add(IdracNetworkSettingsResponseMessage.class);
 
+        messageClasses.add(SetObmSettingsRequestMessage.class);
+        messageClasses.add(SetObmSettingsResponseMessage.class);
+
         messageClasses.add(ValidateVcenterClusterResponseMessage.class);
         messageClasses.add(ValidateVcenterClusterRequestMessage.class);
 

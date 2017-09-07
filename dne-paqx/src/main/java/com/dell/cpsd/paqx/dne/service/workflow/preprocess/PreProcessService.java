@@ -35,11 +35,8 @@ import java.util.UUID;
  */
 
 @Service
-public class PreProcessService extends BaseService implements IPreProcessService {
-
-//    @Value("#{PropertySplitter.map('${preprocess.map.step.to.map}')}")
-//    private Map<String, String> propertyAsMap;
-
+public class PreProcessService extends BaseService implements IPreProcessService
+{
     @Autowired
     @Qualifier("preProcessWorkflowService")
     private WorkflowService workflowService;
@@ -51,22 +48,31 @@ public class PreProcessService extends BaseService implements IPreProcessService
     private DataServiceRepository repository;
 
     @Bean("findDiscoveredNodesTask")
-    private WorkflowTask findDiscoveredNodesTask(){
+    private WorkflowTask findDiscoveredNodesTask()
+    {
         return createTask("Finding discovered Nodes", new FindDiscoveredNodesTaskHandler(nodeService));
     }
 
+    @Bean("configureObmSettingsTask")
+    private WorkflowTask configureObmSettingsTask(){
+        return createTask("Configuring Obm Settings", new ConfigureObmSettingsTaskHandler(nodeService));
+    }
+
     @Bean("configIdracTask")
-    private WorkflowTask configIdracTask(){
+    private WorkflowTask configIdracTask()
+    {
         return createTask("Configuring Out of Band Management", new ConfigIdracTaskHandler(nodeService));
     }
 
     @Bean("pingIdracTask")
-    private WorkflowTask pingIdracTask(){
+    private WorkflowTask pingIdracTask()
+    {
         return createTask("Ping iDRAC IP Address", new PingIdracTaskHandler(120000));
     }
 
     @Bean("configureBootDeviceIdrac")
-    private WorkflowTask configureBootDeviceIdrac(){
+    private WorkflowTask configureBootDeviceIdrac()
+    {
         return createTask("Configure Boot Device Idrac", new ConfigureBootDeviceIdracTaskHandler(nodeService));
     }
 
@@ -77,33 +83,27 @@ public class PreProcessService extends BaseService implements IPreProcessService
 
 
     @Bean("findVClusterTask")
-    public WorkflowTask createVClusterTask(){
+    public WorkflowTask createVClusterTask()
+    {
         return createTask("Find VCluster", new FindVClusterTaskHandler(nodeService));
     }
 
     @Bean("findScaleIO")
-    public WorkflowTask createFindScaleIOTask(){
+    public WorkflowTask createFindScaleIOTask()
+    {
         return createTask("Find ScaleIO", new FindScaleIOTaskHandler(nodeService));
     }
 
     @Bean("findProtectionDomainTask")
-    public WorkflowTask findProtectionDomainTask(){
+    public WorkflowTask findProtectionDomainTask()
+    {
         return createTask("Find ProtectionDomain", new FindProtectionDomainTaskHandler(workflowService));
     }
 
     @Bean("findSystemDataTask")
-    public WorkflowTask findSystemDataTask(){
+    public WorkflowTask findSystemDataTask()
+    {
         return createTask("Find SystemData", new FindSystemDataTaskHandler(workflowService));
-    }
-
-    @Bean("assignDefaultHostNameTask")
-    public WorkflowTask assignDefaultHostNameTask(){
-        return createTask("Assign Default HostName", new AssignDefaultHostNameTaskHandler(workflowService));
-    }
-
-    @Bean("assignDefaultCredentialsTask")
-    public WorkflowTask assignDefaultCredentialsTask(){
-        return createTask("Assign Default Credentials", new AssignDefaultCredentialsTaskHandler(workflowService));
     }
 
     @Bean("listScaleIoComponentsTask")
@@ -131,7 +131,8 @@ public class PreProcessService extends BaseService implements IPreProcessService
     }
 
     @Bean("preProcessWorkflowTasks")
-    public Map<String, WorkflowTask> preProcessWorkflowTasks(){
+    public Map<String, WorkflowTask> preProcessWorkflowTasks()
+    {
         final Map<String, WorkflowTask> workflowTasks = new HashMap<>();
 
         workflowTasks.put("findAvailableNodes", findDiscoveredNodesTask());
@@ -139,6 +140,7 @@ public class PreProcessService extends BaseService implements IPreProcessService
         workflowTasks.put("listVCenterComponents", listVCenterComponentsTask());
         workflowTasks.put("discoverScaleIo", discoverScaleIoTask());
         workflowTasks.put("discoverVCenter", discoverVCenterTask());
+        workflowTasks.put("configureObmSettings", configureObmSettingsTask());
         workflowTasks.put("configIdrac", configIdracTask());
         workflowTasks.put("pingIdrac", pingIdracTask());
         workflowTasks.put("configureBootDeviceIdrac", configureBootDeviceIdrac());
@@ -153,22 +155,23 @@ public class PreProcessService extends BaseService implements IPreProcessService
     }
 
     @Override
-    public Job createWorkflow(final String workflowType, final String startingStep,
-                              final String currentStatus){
+    public Job createWorkflow(final String workflowType, final String startingStep, final String currentStatus)
+    {
 
         Job job = workflowService.createWorkflow(workflowType, startingStep, currentStatus, preProcessWorkflowTasks());
         return job;
     }
 
-
     ///////////////////////////////////////////////
-    public Job findJob(UUID jobId){
+    public Job findJob(UUID jobId)
+    {
         final Job job = workflowService.findJob(jobId);
 
         return job;
     }
 
-    public  NodeExpansionResponse makeNodeExpansionResponse(final Job job){
+    public NodeExpansionResponse makeNodeExpansionResponse(final Job job)
+    {
         return makeNodeExpansionResponse(job, workflowService);
     }
 
@@ -176,15 +179,18 @@ public class PreProcessService extends BaseService implements IPreProcessService
     ///////////////////////////////////
     //
 
-//    public String findPathFromStep(final String step)
-//    {
-//        return propertyAsMap.get(step);
-//    }
+    //    public String findPathFromStep(final String step)
+    //    {
+    //        return propertyAsMap.get(step);
+    //    }
 
-    public WorkflowService getWorkflowService() {
+    public WorkflowService getWorkflowService()
+    {
         return workflowService;
     }
-    public void setWorkflowService (WorkflowService workflowService){
+
+    public void setWorkflowService(WorkflowService workflowService)
+    {
         this.workflowService = workflowService;
     }
 }

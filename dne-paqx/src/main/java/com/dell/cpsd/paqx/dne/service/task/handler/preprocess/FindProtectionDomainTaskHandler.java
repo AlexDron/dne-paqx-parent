@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AssignDefaultHostNameTaskHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FindProtectionDomainTaskHandler.class);
 
     private WorkflowService workflowService;
 

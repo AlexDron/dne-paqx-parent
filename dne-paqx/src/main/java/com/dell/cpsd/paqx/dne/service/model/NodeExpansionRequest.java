@@ -24,6 +24,8 @@ public class NodeExpansionRequest
     private String clusterName;
     private String symphonyUuid;
 
+    private String serviceName;
+
     public NodeExpansionRequest()
     {
     }
@@ -45,7 +47,6 @@ public class NodeExpansionRequest
         this.nodeId = nodeId;
         this.symphonyUuid = symphonyUuid;
         this.clusterName = clusterName;
-
     }
 
     public String getIdracIpAddress()
@@ -174,6 +175,15 @@ public class NodeExpansionRequest
         this.symphonyUuid = symphonyUuid;
     }
 
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
     @Override
     public String toString()
     {
@@ -191,6 +201,7 @@ public class NodeExpansionRequest
                 + ", nodeId='" + nodeId + '\''
                 + ", clusterName='" + clusterName + '\''
                 + ", symphonyUuid='" + symphonyUuid + '\''
+                + ", serviceName='" + serviceName + '\''
                 + ", hostname='" + hostname + '\'' + '}';
     }
 }

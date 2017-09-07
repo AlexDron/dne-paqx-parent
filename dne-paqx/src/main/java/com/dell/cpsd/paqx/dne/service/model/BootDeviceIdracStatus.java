@@ -17,7 +17,7 @@ import java.util.List;
  * @since 1.0
  */
 
-public class BootDeviceIdracStatus  {
+public class BootDeviceIdracStatus extends TaskResponse {
     private String status;
     private List<String> errors;
 

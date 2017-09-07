@@ -6,6 +6,7 @@
 package com.dell.cpsd.paqx.dne.service.amqp;
 
 import com.dell.cpsd.*;
+import com.dell.cpsd.MessageProperties;
 import com.dell.cpsd.common.logging.ILogger;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
 import com.dell.cpsd.paqx.dne.domain.ComponentDetails;
@@ -17,13 +18,9 @@ import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.amqp.adapter.*;
-import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
-import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
+import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
-import com.dell.cpsd.paqx.dne.service.model.ConfigureBootDeviceIdracRequest;
 import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
-import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
-import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
 import com.dell.cpsd.paqx.dne.transformers.DiscoveryInfoToVCenterDomainTransformer;
 import com.dell.cpsd.paqx.dne.transformers.ScaleIORestToScaleIODomainTransformer;
 import com.dell.cpsd.paqx.dne.transformers.StoragePoolEssRequestTransformer;
@@ -38,38 +35,18 @@ import com.dell.cpsd.service.common.client.rpc.DelegatingMessageConsumer;
 import com.dell.cpsd.service.common.client.rpc.ServiceRequestCallback;
 import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolRequestMessage;
 import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.*;
 import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentResponseMessage;
-import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
-import com.dell.cpsd.storage.capabilities.api.ListStorageResponseMessage;
-import com.dell.cpsd.storage.capabilities.api.ScaleIOComponentDetails;
-import com.dell.cpsd.storage.capabilities.api.ScaleIoEndpointDetails;
-import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
+import com.dell.cpsd.storage.capabilities.api.*;
+import com.dell.cpsd.virtualization.capabilities.api.*;
 import com.dell.cpsd.virtualization.capabilities.api.Credentials;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfo;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfoMessage;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoveryRequestInfoMessage;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoveryResponseInfoMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ListComponentsRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ListComponentsResponseMessage;
-import com.dell.cpsd.virtualization.capabilities.api.MessageProperties;
-import com.dell.cpsd.virtualization.capabilities.api.VCenterComponentDetails;
-import com.dell.cpsd.virtualization.capabilities.api.VCenterEndpointDetails;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+
 import java.util.stream.Collectors;
 
 /**
@@ -167,6 +144,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         this.consumer.addAdapter(new ChangeIdracCredentialsResponseAdapter(this));
         this.consumer.addAdapter(new ConfigureBootDeviceIdracResponseAdapter(this));
         this.consumer.addAdapter(new ConfigurePxeBootResponseAdapter(this));
+        this.consumer.addAdapter(new ConfigureObmSettingsResponseAdapter(this));
         this.consumer.addAdapter(new ValidateClusterResponseAdapter(this));
         this.consumer.addAdapter(new ValidateStoragePoolResponseAdapter(this));
         this.consumer.addAdapter(new ListScaleIoComponentsResponseAdapter(this));
@@ -729,6 +707,57 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         return bootDeviceIdracStatus;
     }
 
+
+    @Override
+    public BootDeviceIdracStatus bootDeviceIdracStatus(SetObmSettingsRequestMessage setObmSettingsRequestMessage)
+            throws ServiceTimeoutException, ServiceExecutionException
+    {
+
+        BootDeviceIdracStatus bootDeviceIdracStatus = new BootDeviceIdracStatus();
+
+        try
+        {
+            MessageProperties messageProperties = new MessageProperties();
+            messageProperties.setCorrelationId(UUID.randomUUID().toString());
+            messageProperties.setTimestamp(Calendar.getInstance().getTime());
+            messageProperties.setReplyTo(replyTo);
+            setObmSettingsRequestMessage.setMessageProperties(messageProperties);
+
+            ServiceResponse<?> response = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return messageProperties.getCorrelationId();
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishConfigureObmSettings(setObmSettingsRequestMessage);
+                }
+            });
+
+            SetObmSettingsResponseMessage resp = processResponse(response, SetObmSettingsResponseMessage.class);
+            if (resp != null)
+            {
+                if (resp.getMessageProperties() != null)
+                {
+                    if (resp.getStatus() != null)
+                    {
+                        LOGGER.info("Response message is: " + resp.getStatus().toString());
+
+                        bootDeviceIdracStatus.setStatus(resp.getStatus().toString());
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Exception in boot order sequence: ", e);
+        }
+        return bootDeviceIdracStatus;
+    }
 
     @Override
     public boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException

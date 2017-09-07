@@ -44,17 +44,29 @@ public class CapabilityConfig
      */
     private static final Logger  LOGGER    = LoggerFactory.getLogger(CapabilityConfig.class);
 
-    @Bean
-    public CapabilityBinder dneCapabilityBinder(
-            @Autowired ICapabilityRegistryLookupManager capabilityRegistryLookupManager,
-            @Autowired @Qualifier("nodeExpansionAmqpAdmin") AmqpAdmin amqpAdmin,
-            @Autowired @Qualifier("nodeExpansionResponseQueue") Queue queue,
-            @Autowired String replyTo)
-    {
-        CapabilityBindingService bindingService = new AmqpRpcCapabilityBindingService(capabilityRegistryLookupManager, amqpAdmin, queue,
-                replyTo);
+    @Autowired
+    private ICapabilityRegistryLookupManager capabilityRegistryLookupManager;
 
-        CapabilityBinder binder = new CapabilityBinder(bindingService,
+    @Autowired @Qualifier("nodeExpansionAmqpAdmin")
+    private AmqpAdmin amqpAdmin;
+
+    @Autowired @Qualifier("nodeExpansionResponseQueue")
+    private Queue queue;
+
+    @Autowired
+    private String replyTo;
+
+    @Bean
+    public CapabilityBindingService capabilityBindingService()
+    {
+        return new AmqpRpcCapabilityBindingService(capabilityRegistryLookupManager, amqpAdmin, queue,
+                replyTo);
+    }
+
+    @Bean
+    public CapabilityBinder dneCapabilityBinder()
+    {
+        CapabilityBinder binder = new CapabilityBinder(capabilityBindingService(),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("list-discovered-nodes"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
@@ -100,7 +112,9 @@ public class CapabilityConfig
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("esxi-credential-details"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
-                        .withProfile("vcenter-enterMaintenance")
+                        .withProfile("vcenter-enterMaintenance"),
+               new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
+                        .withProfile("rackhd-set-node-obm-setting")
 
         );
 

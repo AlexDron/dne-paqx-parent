@@ -1,15 +1,12 @@
 package com.dell.cpsd.paqx.dne.transformers;
 
 import com.dell.cpsd.BootImageNetworkAddressV4;
-import com.dell.cpsd.BootImageNetworkAddressV6;
 import com.dell.cpsd.BootImageNetworkDevice;
 import com.dell.cpsd.EsxiInstallationInfo;
 import com.dell.cpsd.NodeWorkflowSwitchDevice;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
 import com.dell.cpsd.paqx.dne.domain.vcenter.HostDnsConfig;
 import com.dell.cpsd.paqx.dne.domain.vcenter.HostIpRouteConfig;
-import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
-import com.dell.cpsd.paqx.dne.domain.vcenter.VirtualNic;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.model.IpV4Configuration;
 import org.slf4j.Logger;
@@ -21,10 +18,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * Install ESXi Request Info Transformer class.
@@ -98,6 +92,8 @@ public class HostToInstallEsxiRequestTransformer
         //As per the documentation
         transformSwitchDevices(esxiInstallationInfo);
 
+        esxiInstallationInfo.setNtpServers(host.getNtpServers());
+
         return esxiInstallationInfo;
     }
 
@@ -129,27 +125,28 @@ public class HostToInstallEsxiRequestTransformer
     {
         if (hostIpRouteConfig != null)
         {
-            final BootImageNetworkDevice bootImageNetworkDevice_1 = new BootImageNetworkDevice();
-            bootImageNetworkDevice_1.setDevice("vmnic0");
-            bootImageNetworkDevice_1.setEsxSwitchName("vSwitch0");
+
+            final BootImageNetworkDevice bootImageNetworkDevice1 = new BootImageNetworkDevice();
+            bootImageNetworkDevice1.setDevice("vmnic0");
+            bootImageNetworkDevice1.setEsxSwitchName("vSwitch0");
 
             final BootImageNetworkAddressV4 bootImageNetworkAddressV4 = new BootImageNetworkAddressV4();
             bootImageNetworkAddressV4.setIpAddr(ipv4Configuration.getEsxiManagementIpAddress());
             bootImageNetworkAddressV4.setGateway(ipv4Configuration.getEsxiManagementGateway());
             bootImageNetworkAddressV4.setNetmask(ipv4Configuration.getEsxiManagementNetworkMask());
             bootImageNetworkAddressV4.setVlanIds(transformNetworkDeviceVlanId());
-            bootImageNetworkDevice_1.setBootImageNetworkAddressV4(bootImageNetworkAddressV4);
+            bootImageNetworkDevice1.setBootImageNetworkAddressV4(bootImageNetworkAddressV4);
 
-            final BootImageNetworkDevice bootImageNetworkDevice_2 = new BootImageNetworkDevice();
-            bootImageNetworkDevice_2.setDevice("vmnic1");
-            bootImageNetworkDevice_2.setEsxSwitchName("vSwitch1");
+            final BootImageNetworkDevice bootImageNetworkDevice2 = new BootImageNetworkDevice();
+            bootImageNetworkDevice2.setDevice("vmnic1");
+            bootImageNetworkDevice2.setEsxSwitchName("vSwitch1");
 
-            final BootImageNetworkDevice bootImageNetworkDevice_3 = new BootImageNetworkDevice();
-            bootImageNetworkDevice_3.setDevice("vmnic2");
-            bootImageNetworkDevice_3.setEsxSwitchName("vSwitch2");
+            final BootImageNetworkDevice bootImageNetworkDevice3 = new BootImageNetworkDevice();
+            bootImageNetworkDevice3.setDevice("vmnic2");
+            bootImageNetworkDevice3.setEsxSwitchName("vSwitch2");
 
             esxiInstallationInfo
-                    .setNetworkDevices(Arrays.asList(bootImageNetworkDevice_1, bootImageNetworkDevice_2, bootImageNetworkDevice_3));
+                    .setNetworkDevices(Arrays.asList(bootImageNetworkDevice1, bootImageNetworkDevice3, bootImageNetworkDevice3));
         }
     }
 
@@ -168,10 +165,10 @@ public class HostToInstallEsxiRequestTransformer
 
     protected void transformSwitchDevices(final EsxiInstallationInfo esxiInstallationInfo)
     {
-        final NodeWorkflowSwitchDevice switchDevice_1 = new NodeWorkflowSwitchDevice("vSwitch0", "iphash",
+        final NodeWorkflowSwitchDevice switchDevice1 = new NodeWorkflowSwitchDevice("vSwitch0", "iphash",
                 Collections.singletonList("vmnic0"));
-        final NodeWorkflowSwitchDevice switchDevice_2 = new NodeWorkflowSwitchDevice("vSwitch1", "", Collections.singletonList("vmnic1"));
-        final NodeWorkflowSwitchDevice switchDevice_3 = new NodeWorkflowSwitchDevice("vSwitch2", "", Collections.singletonList("vmnic2"));
-        esxiInstallationInfo.setSwitchDevices(Arrays.asList(switchDevice_1, switchDevice_2, switchDevice_3));
+        final NodeWorkflowSwitchDevice switchDevice2 = new NodeWorkflowSwitchDevice("vSwitch1", "", Collections.singletonList("vmnic1"));
+        final NodeWorkflowSwitchDevice switchDevice3 = new NodeWorkflowSwitchDevice("vSwitch2", "", Collections.singletonList("vmnic2"));
+        esxiInstallationInfo.setSwitchDevices(Arrays.asList(switchDevice1, switchDevice2, switchDevice3));
     }
 }

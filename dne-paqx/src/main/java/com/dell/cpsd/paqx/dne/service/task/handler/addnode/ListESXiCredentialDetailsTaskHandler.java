@@ -64,7 +64,7 @@ public class ListESXiCredentialDetailsTaskHandler extends BaseTaskHandler implem
 
             response.setComponentUuid(returnData.getComponentUuid());
             response.setEndpointUuid(returnData.getEndpointUuid());
-            response.setCredentialUuid(returnData.getEndpointUuid());
+            response.setCredentialUuid(returnData.getCredentialUuid());
 
             response.setWorkFlowTaskStatus(Status.SUCCEEDED);
             return true;

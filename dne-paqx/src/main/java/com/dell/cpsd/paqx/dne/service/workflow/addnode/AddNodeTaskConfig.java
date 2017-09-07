@@ -22,15 +22,25 @@ public class AddNodeTaskConfig
     public Map<String, Step> addNodeWorkflowSteps()
     {
         final Map<String, Step> workflowSteps = new HashMap<>();
-
-        workflowSteps.put("startAddNodeWorkflow", new Step("retrieveEsxiDefaultCredentialDetails"));
-        workflowSteps.put("retrieveEsxiDefaultCredentialDetails", new Step("changeIdracCredentials"));
-        workflowSteps.put("changeIdracCredentials", new Step("updateSystemDefinition"));
-        //TODO: Add all the steps here once tested
-        workflowSteps.put("updateSystemDefinition", new Step("notifyNodeDiscoveryToUpdateStatus"));
-        workflowSteps.put("notifyNodeDiscoveryToUpdateStatus", new Step("completed", true));
-        workflowSteps.put("completed", null);
+        addWorkflowSteps(workflowSteps,
+                "retrieveEsxiDefaultCredentialDetails",
+                "changeIdracCredentials",
+                //TODO: Add all the steps here once tested
+                "updateSystemDefinition",
+                "notifyNodeDiscoveryToUpdateStatus");
 
         return workflowSteps;
+    }
+
+    private void addWorkflowSteps(Map<String,Step> workflowSteps, String... steps)
+    {
+        String currentStep="startAddNodeWorkflow";
+        for (String step : steps)
+        {
+            workflowSteps.put(currentStep, new Step(step));
+            currentStep=step;
+        }
+        workflowSteps.put(currentStep, new Step("completed", true));
+        workflowSteps.put("completed", null);
     }
 }

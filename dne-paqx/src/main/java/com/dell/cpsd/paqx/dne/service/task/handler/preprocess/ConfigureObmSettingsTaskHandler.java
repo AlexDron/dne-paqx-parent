@@ -6,20 +6,24 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
+import com.dell.cpsd.ObmConfig;
+import com.dell.cpsd.SetObmSettingsRequestMessage;
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
+import com.dell.cpsd.paqx.dne.service.model.Status;
+import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Task responsible for handling Boot Order Sequence
+ * Task responsible for configuring obm settings.
  *
  * <p>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
@@ -27,12 +31,18 @@ import java.util.Map;
  *
  * @since 1.0
  */
-@Component
-public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler {
+
+public class ConfigureObmSettingsTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler {
+
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigureBootDeviceIdracTaskHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigureObmSettingsTaskHandler.class);
+
+
+    @Value("${obm.service.name}")
+    private String serviceName = "dell-wsman-obm-service";
+
 
     /**
      * The <code>NodeService</code> instance
@@ -40,14 +50,14 @@ public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler impleme
     private NodeService nodeService;
 
     /**
-     *  SetBootOrderAndDisablePXETaskHandler constructor.
+     *  ConfigureObmSettingsTaskHandler constructor.
      *
      * @param nodeService
      *            - The <code>NodeService</code> instance.
      *
      * @since 1.0
      */
-    public ConfigureBootDeviceIdracTaskHandler(NodeService nodeService){
+    public ConfigureObmSettingsTaskHandler(NodeService nodeService){
         this.nodeService = nodeService;
     }
 
@@ -61,7 +71,8 @@ public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler impleme
      */
     @Override
     public boolean executeTask(Job job)
-    {   LOGGER.info("Execute BootOrderSequence Task");
+    {
+        LOGGER.info("Configuring Obm Settings Task");
         TaskResponse response = initializeResponse(job);
 
         try
@@ -82,17 +93,26 @@ public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler impleme
                 throw new IllegalStateException("No discovered node info found.");
             }
 
+            job.getInputParams().setServiceName(serviceName);
+
             String uuid = findNodeTask.getResults().get("symphonyUUID");
             String ipAddress = job.getInputParams().getIdracIpAddress();
+            String service = job.getInputParams().getServiceName();
 
             LOGGER.info("uuid:" + uuid);
             LOGGER.info("ipAddress:" + ipAddress);
+            LOGGER.info("serviceName1:" + serviceName);
 
-            ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest = new ConfigureBootDeviceIdracRequest();
-            configureBootDeviceIdracRequest.setUuid(uuid);
-            configureBootDeviceIdracRequest.setIdracIpAddress(ipAddress);
 
-            BootDeviceIdracStatus bootDeviceIdracStatus = nodeService.bootDeviceIdracStatus(configureBootDeviceIdracRequest);
+            SetObmSettingsRequestMessage configureObmSettingsRequest = new SetObmSettingsRequestMessage();
+            configureObmSettingsRequest.setService(service);
+            configureObmSettingsRequest.setUuid(uuid);
+
+            ObmConfig obmConfig = new ObmConfig();
+            obmConfig.setHost(ipAddress);
+            configureObmSettingsRequest.setObmConfig(obmConfig);
+
+            BootDeviceIdracStatus bootDeviceIdracStatus = nodeService.bootDeviceIdracStatus(configureObmSettingsRequest);
             if ("SUCCESS".equalsIgnoreCase(bootDeviceIdracStatus.getStatus()))
             {
                 response.setResults(buildResponseResult(bootDeviceIdracStatus));
@@ -100,8 +120,7 @@ public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler impleme
                 return true;
             }
             else{
-                if ( bootDeviceIdracStatus.getErrors()!= null )
-                    response.addError(bootDeviceIdracStatus.getErrors().toString());
+                response.addError(bootDeviceIdracStatus.getErrors().toString());
             }
         }
         catch(Exception e){
@@ -144,12 +163,13 @@ public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler impleme
      *            - The <code>Job</code> this task is part of.
      */
     @Override
-    public ConfigureBootDeviceIdracResponse initializeResponse(Job job)
+    public BootDeviceIdracStatus initializeResponse(Job job)
     {
-        ConfigureBootDeviceIdracResponse response = new ConfigureBootDeviceIdracResponse();
+        BootDeviceIdracStatus response = new BootDeviceIdracStatus();
         response.setWorkFlowTaskName(job.getCurrentTask().getTaskName());
         response.setWorkFlowTaskStatus(Status.IN_PROGRESS);
         job.addTaskResponse(job.getStep(), response);
         return response;
     }
+
 }
