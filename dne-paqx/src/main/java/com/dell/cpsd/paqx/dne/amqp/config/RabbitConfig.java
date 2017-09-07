@@ -227,6 +227,9 @@ public class RabbitConfig
         messageClasses.add(ConfigureBootDeviceIdracRequestMessage.class);
         messageClasses.add(ConfigureBootDeviceIdracResponseMessage.class);
 
+        messageClasses.add(ConfigurePxeBootRequestMessage.class);
+        messageClasses.add(ConfigurePxeBootResponseMessage.class);
+
         messageClasses.add(IdracNetworkSettings.class);
         messageClasses.add(IdracNetworkSettingsRequestMessage.class);
         messageClasses.add(IdracNetworkSettingsResponse.class);

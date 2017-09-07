@@ -100,7 +100,8 @@ public class ConfigureBootDeviceIdracTaskHandler extends BaseTaskHandler impleme
                 return true;
             }
             else{
-                response.addError(bootDeviceIdracStatus.getErrors().toString());
+                if ( bootDeviceIdracStatus.getErrors()!= null )
+                    response.addError(bootDeviceIdracStatus.getErrors().toString());
             }
         }
         catch(Exception e){
