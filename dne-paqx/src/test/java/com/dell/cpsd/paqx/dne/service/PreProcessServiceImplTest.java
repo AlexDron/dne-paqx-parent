@@ -75,7 +75,7 @@ public class PreProcessServiceImplTest {
     public void testPreProcessWorkFlowTask_setup()
     {
         Assert.assertNotNull(workFlowTasks);
-        Assert.assertEquals(11, workFlowTasks.size());
+        Assert.assertEquals(12, workFlowTasks.size());
     }
 
     @Test

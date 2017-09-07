@@ -32,7 +32,7 @@ public class ConfigurePxeBootTaskHandler extends BaseTaskHandler implements IWor
     /**
      * The logger instance
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(AssignDefaultHostNameTaskHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurePxeBootTaskHandler.class);
 
     /**
      * The <code>NodeService</code> instance
