@@ -91,9 +91,8 @@ public class PreProcessServiceImplTest {
     }
 
     @Test
-    public void testTaskName_configureObmSettings()
-    {
-        Assert.assertEquals("Configuring Obm Settings", workFlowTasks.get("configureObmSettings").getTaskName());
+    public void testTaskName_findConfigurePxeBoot() {
+        Assert.assertEquals("Configure Pxe boot", workFlowTasks.get("configurePxeBoot").getTaskName());
     }
 
     @Test

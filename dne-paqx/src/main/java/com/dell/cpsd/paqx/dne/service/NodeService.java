@@ -6,7 +6,6 @@
 package com.dell.cpsd.paqx.dne.service;
 
 import com.dell.cpsd.EsxiInstallationInfo;
-import com.dell.cpsd.SetObmSettingsRequestMessage;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOStoragePool;
 import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
@@ -120,20 +119,17 @@ public interface NodeService
     /**
      * Configure the Boot Device Idrac.
      *
-     * @param setObmSettingsRequestMessage - The <code>ConfigureBootDeviceIdracRequest</code> instance.
+     * @param configureBootDeviceIdracRequest - The <code>ConfigureBootDeviceIdracRequest</code> instance.
      * @return
      * @throws ServiceTimeoutException
      * @throws ServiceExecutionException
      */
 
-    BootDeviceIdracStatus bootDeviceIdracStatus(SetObmSettingsRequestMessage setObmSettingsRequestMessage)
-            throws ServiceTimeoutException, ServiceExecutionException;
-
     BootDeviceIdracStatus bootDeviceIdracStatus(ConfigureBootDeviceIdracRequest configureBootDeviceIdracRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
 
 
-    public BootDeviceIdracStatus configurePxeBoot(String uuid, String ipAddress)
+    BootDeviceIdracStatus configurePxeBoot(String uuid, String ipAddress)
             throws ServiceTimeoutException, ServiceExecutionException;
 
     boolean requestScaleIoComponents() throws ServiceTimeoutException, ServiceExecutionException;
