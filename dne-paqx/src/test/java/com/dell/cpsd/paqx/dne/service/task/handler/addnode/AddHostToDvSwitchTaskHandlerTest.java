@@ -59,7 +59,7 @@ public class AddHostToDvSwitchTaskHandlerTest
     private AddHostToDvSwitchTaskResponse response;
 
     @Mock
-    private InstallEsxiTaskResponse installEsxiTaskResponse;
+    private AddHostToDvSwitchTaskResponse addHostToDvSwitchTaskResponse;
 
     @Mock
     private ComponentEndpointIds componentEndpointIds;
@@ -97,8 +97,8 @@ public class AddHostToDvSwitchTaskHandlerTest
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.componentEndpointIds).when(this.repository).getVCenterComponentEndpointIdsByEndpointType(anyString());
         doReturn(this.taskResponseMap).when(this.job).getTaskResponseMap();
-        doReturn(this.installEsxiTaskResponse).when(this.taskResponseMap).get(anyString());
-        doReturn(this.hostname).when(this.installEsxiTaskResponse).getHostname();
+        doReturn(this.addHostToDvSwitchTaskResponse).when(this.taskResponseMap).get(anyString());
+        doReturn(this.hostname).when(this.addHostToDvSwitchTaskResponse).getHostname();
         doReturn(true).when(this.service).requestAddHostToDvSwitch(any());
 
         assertEquals(true, this.spy.executeTask(this.job));
@@ -157,8 +157,8 @@ public class AddHostToDvSwitchTaskHandlerTest
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.componentEndpointIds).when(this.repository).getVCenterComponentEndpointIdsByEndpointType(anyString());
         doReturn(this.taskResponseMap).when(this.job).getTaskResponseMap();
-        doReturn(this.installEsxiTaskResponse).when(this.taskResponseMap).get(anyString());
-        doReturn(nullHostname).when(this.installEsxiTaskResponse).getHostname();
+        doReturn(this.addHostToDvSwitchTaskResponse).when(this.taskResponseMap).get(anyString());
+        doReturn(nullHostname).when(this.addHostToDvSwitchTaskResponse).getHostname();
 
         assertEquals(false, this.spy.executeTask(this.job));
         verify(this.response).setWorkFlowTaskStatus(Status.FAILED);
@@ -176,8 +176,8 @@ public class AddHostToDvSwitchTaskHandlerTest
         doReturn(this.response).when(this.spy).initializeResponse(this.job);
         doReturn(this.componentEndpointIds).when(this.repository).getVCenterComponentEndpointIdsByEndpointType(anyString());
         doReturn(this.taskResponseMap).when(this.job).getTaskResponseMap();
-        doReturn(this.installEsxiTaskResponse).when(this.taskResponseMap).get(anyString());
-        doReturn(this.hostname).when(this.installEsxiTaskResponse).getHostname();
+        doReturn(this.addHostToDvSwitchTaskResponse).when(this.taskResponseMap).get(anyString());
+        doReturn(this.hostname).when(this.addHostToDvSwitchTaskResponse).getHostname();
         doReturn(false).when(this.service).requestAddHostToDvSwitch(any());
 
         assertEquals(false, this.spy.executeTask(this.job));

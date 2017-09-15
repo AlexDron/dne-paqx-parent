@@ -12,5 +12,15 @@ package com.dell.cpsd.paqx.dne.service.model;
  */
 public class AddHostToDvSwitchTaskResponse extends TaskResponse
 {
+    private String hostname;
 
+    public String getHostname()
+    {
+        return hostname;
+    }
+
+    public void setHostname(final String hostname)
+    {
+        this.hostname = hostname;
+    }
 }

@@ -12,7 +12,6 @@ import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.AddHostToDvSwitchTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
-import com.dell.cpsd.paqx.dne.service.model.InstallEsxiTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.Status;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMessage;
@@ -68,14 +67,14 @@ public class AddHostToDvSwitchTaskHandler extends BaseTaskHandler implements IWo
                 throw new IllegalStateException("No VCenter components found.");
             }
 
-            final InstallEsxiTaskResponse installEsxiTaskResponse = (InstallEsxiTaskResponse) job.getTaskResponseMap().get("installEsxi");
+            final AddHostToDvSwitchTaskResponse addHosttoDvSwitchTaskResponse = (AddHostToDvSwitchTaskResponse) job.getTaskResponseMap().get("addHostToDvSwitchTask");
 
-            if (installEsxiTaskResponse == null)
+            if (addHosttoDvSwitchTaskResponse == null)
             {
-                throw new IllegalStateException("No Install ESXi task response found");
+                throw new IllegalStateException("No Add Host To Dv Switch task response found");
             }
 
-            final String hostname = installEsxiTaskResponse.getHostname();
+            final String hostname = addHosttoDvSwitchTaskResponse.getHostname();
 
             if (hostname == null)
             {
