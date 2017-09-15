@@ -9,6 +9,7 @@ package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 import com.dell.cpsd.EsxiInstallationInfo;
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
+import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.InstallEsxiTaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.IpV4Configuration;
@@ -22,7 +23,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * TODO: Document Usage
- *
+ * <p>
  * <p>
  * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
  * </p>
@@ -40,13 +41,18 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
     /**
      * The <code>NodeService</code> instance
      */
-    private final NodeService                         nodeService;
+    private final NodeService nodeService;
+
     private final HostToInstallEsxiRequestTransformer hostToInstallEsxiRequestTransformer;
 
-    public InstallEsxiTaskHandler(final NodeService nodeService, final HostToInstallEsxiRequestTransformer hostToInstallEsxiRequestTransformer)
+    private final DataServiceRepository repository;
+
+    public InstallEsxiTaskHandler(final NodeService nodeService,
+            final HostToInstallEsxiRequestTransformer hostToInstallEsxiRequestTransformer, final DataServiceRepository repository)
     {
         this.nodeService = nodeService;
         this.hostToInstallEsxiRequestTransformer = hostToInstallEsxiRequestTransformer;
+        this.repository = repository;
     }
 
     @Override
@@ -121,10 +127,23 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
                 throw new IllegalStateException("Idrac IP is null");
             }
 
-            final boolean success = this.nodeService.requestInstallEsxi(esxiInstallationInfo, idracIpAddress);
+            final boolean succeeded = this.nodeService.requestInstallEsxi(esxiInstallationInfo, idracIpAddress);
 
-            response.setWorkFlowTaskStatus(success? Status.SUCCEEDED : Status.FAILED);
-            return success;
+            if(!succeeded)
+            {
+                throw new IllegalStateException("Request ESXi install failed");
+            }
+
+            String fqdn = this.generateHostFqdn(esxiManagementHostname);
+
+            if(StringUtils.isEmpty(fqdn))
+            {
+                throw new IllegalStateException("Host domain name is not configured");
+            }
+
+            response.setHostname(fqdn);
+            response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+            return true;
 
         }
         catch (Exception e)
@@ -151,13 +170,32 @@ public class InstallEsxiTaskHandler extends BaseTaskHandler implements IWorkflow
     /*
     * Auto generates the hostname using the ESXI Management IP Address.
     */
-    public String generateHostname(final String esxiManagementIpAddress)
+    private String generateHostname(final String esxiManagementIpAddress)
     {
         StringBuilder builder = new StringBuilder();
         builder.append("vCenterHost");
-        builder.append("_");
-        builder.append(esxiManagementIpAddress.replaceAll("\\.", "_"));
+        builder.append("-");
+        builder.append(esxiManagementIpAddress.replaceAll("\\.", "-"));
         return builder.toString();
     }
 
+    /*
+    * Builds the host fully qualified domain name (FQDN) from
+    * the hostname and domain name, where the domain name is
+    * retrieved from the database.
+    */
+    private String generateHostFqdn(String hostName)
+    {
+        String domainName = this.repository.getDomainName();
+        if(StringUtils.isEmpty(domainName))
+        {
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(hostName);
+        builder.append(".");
+        builder.append(domainName);
+        return builder.toString();
+    }
 }

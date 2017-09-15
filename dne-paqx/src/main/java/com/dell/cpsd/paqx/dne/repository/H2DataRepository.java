@@ -14,10 +14,12 @@ import com.dell.cpsd.paqx.dne.domain.EndpointDetails;
 import com.dell.cpsd.paqx.dne.domain.inventory.NodeInventory;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
+import com.dell.cpsd.paqx.dne.domain.vcenter.HostDnsConfig;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PciDevice;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -589,6 +591,39 @@ public class H2DataRepository implements DataServiceRepository
         {
             LOG.error("Exception Occurred [{}]", e);
             return null;
+        }
+    }
+
+    @Override
+    public String getDomainName()
+    {
+        final TypedQuery<HostDnsConfig> hostDnsConfigQuery = entityManager.createQuery(
+                "select hostDnsConfig from HostDnsConfig as hostDnsConfig", HostDnsConfig.class
+        );
+
+        final List<HostDnsConfig> configs = hostDnsConfigQuery.getResultList();
+
+        if(configs == null)
+        {
+            return null;
+        }
+
+        HostDnsConfig config = configs.stream().filter(Objects::nonNull).findFirst().orElse(null);
+
+        if(config == null)
+        {
+            return null;
+        }
+
+        if (StringUtils.isNotEmpty(config.getDomainName()))
+        {
+            return config.getDomainName();
+        }
+        else
+        {
+            List<String> searchDomains = config.getSearchDomains();
+
+            return searchDomains.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(null);
         }
     }
 }

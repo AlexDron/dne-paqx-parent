@@ -31,7 +31,9 @@ public class PreProcessTaskConfig {
 
         addWorkflowSteps(workflowSteps,
                 "findAvailableNodes",
-                "listScaleIoComponents",
+                //TODO: Re-enable listScaleIoComponets when defect is fixed:
+                //https://jira.cec.lab.emc.com:8443/browse/ESTS-133801
+                //"listScaleIoComponents",
                 "listVCenterComponents",
                 //TODO: Re-enable the discover scaleio when mdm is up and running
                 /*"discoverScaleIo",*/

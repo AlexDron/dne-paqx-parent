@@ -11,6 +11,7 @@ import com.dell.cpsd.paqx.dne.domain.EndpointDetails;
 import com.dell.cpsd.paqx.dne.domain.inventory.NodeInventory;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
+import com.dell.cpsd.paqx.dne.domain.vcenter.HostDnsConfig;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PciDevice;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
@@ -28,15 +29,20 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -91,6 +97,9 @@ public class H2DataRepositoryTest
     private PciDevice pciDevice;
 
     @Mock
+    private HostDnsConfig hostDnsConfig;
+
+    @Mock
     private TypedQuery<ComponentDetails> componentDetailsTypedQuery;
 
     @Mock
@@ -114,6 +123,9 @@ public class H2DataRepositoryTest
     @Mock
     private TypedQuery<String> stringTypedQuery;
 
+    @Mock
+    private TypedQuery<HostDnsConfig> hostDnsConfigTypedQuery;
+
     @InjectMocks
     private H2DataRepository repository = new H2DataRepository();
 
@@ -125,6 +137,7 @@ public class H2DataRepositoryTest
     private List<ScaleIOData>       scaleIODataList;
     private List<PortGroup>         portGroupList;
     private List<PciDevice>         pciDeviceList;
+    private List<HostDnsConfig>     hostDnsConfigs;
     private String                  componentType;
     private String                  endpointType;
     private String                  componentUUID;
@@ -171,6 +184,9 @@ public class H2DataRepositoryTest
 
         this.pciDeviceList = new ArrayList<>();
         this.pciDeviceList.add(this.pciDevice);
+
+        this.hostDnsConfigs = new ArrayList<>();
+        this.hostDnsConfigs.add(this.hostDnsConfig);
 
         this.componentType = "the_component_type";
         this.endpointType = "the_endpoint_type";
@@ -623,6 +639,32 @@ public class H2DataRepositoryTest
     }
 
     @Test
+    public void getExistingVCenterHost() throws Exception
+    {
+        doReturn(this.hostTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(Arrays.asList(this.host)).when(this.hostTypedQuery).getResultList();
+
+        assertNotNull(this.repository.getExistingVCenterHost());
+    }
+
+    @Test
+    public void getExistingVCenterHost_should_throw_an_exception_if_no_existing_vcenter_host_found() throws Exception
+    {
+        doReturn(this.hostTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(Collections.emptyList()).when(this.hostTypedQuery).getResultList();
+
+        try
+        {
+            this.repository.getExistingVCenterHost();
+            fail("Expected an exception to be thrown here but it wasn't");
+        }
+        catch (Exception ex)
+        {
+            assertThat(ex.getMessage().toLowerCase(), containsString("no host"));
+        }
+    }
+
+    @Test
     public void getPortGroups() throws Exception
     {
         doReturn(this.portGroupTypedQuery).when(this.entityManager).createQuery(anyString(), any());
@@ -737,7 +779,7 @@ public class H2DataRepositoryTest
     }
 
     @Test
-    public void getValidNodeInventory()
+    public void getValidNodeInventory() throws Exception
     {
         NodeInventory nodeInventory = new NodeInventory("FAKE_KEY", "FAKE_INVENTORY");
 
@@ -752,7 +794,7 @@ public class H2DataRepositoryTest
     }
 
     @Test
-    public void getInvalidNodeInventory()
+    public void getInvalidNodeInventory() throws Exception
     {
         doReturn(this.stringTypedQuery).when(this.entityManager).createQuery(anyString(), any());
         doReturn(null).when(this.stringTypedQuery).getSingleResult();
@@ -763,7 +805,7 @@ public class H2DataRepositoryTest
     }
 
     @Test
-    public void saveNullNodeInventory()
+    public void saveNullNodeInventory() throws Exception
     {
         boolean result = this.repository.saveNodeInventory(null);
 
@@ -771,7 +813,7 @@ public class H2DataRepositoryTest
     }
 
     @Test
-    public void saveValidNodeInventory()
+    public void saveValidNodeInventory() throws Exception
     {
         NodeInventory nodeInventory = new NodeInventory("FAKE_KEY", "FAKE_INVENTORY");
 
@@ -791,7 +833,7 @@ public class H2DataRepositoryTest
     }
 
     @Test
-    public void saveNoExistentNodeInventory()
+    public void saveNoExistentNodeInventory() throws Exception
     {
         NodeInventory nodeInventory = new NodeInventory("FAKE_KEY", "FAKE_INVENTORY");
 
@@ -809,4 +851,61 @@ public class H2DataRepositoryTest
         verify(this.entityManager, times(0)).remove(any());
     }
 
+    @Test
+    public void getDomainName_should_return_the_host_dns_config_domain_name_if_its_not_empty()  throws Exception
+    {
+        doReturn(this.hostTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(this.hostDnsConfigs).when(this.hostTypedQuery).getResultList();
+        doReturn("domain1").when(this.hostDnsConfig).getDomainName();
+
+        String result = this.repository.getDomainName();
+
+        assertThat(result, is("domain1"));
+    }
+
+    @Test
+    public void getDomainName_should_return_the_domain_name_from_the_list_of_search_domains()  throws Exception
+    {
+        doReturn(this.hostTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(this.hostDnsConfigs).when(this.hostTypedQuery).getResultList();
+        doReturn(Arrays.asList("domain1", "domain2", "domain3")).when(this.hostDnsConfig).getSearchDomains();
+
+        String result = this.repository.getDomainName();
+
+        assertThat(result, is("domain1"));
+    }
+
+    @Test
+    public void getDomainName_should_return_null_when_the_host_dns_query_returns_null()  throws Exception
+    {
+        doReturn(this.hostTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(null).when(this.hostTypedQuery).getResultList();
+
+        String result = this.repository.getDomainName();
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getDomainName_should_return_null_if_there_are_no_host_dns_configs()  throws Exception
+    {
+        doReturn(this.hostTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(Collections.emptyList()).when(this.hostTypedQuery).getResultList();
+
+        String result = this.repository.getDomainName();
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getDomainName_should_return_null_if_there_are_no_search_domains()  throws Exception
+    {
+        doReturn(this.hostTypedQuery).when(this.entityManager).createQuery(anyString(), any());
+        doReturn(this.hostDnsConfigs).when(this.hostTypedQuery).getResultList();
+        doReturn(Collections.emptyList()).when(this.hostDnsConfig).getSearchDomains();
+
+        String result = this.repository.getDomainName();
+
+        assertNull(result);
+    }
 }

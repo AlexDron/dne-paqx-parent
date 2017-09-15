@@ -49,7 +49,7 @@ public class ConfigureObmSettingsTaskHandler extends BaseTaskHandler implements 
      * The <code>NodeService</code> instance
      */
     private NodeService nodeService;
-
+  
     /**
      *  ConfigureObmSettingsTaskHandler constructor.
      *
@@ -96,6 +96,7 @@ public class ConfigureObmSettingsTaskHandler extends BaseTaskHandler implements 
 
             String uuid = findNodeTask.getResults().get("symphonyUUID");
             String ipAddress = job.getInputParams().getIdracIpAddress();
+
             String serviceName = null;
             if(job.getCurrentTask().getTaskName() == "Configuring Obm Settings"){
                 serviceName = obmServiceName;

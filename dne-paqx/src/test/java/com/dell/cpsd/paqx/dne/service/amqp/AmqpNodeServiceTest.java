@@ -36,6 +36,7 @@ import org.mockito.Mockito;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
@@ -1398,5 +1399,56 @@ public class AmqpNodeServiceTest
         };
 
         nodeService.listNodeInventory("FAKE_UUID");
+    }
+
+    @Test
+    public void testRequestDatastoreRenameSuccess() throws Exception
+    {
+        final DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
+        final DneProducer dneProducer = mock(DneProducer.class);
+        final DataServiceRepository repository = mock(DataServiceRepository.class);
+        final MessageProperties messageProperties = new MessageProperties(new Date(), UUID.randomUUID().toString(), "test");
+        final DatastoreRenameResponseMessage responseMessage = mock(DatastoreRenameResponseMessage.class);
+        final DatastoreRenameRequestMessage requestMessage = mock(DatastoreRenameRequestMessage.class);
+        when(responseMessage.getMessageProperties()).thenReturn(messageProperties);
+        when(responseMessage.getStatus()).thenReturn(DatastoreRenameResponseMessage.Status.SUCCESS);
+
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", repository, null, null,null)
+        {
+            @Override
+            protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
+                    throws ServiceTimeoutException
+            {
+                serviceCallback.handleServiceResponse(new ServiceResponse<>(requestId, responseMessage, null));
+            }
+        };
+
+        boolean result = nodeService.requestDatastoreRename(requestMessage);
+
+        assertTrue(result);
+        Mockito.verify(dneProducer).publishDatastoreRename(any(DatastoreRenameRequestMessage.class));
+    }
+
+    @Test
+    public void testRequestDatastoreRenameException() throws Exception
+    {
+        final DelegatingMessageConsumer consumer = new DefaultMessageConsumer();
+        final DneProducer dneProducer = mock(DneProducer.class);
+        final DatastoreRenameRequestMessage requestMessage = mock(DatastoreRenameRequestMessage.class);
+
+        AmqpNodeService nodeService = new AmqpNodeService(null, consumer, dneProducer, "replyToMe", null, null, null,null)
+        {
+            @Override
+            protected void waitForServiceCallback(ServiceCallback serviceCallback, String requestId, long timeout)
+                    throws ServiceTimeoutException
+            {
+                throw new ServiceTimeoutException("TIMEOUT_TEST");
+            }
+        };
+
+        boolean result = nodeService.requestDatastoreRename(requestMessage);
+
+        assertFalse(result);
+        Mockito.verify(dneProducer).publishDatastoreRename(any(DatastoreRenameRequestMessage.class));
     }
 }
