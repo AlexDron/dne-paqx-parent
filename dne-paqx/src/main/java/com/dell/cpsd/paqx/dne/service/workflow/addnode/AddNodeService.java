@@ -16,6 +16,7 @@ import com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddHostToDvSwitchTask
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.AddHostToVCenterTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ApplyEsxiLicenseTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ConfigureScaleIoVibTaskHandler;
+import com.dell.cpsd.paqx.dne.service.task.handler.addnode.DatastoreRenameTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.DeployScaleIoVmTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.EnablePciPassthroughTaskHandler;
 import com.dell.cpsd.paqx.dne.service.task.handler.addnode.ExitHostMaintenanceModeTaskHandler;
@@ -83,6 +84,7 @@ public class AddNodeService extends BaseService implements IAddNodeService
         workflowTasks.put("installEsxi", installEsxiTask());
         workflowTasks.put("retrieveEsxiDefaultCredentialDetails", esxiCredentialDetailsTask());
         workflowTasks.put("addHostToVcenter", addHostToVcenterTask());
+        workflowTasks.put("applyEsxiLicense", applyEsxiLicenseTask());
         workflowTasks.put("installScaleIoVib", installScaleIoVibTask());
         workflowTasks.put("configureScaleIoVib", configureScaleIoVibTask());
         workflowTasks.put("addHostToDvSwitch", addHostToDvSwitchTask());
@@ -91,9 +93,9 @@ public class AddNodeService extends BaseService implements IAddNodeService
         workflowTasks.put("rebootHost", rebootHostTask());
         workflowTasks.put("exitHostMaintenanceMode", exitHostMaintenanceModeTask());
         workflowTasks.put("setPciPassthroughSioVm", setPciPassthroughSioVmTask());
-        workflowTasks.put("applyEsxiLicense", applyEsxiLicenseTask());
         /*workflowTasks.put("installScaleIOSDC", null);
         workflowTasks.put("addNewHostToScaleIO", null);*/
+        workflowTasks.put("datastoreRename", datastoreRenameTask());
         workflowTasks.put("updateSystemDefinition", updateSystemDefinitionTask());
         workflowTasks.put("notifyNodeDiscoveryToUpdateStatus", notifyNodeDiscoveryToUpdateStatusTask());
 
@@ -189,6 +191,13 @@ public class AddNodeService extends BaseService implements IAddNodeService
     {
         return createTask("Notify Node Discovery To Update Status",
                 new NotifyNodeDiscoveryToUpdateStatusTaskHandler(this.nodeService));
+    }
+
+    @Bean("datastoreRenameTask")
+    private WorkflowTask datastoreRenameTask()
+    {
+        return createTask("Datastore rename",
+                new DatastoreRenameTaskHandler(this.nodeService, this.repository));
     }
 
     public Job findJob(UUID jobId)

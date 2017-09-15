@@ -148,4 +148,6 @@ public interface DneProducer
     void publishEsxiHostExitMaintenanceMode(final HostMaintenanceModeRequestMessage requestMessage);
 
     void publishValidateStorage(EssValidateStoragePoolRequestMessage requestMessage);
+
+    void publishDatastoreRename(DatastoreRenameRequestMessage requestMessage);
 }

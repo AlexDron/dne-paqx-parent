@@ -34,7 +34,7 @@ public class HostToInstallEsxiRequestTransformer
 {
     private static final Logger LOG             = LoggerFactory.getLogger(HostToInstallEsxiRequestTransformer.class);
     private static final String VERSION         = "6.0";
-    private static final String DELL_NODE_KARGS = "netdevice=vmnic2";
+    private static final String DELL_NODE_KARGS = "netdevice=vmnic0";
     private final DataServiceRepository dataServiceRepository;
 
     public HostToInstallEsxiRequestTransformer(final DataServiceRepository dataServiceRepository)
@@ -129,7 +129,7 @@ public class HostToInstallEsxiRequestTransformer
         {
 
             final BootImageNetworkDevice bootImageNetworkDevice1 = new BootImageNetworkDevice();
-            bootImageNetworkDevice1.setDevice("vmnic0");
+            bootImageNetworkDevice1.setDevice("vmnic1");
             bootImageNetworkDevice1.setEsxSwitchName("vSwitch0");
 
             final BootImageNetworkAddressV4 bootImageNetworkAddressV4 = new BootImageNetworkAddressV4();
@@ -140,15 +140,15 @@ public class HostToInstallEsxiRequestTransformer
             bootImageNetworkDevice1.setBootImageNetworkAddressV4(bootImageNetworkAddressV4);
 
             final BootImageNetworkDevice bootImageNetworkDevice2 = new BootImageNetworkDevice();
-            bootImageNetworkDevice2.setDevice("vmnic1");
+            bootImageNetworkDevice2.setDevice("vmnic0");
             bootImageNetworkDevice2.setEsxSwitchName("vSwitch1");
 
-            final BootImageNetworkDevice bootImageNetworkDevice3 = new BootImageNetworkDevice();
+            /*final BootImageNetworkDevice bootImageNetworkDevice3 = new BootImageNetworkDevice();
             bootImageNetworkDevice3.setDevice("vmnic2");
-            bootImageNetworkDevice3.setEsxSwitchName("vSwitch2");
+            bootImageNetworkDevice3.setEsxSwitchName("vSwitch2");*/
 
             esxiInstallationInfo
-                    .setNetworkDevices(Arrays.asList(bootImageNetworkDevice1, bootImageNetworkDevice2, bootImageNetworkDevice3));
+                    .setNetworkDevices(Arrays.asList(bootImageNetworkDevice1, bootImageNetworkDevice2/*, bootImageNetworkDevice3*/));
         }
     }
 
@@ -168,9 +168,9 @@ public class HostToInstallEsxiRequestTransformer
     protected void transformSwitchDevices(final EsxiInstallationInfo esxiInstallationInfo)
     {
         final NodeWorkflowSwitchDevice switchDevice1 = new NodeWorkflowSwitchDevice("vSwitch0", "iphash",
-                Arrays.asList("vmnic1", "vmnic5"));
-        final NodeWorkflowSwitchDevice switchDevice2 = new NodeWorkflowSwitchDevice("vSwitch1", "", Collections.singletonList("vmnic2"));
-        final NodeWorkflowSwitchDevice switchDevice3 = new NodeWorkflowSwitchDevice("vSwitch2", "", Collections.singletonList("vmnic0"));
-        esxiInstallationInfo.setSwitchDevices(Arrays.asList(switchDevice1, switchDevice2, switchDevice3));
+                Collections.singletonList("vmnic1"));
+        final NodeWorkflowSwitchDevice switchDevice2 = new NodeWorkflowSwitchDevice("vSwitch1", "", Collections.singletonList("vmnic0"));
+        /*final NodeWorkflowSwitchDevice switchDevice3 = new NodeWorkflowSwitchDevice("vSwitch2", "", Collections.singletonList("vmnic0"));*/
+        esxiInstallationInfo.setSwitchDevices(Arrays.asList(switchDevice1, switchDevice2/*, switchDevice3*/));
     }
 }

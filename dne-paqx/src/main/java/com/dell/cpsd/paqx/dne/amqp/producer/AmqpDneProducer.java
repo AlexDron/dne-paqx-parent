@@ -653,6 +653,32 @@ public class AmqpDneProducer implements DneProducer
         }
     }
 
+    @Override
+    public void publishDatastoreRename(DatastoreRenameRequestMessage requestMessage)
+    {
+        Collection<CapabilityData> capabilities = capabilityBinder.getCurrentCapabilities();
+
+        if (capabilities == null)
+        {
+            LOGGER.error("No Capabilities found for publishDatastoreRename");
+            return;
+        }
+
+        LOGGER.info("publishDatastoreRename: found list of capabilities with size {}", capabilities.size());
+
+        for (CapabilityData capabilityData : capabilities)
+        {
+            ProviderEndpoint endpoint = capabilityData.getCapability().getProviderEndpoint();
+            AmqpProviderEndpointHelper endpointHelper = new AmqpProviderEndpointHelper(endpoint);
+            if (messageType(DatastoreRenameRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
+            {
+                LOGGER.info("Send datastore rename request message from DNE paqx.");
+                rabbitTemplate.convertAndSend(endpointHelper.getRequestExchange(), endpointHelper.getRequestRoutingKey(), requestMessage);
+                break;
+            }
+        }
+    }
+
     private String messageType(Class messageClass)
     {
         Message messageAnnotation = (Message) messageClass.getAnnotation(Message.class);

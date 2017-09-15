@@ -25,6 +25,7 @@ import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
 import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DatastoreRenameRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoveryRequestInfoMessage;
@@ -414,6 +415,18 @@ public class AmqpDneProducerTest
     public void publishNodeInventoryDiscovery()
     {
         this.executeTest(mock(NodeInventoryRequestMessage.class), this.producer::publishNodeInventoryDiscovery);
+    }
+
+    @Test
+    public void publishDatastoreRename()
+    {
+        this.executeTest(mock(DatastoreRenameRequestMessage.class), this.producer::publishDatastoreRename);
+    }
+
+    @Test
+    public void publishDatastoreRename_no_capabilities()
+    {
+        this.executeTest_no_capabilities(mock(DatastoreRenameRequestMessage.class), this.producer::publishDatastoreRename);
     }
 
     private <T> void executeTest(T request, Consumer<T> consumer)

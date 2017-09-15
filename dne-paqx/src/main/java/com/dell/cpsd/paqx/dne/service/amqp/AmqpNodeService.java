@@ -5,10 +5,6 @@
 
 package com.dell.cpsd.paqx.dne.service.amqp;
 
-import com.dell.cpsd.ConfigurePxeBootError;
-import com.dell.cpsd.ConfigurePxeBootRequestMessage;
-import com.dell.cpsd.ConfigurePxeBootResponseMessage;
-import com.dell.cpsd.MessageProperties;
 import com.dell.cpsd.ChangeIdracCredentialsRequestMessage;
 import com.dell.cpsd.ChangeIdracCredentialsResponseMessage;
 import com.dell.cpsd.CompleteNodeAllocationRequestMessage;
@@ -16,10 +12,14 @@ import com.dell.cpsd.CompleteNodeAllocationResponseMessage;
 import com.dell.cpsd.ConfigureBootDeviceIdracError;
 import com.dell.cpsd.ConfigureBootDeviceIdracRequestMessage;
 import com.dell.cpsd.ConfigureBootDeviceIdracResponseMessage;
+import com.dell.cpsd.ConfigurePxeBootError;
+import com.dell.cpsd.ConfigurePxeBootRequestMessage;
+import com.dell.cpsd.ConfigurePxeBootResponseMessage;
 import com.dell.cpsd.EsxiInstallationInfo;
 import com.dell.cpsd.InstallESXiRequestMessage;
 import com.dell.cpsd.InstallESXiResponseMessage;
 import com.dell.cpsd.ListNodes;
+import com.dell.cpsd.MessageProperties;
 import com.dell.cpsd.NodeInventoryRequestMessage;
 import com.dell.cpsd.NodeInventoryResponseMessage;
 import com.dell.cpsd.NodesListed;
@@ -36,10 +36,41 @@ import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOStoragePool;
 import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.amqp.adapter.*;
-import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.AddHostToDvSwitchResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.AddHostToVCenterResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ApplyEsxiLicenseResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ChangeIdracCredentialsResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ClustersListedResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.CompleteNodeAllocationResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ConfigureBootDeviceIdracResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ConfigureObmSettingsResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ConfigurePxeBootResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.DatastoreRenameResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.DeployScaleIoVmResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.DiscoverScaleIoResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.DiscoverVCenterResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.EnablePciPassthroughResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.HostMaintenanceModeResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.IdracConfigResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.InstallEsxiResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ListESXiCredentialDetailsResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ListScaleIoComponentsResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ListVCenterComponentsResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.NodeInventoryResponseMessageAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.NodesListedResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.RebootHostResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.SetPciPassthroughResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.SoftwareVibResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ValidateClusterResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.ValidateStoragePoolResponseAdapter;
+import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
+import com.dell.cpsd.paqx.dne.service.model.ChangeIdracCredentialsResponse;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
+import com.dell.cpsd.paqx.dne.service.model.ConfigureBootDeviceIdracRequest;
 import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
+import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
+import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
+import com.dell.cpsd.paqx.dne.service.model.ObmSettingsResponse;
 import com.dell.cpsd.paqx.dne.transformers.DiscoveryInfoToVCenterDomainTransformer;
 import com.dell.cpsd.paqx.dne.transformers.ScaleIORestToScaleIODomainTransformer;
 import com.dell.cpsd.paqx.dne.transformers.StoragePoolEssRequestTransformer;
@@ -56,16 +87,60 @@ import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolRequest
 import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolResponseMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentResponseMessage;
-import com.dell.cpsd.storage.capabilities.api.*;
-import com.dell.cpsd.virtualization.capabilities.api.*;
+import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
+import com.dell.cpsd.storage.capabilities.api.ListStorageResponseMessage;
+import com.dell.cpsd.storage.capabilities.api.ScaleIOComponentDetails;
+import com.dell.cpsd.storage.capabilities.api.ScaleIoEndpointDetails;
+import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseRequest;
+import com.dell.cpsd.virtualization.capabilities.api.AddEsxiHostVSphereLicenseResponse;
+import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.Credentials;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.CollectionUtils;
+import com.dell.cpsd.virtualization.capabilities.api.DatastoreRenameRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DatastoreRenameResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfo;
+import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DiscoveryRequestInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DiscoveryResponseInfoMessage;
+import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.EnablePCIPassthroughResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostMaintenanceModeResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.HostPowerOperationResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListComponentsRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListComponentsResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ListEsxiCredentialDetailsResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBConfigureRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.SoftwareVIBResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.UpdatePCIPassthruSVMResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.VCenterComponentDetails;
+import com.dell.cpsd.virtualization.capabilities.api.VCenterCredentialDetails;
+import com.dell.cpsd.virtualization.capabilities.api.VCenterEndpointDetails;
+import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -183,6 +258,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         this.consumer.addAdapter(new ListESXiCredentialDetailsResponseAdapter(this));
         this.consumer.addAdapter(new HostMaintenanceModeResponseAdapter(this));
         this.consumer.addAdapter(new NodeInventoryResponseMessageAdapter(this));
+        this.consumer.addAdapter(new DatastoreRenameResponseAdapter(this));
     }
 
     /**
@@ -1610,5 +1686,48 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         }
 
         return null;
+    }
+
+    @Override
+    public boolean requestDatastoreRename(final DatastoreRenameRequestMessage datastoreRenameRequestMessage)
+    {
+        try
+        {
+            com.dell.cpsd.virtualization.capabilities.api.MessageProperties messageProperties =
+                    new com.dell.cpsd.virtualization.capabilities.api.MessageProperties();
+            messageProperties.setCorrelationId(UUID.randomUUID().toString());
+            messageProperties.setTimestamp(Calendar.getInstance().getTime());
+            messageProperties.setReplyTo(replyTo);
+
+            datastoreRenameRequestMessage.setMessageProperties(messageProperties);
+
+            ServiceResponse<?> response = processRequest(timeout, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return messageProperties.getCorrelationId();
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishDatastoreRename(datastoreRenameRequestMessage);
+                }
+            });
+
+            DatastoreRenameResponseMessage datastoreRenameResponseMessage = processResponse(response, DatastoreRenameResponseMessage.class);
+
+            if (datastoreRenameResponseMessage != null)
+            {
+                return datastoreRenameResponseMessage.getStatus().equals(DatastoreRenameResponseMessage.Status.SUCCESS);
+            }
+        }
+        catch (Exception ex)
+        {
+            LOGGER.error("Exception occurred", ex);
+        }
+
+        return false;
     }
 }

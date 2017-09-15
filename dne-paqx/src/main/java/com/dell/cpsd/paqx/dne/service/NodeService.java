@@ -161,4 +161,6 @@ public interface NodeService
 
     boolean requestExitHostMaintenanceMode(final HostMaintenanceModeRequestMessage requestMessage);
 
+    boolean requestDatastoreRename(final DatastoreRenameRequestMessage datastoreRenameRequestMessage);
+
 }

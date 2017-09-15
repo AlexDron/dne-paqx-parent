@@ -22,6 +22,8 @@ import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchRequestMes
 import com.dell.cpsd.virtualization.capabilities.api.AddHostToDvSwitchResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ClusterOperationResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DatastoreRenameRequestMessage;
+import com.dell.cpsd.virtualization.capabilities.api.DatastoreRenameResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DeployVMFromTemplateResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
@@ -287,6 +289,9 @@ public class RabbitConfig
 
         messageClasses.add(NodeInventoryRequestMessage.class);
         messageClasses.add(NodeInventoryResponseMessage.class);
+
+        messageClasses.add(DatastoreRenameRequestMessage.class);
+        messageClasses.add(DatastoreRenameResponseMessage.class);
 
         MessageAnnotationProcessor messageAnnotationProcessor = new MessageAnnotationProcessor();
         messageAnnotationProcessor.process(classMappings::put, messageClasses);

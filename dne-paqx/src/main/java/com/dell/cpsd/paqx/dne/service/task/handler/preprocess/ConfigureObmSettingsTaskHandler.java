@@ -17,6 +17,7 @@ import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,8 @@ public class ConfigureObmSettingsTaskHandler extends BaseTaskHandler implements 
      */
     private NodeService nodeService;
 
+    @Value("${obm.service.name}")
+    private String serviceName="dell-wsman-obm-service";
     /**
      *  ConfigureObmSettingsTaskHandler constructor.
      *
@@ -89,14 +92,13 @@ public class ConfigureObmSettingsTaskHandler extends BaseTaskHandler implements 
 
             String uuid = findNodeTask.getResults().get("symphonyUUID");
             String ipAddress = job.getInputParams().getIdracIpAddress();
-            String service = job.getInputParams().getServiceName();
 
             LOGGER.info("uuid:" + uuid);
             LOGGER.info("ipAddress:" + ipAddress);
-            LOGGER.info("serviceName:" + service);
+            LOGGER.info("serviceName:" + serviceName);
 
             SetObmSettingsRequestMessage configureObmSettingsRequest = new SetObmSettingsRequestMessage();
-            configureObmSettingsRequest.setService(service);
+            configureObmSettingsRequest.setService(serviceName);
             configureObmSettingsRequest.setUuid(uuid);
 
             ObmConfig obmConfig = new ObmConfig();

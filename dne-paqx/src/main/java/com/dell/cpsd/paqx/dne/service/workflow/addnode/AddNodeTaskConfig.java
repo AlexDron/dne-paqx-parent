@@ -26,6 +26,9 @@ public class AddNodeTaskConfig
                 "retrieveEsxiDefaultCredentialDetails",
                 "changeIdracCredentials",
                 "installEsxi",
+                "addHostToVcenter",
+                "applyEsxiLicense",
+                "datastoreRename",
                 //TODO: Add all the steps here once tested
                 "updateSystemDefinition",
                 "notifyNodeDiscoveryToUpdateStatus");
