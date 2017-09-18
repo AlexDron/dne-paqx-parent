@@ -90,12 +90,16 @@ public class DiscoverNodeInventoryHandler extends BaseTaskHandler implements IWo
                     }
                 } else {
                     LOGGER.info("There is no node inventory for UUID ", symphonyUUID);
+                    response.addError("There is no node inventory for UUID " + symphonyUUID);
                 }
             }
             catch (ServiceTimeoutException | ServiceExecutionException ex)
             {
                 LOGGER.error("Node Inventory discover failed : ", ex);
+                response.addError("Unable to discover node inventory.");
             }
+        } else {
+            response.addError("There is no discovered node available.");
         }
 
         response.setWorkFlowTaskStatus(Status.FAILED);
