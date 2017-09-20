@@ -92,7 +92,7 @@ public class ServiceConfig
             @Autowired String replyTo)
     {
         return new AmqpNodeService(LOGGER, delegatingMessageConsumer, dneProducer, replyTo, repository(),
-                discoveryInfoToVCenterDomainTransformer, scaleIORestToScaleIODomainTransformer, storagePoolEssRequestTransformer, protectionDomainEssRequestTransformer);
+                discoveryInfoToVCenterDomainTransformer, scaleIORestToScaleIODomainTransformer, storagePoolEssRequestTransformer);
     }
 
     @Bean

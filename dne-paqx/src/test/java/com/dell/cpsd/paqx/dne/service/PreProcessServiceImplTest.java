@@ -75,7 +75,7 @@ public class PreProcessServiceImplTest {
     public void testPreProcessWorkFlowTask_setup()
     {
         Assert.assertNotNull(workFlowTasks);
-        Assert.assertEquals(12, workFlowTasks.size());
+        Assert.assertEquals(13, workFlowTasks.size());
     }
 
     @Test
@@ -130,5 +130,4 @@ public class PreProcessServiceImplTest {
     public void testTaskName_assignDefaultCredentials() {
     	Assert.assertEquals("Assign Default Credentials", workFlowTasks.get("assignDefaultCredentials").getTaskName());
     }
-
 }
