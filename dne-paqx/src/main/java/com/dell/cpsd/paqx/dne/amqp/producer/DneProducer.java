@@ -14,6 +14,7 @@ import com.dell.cpsd.ListNodes;
 import com.dell.cpsd.NodeInventoryRequestMessage;
 import com.dell.cpsd.SetObmSettingsRequestMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
+import com.dell.cpsd.service.engineering.standards.EssValidateProtectionDomainsRequestMessage;
 import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
@@ -232,4 +233,7 @@ public interface DneProducer
      * @param requestMessage
      */
     void publishUpdateSoftwareAcceptance(VCenterUpdateSoftwareAcceptanceRequestMessage requestMessage);
+
+    void publishValidateProtectionDomain(EssValidateProtectionDomainsRequestMessage requestMessage);
+
 }

@@ -12,6 +12,12 @@ import com.dell.cpsd.*;
 import com.dell.cpsd.common.rabbitmq.MessageAnnotationProcessor;
 import com.dell.cpsd.common.rabbitmq.message.DefaultMessageConverterFactory;
 import com.dell.cpsd.common.rabbitmq.retrypolicy.DefaultRetryPolicyFactory;
+import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettings;
+import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
+import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponse;
+import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponseMessage;
+import com.dell.cpsd.service.engineering.standards.EssValidateProtectionDomainsRequestMessage;
+import com.dell.cpsd.service.engineering.standards.EssValidateProtectionDomainsResponseMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentResponseMessage;
 import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
@@ -45,13 +51,8 @@ import com.dell.cpsd.virtualization.capabilities.api.VCenterUpdateSoftwareAccept
 import com.dell.cpsd.virtualization.capabilities.api.VCenterUpdateSoftwareAcceptanceResponseMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.ValidateVcenterClusterResponseMessage;
+import com.dell.cpsd.virtualization.capabilities.api.*;
 import org.springframework.amqp.core.*;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoveryRequestInfoMessage;
-import com.dell.cpsd.virtualization.capabilities.api.DiscoveryResponseInfoMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ListComponentsRequestMessage;
-import com.dell.cpsd.virtualization.capabilities.api.ListComponentsResponseMessage;
-import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -66,7 +67,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.retry.support.RetryTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is the configuration for the RabbitMQ artifacts used by the service.
@@ -294,6 +298,9 @@ public class RabbitConfig
 
         messageClasses.add(DatastoreRenameRequestMessage.class);
         messageClasses.add(DatastoreRenameResponseMessage.class);
+
+        messageClasses.add(EssValidateProtectionDomainsRequestMessage.class);
+        messageClasses.add(EssValidateProtectionDomainsResponseMessage.class);
 
         messageClasses.add(VCenterUpdateSoftwareAcceptanceRequestMessage.class);
         messageClasses.add(VCenterUpdateSoftwareAcceptanceResponseMessage.class);
