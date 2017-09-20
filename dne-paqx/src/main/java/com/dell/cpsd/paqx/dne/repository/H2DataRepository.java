@@ -13,6 +13,8 @@ import com.dell.cpsd.paqx.dne.domain.DneJob;
 import com.dell.cpsd.paqx.dne.domain.EndpointDetails;
 import com.dell.cpsd.paqx.dne.domain.inventory.NodeInventory;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
+import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOProtectionDomain;
+import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOSDS;
 import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
 import com.dell.cpsd.paqx.dne.domain.vcenter.HostDnsConfig;
 import com.dell.cpsd.paqx.dne.domain.vcenter.PciDevice;
@@ -625,5 +627,35 @@ public class H2DataRepository implements DataServiceRepository
 
             return searchDomains.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(null);
         }
+    }
+
+    @Override
+    public ScaleIOProtectionDomain getScaleIoProtectionDomain()
+    {
+        final TypedQuery<ScaleIOProtectionDomain> query = entityManager.createQuery("SELECT scaleio FROM ScaleIOProtectionDomain as scaleio", ScaleIOProtectionDomain.class);
+
+        final List<ScaleIOProtectionDomain> scaleIOProtectionDomainList = query.getResultList();
+
+        if (!CollectionUtils.isEmpty(scaleIOProtectionDomainList))
+        {
+            return scaleIOProtectionDomainList.stream().findFirst().orElseGet(null);
+        }
+
+        return null;
+    }
+
+    @Override
+    public ScaleIOSDS getScaleIoSds()
+    {
+        final TypedQuery<ScaleIOSDS> query = entityManager.createQuery("SELECT scaleio FROM ScaleIOSDS as scaleio", ScaleIOSDS.class);
+
+        final List<ScaleIOSDS> scaleIoSdsList = query.getResultList();
+
+        if (!CollectionUtils.isEmpty(scaleIoSdsList))
+        {
+            return scaleIoSdsList.stream().findFirst().orElseGet(null);
+        }
+
+        return null;
     }
 }
