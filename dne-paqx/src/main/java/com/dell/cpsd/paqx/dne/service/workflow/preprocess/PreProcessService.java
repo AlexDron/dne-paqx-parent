@@ -149,7 +149,7 @@ public class PreProcessService extends BaseService implements IPreProcessService
         workflowTasks.put("findScaleIO", createFindScaleIOTask());
         workflowTasks.put("findVCluster", createVClusterTask());
         workflowTasks.put("discoverNodeInventory", discoverNodeInventory());
-        //workflowTasks.put("findProtectionDomain", findProtectionDomainTask());
+        workflowTasks.put("findProtectionDomain", findProtectionDomainTask());
         //workflowTasks.put("findSystemData", findSystemDataTask());
         //workflowTasks.put("assignDefaultHostName", assignDefaultHostNameTask());
         //workflowTasks.put("assignDefaultCredentials", assignDefaultCredentialsTask());
