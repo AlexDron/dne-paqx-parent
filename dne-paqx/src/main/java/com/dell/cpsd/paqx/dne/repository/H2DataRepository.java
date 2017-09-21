@@ -643,8 +643,8 @@ public class H2DataRepository implements DataServiceRepository
         {
             return scaleIOProtectionDomainList.stream().findFirst().orElseGet(null);
         }
+        throw new NoResultException("No protection domain found");
 
-        return null;
     }
 
     @Override
@@ -659,7 +659,7 @@ public class H2DataRepository implements DataServiceRepository
             return scaleIoSdsList.stream().findFirst().orElseGet(null);
         }
 
-        return null;
+        throw new NoResultException("No ScaleIo SDS list found");
     }
 
     @Override

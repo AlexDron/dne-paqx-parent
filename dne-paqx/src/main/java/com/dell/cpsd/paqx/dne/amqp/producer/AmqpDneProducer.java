@@ -648,6 +648,14 @@ public class AmqpDneProducer implements DneProducer
         rabbitTemplate.convertAndSend(essRequestExchange, essReqRoutingKeyPrefix, requestMessage);
     }
 
+    @Override
+    public void publishValidateProtectionDomain(EssValidateProtectionDomainsRequestMessage requestMessage)
+    {
+        // At this phase ESS is for DNE internal use only so no capability registry for ESS, use exchange, routing key directly.
+        LOGGER.info("Send request to ESS validation for protection domains.");
+        rabbitTemplate.convertAndSend(essRequestExchange, essReqRoutingKeyPrefix, requestMessage);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -782,31 +790,31 @@ public class AmqpDneProducer implements DneProducer
         }
     }
 
-    @Override
-    public void publishValidateProtectionDomain(EssValidateProtectionDomainsRequestMessage requestMessage)
-    {
-        Collection<CapabilityData> capabilities = capabilityBinder.getCurrentCapabilities();
-
-        if (capabilities == null)
-        {
-            LOGGER.error("No Capabilities found for publishValidateProtectionDomain");
-            return;
-        }
-
-        LOGGER.info("publishValidateProtectionDomain: found list of capabilities with size {}", capabilities.size());
-
-        for (CapabilityData capabilityData : capabilities)
-        {
-            ProviderEndpoint endpoint = capabilityData.getCapability().getProviderEndpoint();
-            AmqpProviderEndpointHelper endpointHelper = new AmqpProviderEndpointHelper(endpoint);
-            if (messageType(DatastoreRenameRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
-            {
-                LOGGER.info("Send validate protection domain request message from DNE paqx.");
-                rabbitTemplate.convertAndSend(endpointHelper.getRequestExchange(), endpointHelper.getRequestRoutingKey(), requestMessage);
-                break;
-            }
-        }
-    }
+//    @Override
+//    public void publishValidateProtectionDomain(EssValidateProtectionDomainsRequestMessage requestMessage)
+//    {
+//        Collection<CapabilityData> capabilities = capabilityBinder.getCurrentCapabilities();
+//
+//        if (capabilities == null)
+//        {
+//            LOGGER.error("No Capabilities found for publishValidateProtectionDomain");
+//            return;
+//        }
+//
+//        LOGGER.info("publishValidateProtectionDomain: found list of capabilities with size {}", capabilities.size());
+//
+//        for (CapabilityData capabilityData : capabilities)
+//        {
+//            ProviderEndpoint endpoint = capabilityData.getCapability().getProviderEndpoint();
+//            AmqpProviderEndpointHelper endpointHelper = new AmqpProviderEndpointHelper(endpoint);
+//            if (messageType(DatastoreRenameRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
+//            {
+//                LOGGER.info("Send validate protection domain request message from DNE paqx.");
+//                rabbitTemplate.convertAndSend(endpointHelper.getRequestExchange(), endpointHelper.getRequestRoutingKey(), requestMessage);
+//                break;
+//            }
+//        }
+//    }
 
     private String messageType(Class messageClass)
     {
