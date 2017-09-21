@@ -19,6 +19,7 @@ import com.dell.cpsd.hdp.capability.registry.api.ProviderEndpoint;
 import com.dell.cpsd.hdp.capability.registry.client.binder.CapabilityBinder;
 import com.dell.cpsd.hdp.capability.registry.client.binder.CapabilityData;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
+import com.dell.cpsd.service.engineering.standards.EssValidateProtectionDomainsRequestMessage;
 import com.dell.cpsd.service.engineering.standards.EssValidateStoragePoolRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListComponentRequestMessage;
 import com.dell.cpsd.storage.capabilities.api.ListStorageRequestMessage;
@@ -440,6 +441,19 @@ public class AmqpDneProducerTest
     public void publishUpdateSoftwareAcceptance_no_capabilities()
     {
         this.executeTest_no_capabilities(mock(VCenterUpdateSoftwareAcceptanceRequestMessage.class), this.producer::publishUpdateSoftwareAcceptance);
+    }
+
+    @Test
+    public void publishValidateProtectionDomain()
+    {
+        EssValidateProtectionDomainsRequestMessage request = mock(EssValidateProtectionDomainsRequestMessage.class);
+
+        ReflectionTestUtils.setField(this.producer, "essRequestExchange", this.exchange);
+        ReflectionTestUtils.setField(this.producer, "essReqRoutingKeyPrefix", this.routingKey);
+
+        this.producer.publishValidateProtectionDomain(request);
+
+        verify(this.rabbitTemplate).convertAndSend(this.exchange, this.routingKey, request);
     }
 
     private <T> void executeTest(T request, Consumer<T> consumer)
