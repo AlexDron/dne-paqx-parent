@@ -91,4 +91,6 @@ public interface DataServiceRepository
     NodeInventory getNodeIventory(String symphonyUUID) throws NoResultException;
 
     String getDomainName();
+
+    String getNodeType(String symphonyUuid);
 }

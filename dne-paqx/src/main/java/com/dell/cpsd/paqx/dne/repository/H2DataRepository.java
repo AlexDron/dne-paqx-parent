@@ -15,12 +15,15 @@ import com.dell.cpsd.paqx.dne.domain.inventory.NodeInventory;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOProtectionDomain;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOSDS;
-import com.dell.cpsd.paqx.dne.domain.vcenter.Host;
-import com.dell.cpsd.paqx.dne.domain.vcenter.HostDnsConfig;
-import com.dell.cpsd.paqx.dne.domain.vcenter.PciDevice;
-import com.dell.cpsd.paqx.dne.domain.vcenter.PortGroup;
-import com.dell.cpsd.paqx.dne.domain.vcenter.VCenter;
+import com.dell.cpsd.paqx.dne.domain.vcenter.*;
 import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
+
+import com.dell.cpsd.paqx.dne.service.model.NodeExpansionRequest;
+import com.dell.cpsd.paqx.dne.service.model.Status;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -658,4 +661,31 @@ public class H2DataRepository implements DataServiceRepository
 
         return null;
     }
+
+    @Override
+    public String getNodeType(final String symphonyUuid){
+
+        NodeInventory nodeInventory = getNodeIventory(symphonyUuid);
+        try {
+            if (nodeInventory != null && nodeInventory.getNodeInventory() != null)
+            {
+                JsonParser parser = new JsonParser();
+                JsonArray array = parser.parse(nodeInventory.getNodeInventory()).getAsJsonArray();
+
+                String product_name = JsonPath.read(array, "$[0].data['System Information']['Product Name']");
+
+                String NodeType = null;
+                if (product_name.contains("630")) {
+                   NodeType = "1U1N";
+                } else if (product_name.contains("630")) {
+                    NodeType = "2U1N";
+                }
+                return NodeType;
+            }
+        }
+            catch(Exception e){
+                LOG.info("", e);
+            }
+            return null;
+        }
 }

@@ -72,15 +72,9 @@ public class ScaleIOSDS
         this.port = port;
     }
 
-    //    public String getUuid()
-    //    {
-    //        return uuid;
-    //    }
-    //
-    //    public void setUuid(final String uuid)
-    //    {
-    //        this.uuid = uuid;
-    //    }
+    public Long getUuid() {return uuid;}
+
+    public void setUuid(final Long uuid) {this.uuid = uuid;}
 
     public String getId()
     {

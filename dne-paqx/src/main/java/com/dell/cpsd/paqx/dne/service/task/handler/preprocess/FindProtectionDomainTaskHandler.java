@@ -85,7 +85,7 @@ public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements 
             ScaleIODataServer scaleIODataServer = new ScaleIODataServer();
             scaleIODataServer.setId(scaleIOSDS.getId());
             scaleIODataServer.setName(scaleIOSDS.getName());
-//            scaleIODataServer.setType();
+            scaleIODataServer.setType(repository.getNodeType(scaleIOSDS.getUuid().toString()));
             List<ScaleIODataServer> scaleIODataServerList = new ArrayList<>();
 
             /**
@@ -104,14 +104,23 @@ public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements 
             NodeData nodeData = new NodeData();
             nodeData.setSymphonyUuid(uuid);
             nodeData.setProtectionDomainId(scaleIOProtectionDomain.getId());
-//            nodeData.setType();
+            nodeData.setType(repository.getNodeType(uuid));
 
+            /**
+             * Setting up EssValidateProtectionDomainsRequestMessage
+             */
             EssValidateProtectionDomainsRequestMessage requestMessage = new EssValidateProtectionDomainsRequestMessage();
             requestMessage.setNodeData(nodeData);
             requestMessage.setProtectionDomains(protectionDomainList);
 
+            /**
+             * Creating the response.
+             */
             EssValidateProtectionDomainsResponseMessage protectionDomainResponse = nodeService.validateProtectionDomains(requestMessage);
 
+            /**
+             * Mapping the actual response to local response
+             */
             ValidateProtectionDomainResponse validateProtectionDomainResponse = new ValidateProtectionDomainResponse();
             String protectionDomainId = protectionDomainResponse.getValidProtectionDomains().get(0).getProtectionDomainID();
             if (protectionDomainId == null){
@@ -150,7 +159,6 @@ public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements 
         {
             result.put("protectionDomain",validateProtectionDomainResponse.getProtectionDomains() );
         }
-
         return result;
     }
 
