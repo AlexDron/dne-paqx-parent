@@ -677,7 +677,7 @@ public class H2DataRepository implements DataServiceRepository
                 String NodeType = null;
                 if (product_name.contains("630")) {
                    NodeType = "1U1N";
-                } else if (product_name.contains("630")) {
+                } else if (product_name.contains("730")) {
                     NodeType = "2U1N";
                 }
                 return NodeType;
