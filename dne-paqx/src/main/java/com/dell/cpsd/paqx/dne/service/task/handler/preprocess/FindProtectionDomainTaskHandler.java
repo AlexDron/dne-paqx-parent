@@ -8,20 +8,22 @@ package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
+import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOData;
 import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOProtectionDomain;
-import com.dell.cpsd.paqx.dne.domain.scaleio.ScaleIOSDS;
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.model.Status;
 import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
 import com.dell.cpsd.paqx.dne.service.model.ValidateProtectionDomainResponse;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
-import com.dell.cpsd.service.engineering.standards.*;
+import com.dell.cpsd.service.engineering.standards.EssValidateProtectionDomainsRequestMessage;
+import com.dell.cpsd.service.engineering.standards.EssValidateProtectionDomainsResponseMessage;
+import com.dell.cpsd.service.engineering.standards.NodeData;
+import com.dell.cpsd.service.engineering.standards.ProtectionDomain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,16 +63,18 @@ public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements 
         TaskResponse response = initializeResponse(job);
 
         try {
-            final ScaleIOProtectionDomain scaleIOProtectionDomain = repository.getScaleIoProtectionDomain();
+            EssValidateProtectionDomainsRequestMessage requestMessage = new EssValidateProtectionDomainsRequestMessage();
 
+
+            final ScaleIOProtectionDomain scaleIOProtectionDomain = repository.getScaleIoProtectionDomain();
             if (scaleIOProtectionDomain == null) {
                 throw new IllegalStateException("No ScaleIO protection domains found.");
             }
-
-            final ScaleIOSDS scaleIOSDS = repository.getScaleIoSds();
-            if (scaleIOSDS == null) {
-                throw new IllegalStateException("No ScaleIO SDS found.");
-            }
+//
+//            final ScaleIOSDS scaleIOSDS = repository.getScaleIoSds();
+//            if (scaleIOSDS == null) {
+//                throw new IllegalStateException("No ScaleIO SDS found.");
+//            }
 
             /**
              * Finding uuid
@@ -78,25 +82,6 @@ public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements 
             Map<String, TaskResponse> responseMap = job.getTaskResponseMap();
             TaskResponse findNodeTask = responseMap.get("findAvailableNodes");
             String uuid = findNodeTask.getResults().get("symphonyUUID");
-
-            /**
-             * Setting up ScaleIODataServer request
-             */
-            ScaleIODataServer scaleIODataServer = new ScaleIODataServer();
-            scaleIODataServer.setId(scaleIOSDS.getId());
-            scaleIODataServer.setName(scaleIOSDS.getName());
-            scaleIODataServer.setType(repository.getNodeType(scaleIOSDS.getUuid().toString()));
-            List<ScaleIODataServer> scaleIODataServerList = new ArrayList<>();
-
-            /**
-             * Setting up ProtectionDomain request
-             */
-            ProtectionDomain protectionDomain = new ProtectionDomain();
-            protectionDomain.setId(scaleIOProtectionDomain.getId());
-            protectionDomain.setName(scaleIOProtectionDomain.getName());
-            protectionDomain.setState(scaleIOProtectionDomain.getProtectionDomainState());
-            protectionDomain.setScaleIODataServers(scaleIODataServerList);
-            List<ProtectionDomain> protectionDomainList = new ArrayList<>();
 
             /**
              * Setting up NodeData request
@@ -107,9 +92,37 @@ public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements 
             nodeData.setType(repository.getNodeType(uuid));
 
             /**
+             * Setting up ProtectionDomainList request
+             */
+            List<ProtectionDomain> protectionDomainList = requestMessage.getProtectionDomains();
+            ProtectionDomain protectionDomainRequest = new ProtectionDomain();
+            List<ScaleIOData> scaleIODataList = nodeService.listScaleIOData();
+            if (scaleIODataList != null && scaleIODataList.size() > 0){
+                ScaleIOData scaleIOData = scaleIODataList.get(0);
+                List<ScaleIOProtectionDomain> protectionDomains = scaleIOData.getProtectionDomains();
+                if (protectionDomains != null){
+                    for (ScaleIOProtectionDomain protectionDomain : protectionDomains)
+                    {
+                        protectionDomainRequest.setId(protectionDomain.getId());
+                        protectionDomainRequest.setName(protectionDomain.getName());
+                        protectionDomainRequest.setState(protectionDomain.getProtectionDomainState());
+                        protectionDomainList.add(protectionDomainRequest);
+                    }
+                }
+            }
+
+//            /**
+//             * Setting up ScaleIODataServer request
+//             */
+//            ScaleIODataServer scaleIODataServer = new ScaleIODataServer();
+//            scaleIODataServer.setId(scaleIOSDS.getId());
+//            scaleIODataServer.setName(scaleIOSDS.getName());
+//            scaleIODataServer.setType(repository.getNodeType(scaleIOSDS.getUuid().toString()));
+//            List<ScaleIODataServer> scaleIODataServerList = new ArrayList<>();
+
+            /**
              * Setting up EssValidateProtectionDomainsRequestMessage
              */
-            EssValidateProtectionDomainsRequestMessage requestMessage = new EssValidateProtectionDomainsRequestMessage();
             requestMessage.setNodeData(nodeData);
             requestMessage.setProtectionDomains(protectionDomainList);
 
@@ -125,8 +138,8 @@ public class FindProtectionDomainTaskHandler extends BaseTaskHandler implements 
             String protectionDomainId = protectionDomainResponse.getValidProtectionDomains().get(0).getProtectionDomainID();
             if (protectionDomainId == null){
 
+                response.addError(protectionDomainResponse.getError().getMessage());
                 throw new IllegalStateException("No valid protection domain found");
-//                response.addError(protectionDomainResponse.getErrorMessage());
             }
 
             validateProtectionDomainResponse.setProtectionDomains(protectionDomainId);
