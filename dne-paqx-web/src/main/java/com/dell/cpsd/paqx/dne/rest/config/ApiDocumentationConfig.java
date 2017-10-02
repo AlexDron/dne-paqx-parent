@@ -24,7 +24,7 @@ public class ApiDocumentationConfig {
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.any())
-                .paths(regex("/dne/.*"))
+                .paths(regex("/(dne|multinode)/.*"))
                 .build()
                 .pathMapping("/");
     }

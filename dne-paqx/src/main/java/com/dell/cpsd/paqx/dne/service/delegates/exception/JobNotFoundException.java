@@ -3,10 +3,10 @@
  * Dell EMC Confidential/Proprietary Information
  */
 
-package com.dell.cpsd.paqx.dne.rest.exception;
+package com.dell.cpsd.paqx.dne.service.delegates.exception;
 
 
-public class WorkflowNotFoundException extends Exception {
+public class JobNotFoundException extends Exception {
     /*
     * The serial version uuid
     */
@@ -25,7 +25,7 @@ public class WorkflowNotFoundException extends Exception {
      * @param message The message
      * @since 1.0
      */
-    public WorkflowNotFoundException(final int code, final String message) {
+    public JobNotFoundException(final int code, final String message) {
         super(message);
         this.code = code;
     }
@@ -39,7 +39,7 @@ public class WorkflowNotFoundException extends Exception {
      * @param cause   The cause
      * @since 1.0
      */
-    public WorkflowNotFoundException(final int code, final String message, final Throwable cause) {
+    public JobNotFoundException(final int code, final String message, final Throwable cause) {
         super(message, cause);
         this.code = code;
     }
