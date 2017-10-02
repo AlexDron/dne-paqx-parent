@@ -485,7 +485,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     }
 
     @Override
-    public List<ScaleIOData> listScaleIOData() throws ServiceExecutionException
+    public List<ScaleIOData> listScaleIOData()
     {
         LOGGER.info("Listing scaleIO data ...");
 

@@ -78,7 +78,7 @@ public interface NodeService
      * @return
      * @throws ServiceExecutionException
      */
-    List<ScaleIOData> listScaleIOData() throws  ServiceExecutionException;
+    List<ScaleIOData> listScaleIOData();
 
     /**
      * List the rackhd node inventory
