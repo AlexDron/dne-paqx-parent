@@ -45,7 +45,7 @@ public class RetrieveVCenterComponents extends BaseWorkflowDelegate
         boolean succeeded = true;
         try
         {
-            //succeeded = this.nodeService.requestVCenterComponents();
+            succeeded = this.nodeService.requestVCenterComponents();
         }
         catch (Exception e)
         {

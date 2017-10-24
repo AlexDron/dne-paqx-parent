@@ -46,7 +46,7 @@ public class RetrieveScaleIoComponents extends BaseWorkflowDelegate
         boolean succeeded = true;
         try
         {
-            //succeeded = this.nodeService.requestScaleIoComponents();
+            succeeded = this.nodeService.requestScaleIoComponents();
         }
         catch (Exception e)
         {

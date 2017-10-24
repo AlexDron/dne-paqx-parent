@@ -51,7 +51,7 @@ public class InventoryScaleIO extends BaseWorkflowDelegate
         ComponentEndpointIds componentEndpointIds = new ComponentEndpointIds("1", "2", "3", "4");
         try
         {
-            //componentEndpointIds = repository.getComponentEndpointIds("SCALEIO");
+            componentEndpointIds = repository.getComponentEndpointIds("SCALEIO-CLUSTER");
         }
         catch (Exception e)
         {
@@ -72,8 +72,8 @@ public class InventoryScaleIO extends BaseWorkflowDelegate
         boolean success = true;
         try
         {
-            //success = this.nodeService.requestDiscoverScaleIo(componentEndpointIds,
-            //                                                  delegateExecution.getProcessInstanceId());
+            success = this.nodeService.requestDiscoverScaleIo(componentEndpointIds,
+                                                              delegateExecution.getProcessInstanceId());
         }
         catch (Exception e)
         {

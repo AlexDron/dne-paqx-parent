@@ -51,7 +51,7 @@ public class InventoryVCenter extends BaseWorkflowDelegate
         ComponentEndpointIds componentEndpointIds = new ComponentEndpointIds("1", "2", "3","4");
         try
         {
-            //componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
+            componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
         }
         catch (Exception e)
         {
@@ -72,8 +72,8 @@ public class InventoryVCenter extends BaseWorkflowDelegate
         boolean success = true;
         try
         {
-            //success = this.nodeService.requestDiscoverVCenter(componentEndpointIds,
-            //                                                  delegateExecution.getProcessInstanceId());
+            success = this.nodeService.requestDiscoverVCenter(componentEndpointIds,
+                                                              delegateExecution.getProcessInstanceId());
         }
         catch (Exception e)
         {
