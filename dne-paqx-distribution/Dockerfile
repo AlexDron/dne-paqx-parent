@@ -31,5 +31,6 @@ RUN mkdir ./logs \
 && chmod 755 ./bin/run.sh
       
 EXPOSE 8071
+EXPOSE 8555
 
 ENTRYPOINT ["./bin/run.sh"]
