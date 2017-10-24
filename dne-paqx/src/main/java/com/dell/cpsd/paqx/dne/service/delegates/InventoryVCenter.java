@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.INVENTORY_VCENTER_FAILED;
+import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.VCENTER_INFORMATION_NOT_FOUND;
 
 @Component
 @Scope("prototype")
@@ -47,7 +48,7 @@ public class InventoryVCenter extends BaseWorkflowDelegate
     {
         LOGGER.info("Execute Inventory VCenter");
 
-        ComponentEndpointIds componentEndpointIds = new ComponentEndpointIds("1", "2", "3","4");
+        ComponentEndpointIds componentEndpointIds = null;
         try
         {
             componentEndpointIds = repository.getVCenterComponentEndpointIdsByEndpointType("VCENTER-CUSTOMER");
@@ -60,7 +61,7 @@ public class InventoryVCenter extends BaseWorkflowDelegate
             throw new BpmnError(INVENTORY_VCENTER_FAILED,
                                 "An Unexpected Exception occurred attempting to inventory VCenter.  Reason: " +
                                 e.getMessage());
-        }/*
+        }
         if (componentEndpointIds == null)
         {
             LOGGER.error("VCenter Endpoints not found.");
@@ -88,7 +89,7 @@ public class InventoryVCenter extends BaseWorkflowDelegate
             LOGGER.error("Request for Inventory VCenter failed");
             updateDelegateStatus("Inventory request for VCenter Failed.");
             throw new BpmnError(INVENTORY_VCENTER_FAILED, "Inventory request for VCenter Failed.");
-        }*/
+        }
         LOGGER.info("Request for Inventory VCenter completed successfully.");
         updateDelegateStatus("Inventory request for VCenter completed successfully.");
     }

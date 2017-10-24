@@ -6,6 +6,7 @@
 package com.dell.cpsd.paqx.dne.service.delegates;
 
 import com.dell.cpsd.paqx.dne.service.NodeService;
+import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.RETRIEVE_VCENTER_COMPONENTS_FAILED;
 
 @Component
 @Scope("prototype")
@@ -40,7 +43,7 @@ public class RetrieveVCenterComponents extends BaseWorkflowDelegate
     {
         LOGGER.info("Execute List VCenter Components");
         boolean succeeded;
-       /* try
+        try
         {
             succeeded = this.nodeService.requestVCenterComponents();
         }
@@ -58,7 +61,7 @@ public class RetrieveVCenterComponents extends BaseWorkflowDelegate
             LOGGER.error("VCenter Components were not retrieved.");
             updateDelegateStatus("VCenter Components were not retrieved.");
             throw new BpmnError(RETRIEVE_VCENTER_COMPONENTS_FAILED, "VCenter Components were not retrieved.");
-        }*/
+        }
         LOGGER.info("VCenter Components were retrieved successfully.");
         updateDelegateStatus("VCenter Components were retrieved successfully.");
 

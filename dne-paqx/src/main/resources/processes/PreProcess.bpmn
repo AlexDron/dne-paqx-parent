@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.2">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.10.0">
   <bpmn:process id="preProcess" name="Pre Process" isExecutable="true" camunda:versionTag="1.0">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_1xg9b7l</bpmn:outgoing>
@@ -24,7 +24,7 @@
       <bpmn:outgoing>SequenceFlow_0zultiu</bpmn:outgoing>
       <bpmn:errorEventDefinition camunda:errorCodeVariable="errorCode" camunda:errorMessageVariable="errorMessage" />
     </bpmn:boundaryEvent>
-    <bpmn:serviceTask id="handleError" name="Handle Error" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:exclusive="false" camunda:class="com.dell.cpsd.paqx.service.delegates.HandleError">
+    <bpmn:serviceTask id="handleError" name="Handle Error" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:exclusive="false" camunda:class="com.dell.cpsd.paqx.dne.service.delegates.HandleError">
       <bpmn:incoming>SequenceFlow_09p3mp4</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1q1kgtz</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1yufucj</bpmn:incoming>

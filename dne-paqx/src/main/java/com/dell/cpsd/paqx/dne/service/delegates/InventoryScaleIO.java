@@ -7,6 +7,8 @@ package com.dell.cpsd.paqx.dne.service.delegates;
 
 import com.dell.cpsd.paqx.dne.repository.DataServiceRepository;
 import com.dell.cpsd.paqx.dne.service.NodeService;
+import com.dell.cpsd.paqx.dne.service.model.ComponentEndpointIds;
+import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.INVENTORY_SCALE_IO_FAILED;
+import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.SCALE_IO_INFORMATION_NOT_FOUND;
 
 @Component
 @Scope("prototype")
@@ -43,7 +48,7 @@ public class InventoryScaleIO extends BaseWorkflowDelegate
     {
         LOGGER.info("Execute Inventory ScaleIO");
 
-        /*ComponentEndpointIds componentEndpointIds = new ComponentEndpointIds("1", "2", "3", "4");
+        ComponentEndpointIds componentEndpointIds = null;
         try
         {
             componentEndpointIds = repository.getComponentEndpointIds("SCALEIO-CLUSTER");
@@ -85,7 +90,7 @@ public class InventoryScaleIO extends BaseWorkflowDelegate
             LOGGER.error("Request for Inventory Scale IO failed.");
             updateDelegateStatus("Inventory request for Scale IO Failed.");
             throw new BpmnError(INVENTORY_SCALE_IO_FAILED, "Inventory request for Scale IO Failed.");
-        }*/
+        }
         LOGGER.info("Request for Inventory Scale IO completed successfully.");
         updateDelegateStatus("Inventory request for Scale IO completed successfully.");
 
