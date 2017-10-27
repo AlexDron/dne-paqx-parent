@@ -5,7 +5,7 @@
  * </p>
  */
 
-package com.dell.cpsd.paqx.dne.service.delegate;
+package com.dell.cpsd.paqx.dne.service.delegates;
 
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.delegates.*;
