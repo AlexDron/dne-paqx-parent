@@ -208,8 +208,7 @@ public class AddHostToProtectionDomainTaskHandler extends BaseTaskHandler implem
             // '/' is a valid character for deviceName
             //the deviceName tends to look like "/dev/sda scsi" so it will change to "/dev/sda/scsi"
             returnVal = deviceToDeviceStoragePoolAssignment.values().stream().filter(Objects::nonNull)
-                    .filter(ddspa->!ddspa.getLogicalName().equals("/dev/sda"))
-                    .map(ddspa -> new DeviceInfo(ddspa.getLogicalName(), ddspa.getStoragePoolId(), ddspa.getDeviceName().replace(' ', '/'))).collect(Collectors.toList());
+                    .map(ddspa -> new DeviceInfo(ddspa.getLogicalName(), ddspa.getStoragePoolId(), null)).collect(Collectors.toList());
         }
         return returnVal;
     }

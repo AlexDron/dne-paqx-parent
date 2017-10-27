@@ -31,6 +31,7 @@ public class NodeInventoryParsingUtil
     private static final String FAMILY_FIELD       = "Family";
     private static final String SMART_SOURCE       = "smart";
     private static final String SOLID_STATE_DEVICE = "Solid State Device";
+    private static final String DEVICE_PATH_BY_ID  = "/dev/disk/by-id/wwn-";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeInventoryParsingUtil.class);
 
@@ -98,13 +99,7 @@ public class NodeInventoryParsingUtil
                                 capacity = context
                                         .read("$[" + iCount + "]['data'][" + iDataCount + "]['smart']['identity']['user capacity']",
                                                 String.class);
-                                capacity = capacity == null ? null : capacity.split("bytes")[0].replaceAll(",","").trim();
-
-                                if (deviceName != null)
-                                {
-                                    //Take off the scsi part if it exists.
-                                    devicePath = deviceName.split(" ")[0];
-                                }
+                                capacity = capacity == null ? null : capacity.split("bytes")[0].replaceAll(",", "").trim();
 
                                 // skip SATADOM-ML drives, they are not scaleio data disks
                                 try
@@ -112,6 +107,10 @@ public class NodeInventoryParsingUtil
                                     deviceId = context
                                             .read("$[" + iCount + "]['data'][" + iDataCount + "]['smart']['identity']['logical unit id']",
                                                     String.class);
+
+                                    //It has to include 0x
+                                    devicePath = DEVICE_PATH_BY_ID + deviceId;
+
                                     // remove 0x prefix
                                     deviceId = deviceId == null ? null : deviceId.substring(2);
                                 }
@@ -123,12 +122,17 @@ public class NodeInventoryParsingUtil
                                                 + "]['smart']['identity']['lu wwn device id']", String.class);
                                         // remove spaces in between
                                         deviceId = deviceId == null ? null : deviceId.replaceAll("\\s", "");
+
+                                        devicePath = DEVICE_PATH_BY_ID + deviceId;
                                     }
                                     catch (PathNotFoundException ex)
                                     {
                                         LOGGER.info("No device id found for device name: " + deviceName);
                                     }
                                 }
+
+                                LOGGER.info("Device name " + deviceName + " has device path as " + devicePath);
+
                                 if (deviceId != null)
                                 {
                                     Device newDevice = new Device(deviceId, deviceName, null, serialNumber, null, devicePath,

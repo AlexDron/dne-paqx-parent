@@ -121,19 +121,6 @@ public class AddVCenterHostToProtectionDomain extends BaseWorkflowDelegate
         return sdsIpList;
     }
 
-    private List<DeviceInfo> createDeviceAssignmentList(Job job) {
-
-        List<DeviceInfo> returnVal=null;
-        Map<String, DeviceAssignment> deviceToDeviceStoragePoolAssignment = job.getInputParams().getDeviceToDeviceStoragePool();
-
-        if (deviceToDeviceStoragePoolAssignment != null)
-        {
-            returnVal = deviceToDeviceStoragePoolAssignment.values().stream().filter(Objects::nonNull)
-                    .map(ddspa -> new DeviceInfo(ddspa.getLogicalName(), ddspa.getStoragePoolId(), ddspa.getDeviceName())).collect(Collectors.toList());
-        }
-        return returnVal;
-    }
-
     @Override
     public void delegateExecute(final DelegateExecution delegateExecution)
     {
