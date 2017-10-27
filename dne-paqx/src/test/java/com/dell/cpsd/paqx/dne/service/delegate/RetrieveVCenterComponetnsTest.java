@@ -1,0 +1,90 @@
+
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
+package com.dell.cpsd.paqx.dne.service.delegate;
+
+import com.dell.cpsd.paqx.dne.service.NodeService;
+import com.dell.cpsd.paqx.dne.service.delegates.*;
+import com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants;
+import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
+import org.camunda.bpm.engine.delegate.BpmnError;
+import org.camunda.bpm.engine.delegate.DelegateExecution;
+import org.junit.Before;
+import org.junit.*;
+
+import java.util.List;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+
+public class RetrieveVCenterComponetnsTest {
+
+    private RetrieveVCenterComponents retrieveVCenterComponents;
+    private NodeService nodeService;
+    private DelegateExecution delegateExecution;
+    private List<DiscoveredNode> discoveredNodesResponse;
+    private DiscoveredNode discoveredNode;
+    private BaseWorkflowDelegate baseWorkflowDelegate;
+
+    @Before
+    public void setUp() throws Exception
+    {
+        nodeService = mock(NodeService.class);
+        retrieveVCenterComponents = new RetrieveVCenterComponents(nodeService);
+        delegateExecution = mock(DelegateExecution.class);
+        discoveredNodesResponse = nodeService.listDiscoveredNodes();
+        baseWorkflowDelegate = mock(BaseWorkflowDelegate.class);
+    }
+
+    @Ignore @Test
+    public void testFailedException() throws Exception
+    {
+        try {
+            nodeService = null;
+            retrieveVCenterComponents.delegateExecute(delegateExecution);
+        } catch (BpmnError error)
+        {
+            assertTrue(error.getErrorCode().equals(DelegateConstants.RETRIEVE_VCENTER_COMPONENTS_FAILED));
+        }
+    }
+
+    @Ignore @Test
+    public void testFailed() throws Exception
+    {
+        try {
+            when(nodeService.requestVCenterComponents()).thenReturn(false);
+            retrieveVCenterComponents.delegateExecute(delegateExecution);
+        } catch (BpmnError error)
+        {
+            assertTrue(error.getErrorCode().equals(DelegateConstants.RETRIEVE_VCENTER_COMPONENTS_FAILED));
+        }
+    }
+
+    @Ignore @Test
+    public void testSuccess() throws Exception
+    {
+        when(nodeService.requestVCenterComponents()).thenReturn(true);
+        final RetrieveVCenterComponents c = spy(new RetrieveVCenterComponents(nodeService));
+        c.delegateExecute(delegateExecution);
+        verify(c).updateDelegateStatus("VCenter Components were retrieved successfully.");
+    }
+
+    @Ignore @Test
+    public void testException() throws Exception
+    {
+        try {
+            given(nodeService.requestVCenterComponents()).willThrow(new NullPointerException());
+            retrieveVCenterComponents.delegateExecute(delegateExecution);
+        } catch (BpmnError error)
+        {
+            assertTrue(error.getErrorCode().equals(DelegateConstants.RETRIEVE_VCENTER_COMPONENTS_FAILED));
+        }
+    }
+
+}

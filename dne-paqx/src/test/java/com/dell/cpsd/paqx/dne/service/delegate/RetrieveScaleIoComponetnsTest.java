@@ -1,0 +1,88 @@
+
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ */
+
+package com.dell.cpsd.paqx.dne.service.delegate;
+
+import com.dell.cpsd.paqx.dne.service.NodeService;
+import com.dell.cpsd.paqx.dne.service.delegates.*;
+import com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants;
+import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
+import org.camunda.bpm.engine.delegate.BpmnError;
+import org.camunda.bpm.engine.delegate.DelegateExecution;
+import org.junit.Before;
+import org.junit.*;
+import org.mockito.ArgumentMatcher;
+
+import java.util.List;
+
+import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.DELEGATE_STATUS_VARIABLE;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+
+public class RetrieveScaleIoComponetnsTest {
+
+    private RetrieveScaleIoComponents retrieveScaleIoComponents;
+    private NodeService nodeService;
+    private DelegateExecution delegateExecution;
+    private List<DiscoveredNode> discoveredNodesResponse;
+    private DiscoveredNode discoveredNode;
+
+    @Before
+    public void setUp() throws Exception
+    {
+        nodeService = mock(NodeService.class);
+        retrieveScaleIoComponents = new RetrieveScaleIoComponents(nodeService);
+        delegateExecution = mock(DelegateExecution.class);
+        discoveredNodesResponse = nodeService.listDiscoveredNodes();
+    }
+
+    @Ignore @Test
+    public void testFailedException() throws Exception
+    {
+        try {
+            nodeService = null;
+            retrieveScaleIoComponents.delegateExecute(delegateExecution);
+        } catch (BpmnError error)
+        {
+            assertTrue(error.getErrorCode().equals(DelegateConstants.RETRIEVE_SCALE_IO_COMPONENTS_FAILED));
+        }
+    }
+
+    @Ignore @Test
+    public void testFailed() throws Exception
+    {
+        try {
+            when(nodeService.requestScaleIoComponents()).thenReturn(false);
+            retrieveScaleIoComponents.delegateExecute(delegateExecution);
+        } catch (BpmnError error)
+        {
+            assertTrue(error.getErrorCode().equals(DelegateConstants.RETRIEVE_SCALE_IO_COMPONENTS_FAILED));
+        }
+    }
+
+    @Ignore @Test
+    public void testSuccess() throws Exception
+    {
+        when(nodeService.requestScaleIoComponents()).thenReturn(true);
+        final RetrieveScaleIoComponents c = spy(new RetrieveScaleIoComponents(nodeService));
+        c.delegateExecute(delegateExecution);
+        verify(c).updateDelegateStatus("Scale IO Components were retrieved successfully.");
+    }
+
+    @Ignore @Test
+    public void testException() throws Exception
+    {
+        try {
+            given(nodeService.requestScaleIoComponents()).willThrow(new NullPointerException());
+            retrieveScaleIoComponents.delegateExecute(delegateExecution);
+        } catch (BpmnError error)
+        {
+            assertTrue(error.getErrorCode().equals(DelegateConstants.RETRIEVE_SCALE_IO_COMPONENTS_FAILED));
+        }
+    }
+}
