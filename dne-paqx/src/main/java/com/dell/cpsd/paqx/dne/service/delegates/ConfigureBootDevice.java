@@ -8,6 +8,10 @@ package com.dell.cpsd.paqx.dne.service.delegates;
 
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.delegates.model.NodeDetail;
+import com.dell.cpsd.paqx.dne.service.model.BootDeviceIdracStatus;
+import com.dell.cpsd.paqx.dne.service.model.ConfigureBootDeviceIdracRequest;
+import org.apache.commons.collections.CollectionUtils;
+import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.CONFIGURE_BOOT_DEVICE_FAILED;
 import static com.dell.cpsd.paqx.dne.service.delegates.utils.DelegateConstants.NODE_DETAIL;
 
 @Component
@@ -46,7 +51,7 @@ public class ConfigureBootDevice extends BaseWorkflowDelegate
         final String taskMessage = "Boot Device Configuration";
         NodeDetail nodeDetail = (NodeDetail) delegateExecution.getVariable(NODE_DETAIL);
 
-        /*BootDeviceIdracStatus bootDeviceIdracStatus = null;
+        BootDeviceIdracStatus bootDeviceIdracStatus = null;
         try
         {
 
@@ -82,7 +87,7 @@ public class ConfigureBootDevice extends BaseWorkflowDelegate
             LOGGER.error(message[0]);
             updateDelegateStatus(message[0]);
             throw new BpmnError(CONFIGURE_BOOT_DEVICE_FAILED, message[0]);
-        }*/
+        }
         LOGGER.info(taskMessage + " was successful on Node " + nodeDetail.getServiceTag());
         updateDelegateStatus(taskMessage + " was successful on Node " + nodeDetail.getServiceTag());
 
